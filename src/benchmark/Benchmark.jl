@@ -1,0 +1,2 @@
+module Benchmark
+end
