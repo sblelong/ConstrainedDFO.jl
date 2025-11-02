@@ -14,6 +14,21 @@ function compute_subproblem_bounds(M::AbstractManifold, p)
     return -10.0 .* ones(q), 10.0 .* ones(q)
 end
 
+_doc_rMADS_problem = """
+```math
+    $(_tex(min))_{p∈$(_tex(:Cal, "M"))} f(p)
+```
+"""
+
+@doc """
+    rmads(M, f, max_bb_eval, p0 = rand(M); kwargs...)
+
+    Perforn the Mesh Adaptive Direct Search algorithm to find a solution to the problem
+
+    $_doc_rMADS_problem
+
+    where derivatives of `f` are not available.
+"""
 function rmads(M::AbstractManifold, f, max_bb_eval::Int, p0 = rand(M); kwargs...)
     q = manifold_dimension(M)
     ℓ = 0
