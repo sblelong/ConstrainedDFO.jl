@@ -1,12 +1,16 @@
 name = "ConstrainedDFO"
 uuid = "12b7d493-2132-44b7-a248-b28c3eff80ff"
-authors = ["Sacha Benarroch-Lelong"]
 version = "1.0.0-DEV"
+authors = ["Sacha Benarroch-Lelong"]
 
 [deps]
+Manifolds = "1cead3c2-87b3-11e9-0ccd-23c62b72b94e"
+ManifoldsBase = "3362f125-f0bb-47a3-aa74-596ffd7ef2fb"
 NOMAD = "02130f1c-4665-5b79-af82-ff1385104aa0"
 
 [compat]
+Manifolds = "0.11.2"
+ManifoldsBase = "2.1.0"
 NOMAD = "2.4.2"
 julia = "1.6.7"
 
