@@ -1,7 +1,7 @@
 module ConstrainedDFO
 
-include("algs/Algorithms.jl")
-using .Algorithms
+include("solvers/Solvers.jl")
+using .Solvers
 
 include("benchmark/Benchmark.jl")
 using .Benchmark
