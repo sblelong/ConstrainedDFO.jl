@@ -1,6 +1,6 @@
 using ManifoldsBase
 using NOMAD
-using Printf
+# using Printf
 
 export rmads
 
@@ -11,7 +11,7 @@ function local_bb_wrapper(f, M::AbstractManifold, p, v)
     fd = f(Pd)
     n_evals += 1
     # norm(v) ≤ 1.0e-8 && println("Small v. Linked gap: $(distance(M, Pd, p)). Eval nb: $(n_evals). Corresponding point: $(Pd)")
-    @printf("%5d | %10.6f\n", n_evals, fd)
+    # @printf("%5d | %10.6f\n", n_evals, fd)
     eval_data[n_evals] = fd
     return (true, true, [fd])
 end
