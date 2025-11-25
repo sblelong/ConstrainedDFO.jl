@@ -84,25 +84,19 @@ function get_vector_orthonormal!(M::EqualityManifold, Y, p, c, N::AbstractNumber
 end
 
 """
-    retract(::EqualityManifold, p, X, ::AbstractRetractionMethod)
-"""
-function retract(M::EqualityManifold, p, X, m::AbstractRetractionMethod)
-    check_vector(M, p, X)
-    return retract(M, p, X, m)
-end
-
-"""
     retract(::EqualityManifold, p, X, ::ProjectionRetraction)
 """
 retract(M::EqualityManifold, p, X, ::ProjectionRetraction)
 
 function retract_project!(M::EqualityManifold, q, p, X)
+    # check_vector(M, p, X; error = :warn)
     n = representation_size(M)[1]
     h(y) = eval_defining_function(M, y)
     m = length(h(p))
     pX = p + get_vector(M, p, X, DefaultOrthonormalBasis())
 
     model = Model(Ipopt.Optimizer)
+    set_silent(model)
     @variable(model, y[1:n])
     @NLobjective(model, Min, 0.5 * sum((y[i] - pX[i])^2 for i in 1:n))
     @NLconstraint(model, [j = 1:m], h(y)[j] == 0)

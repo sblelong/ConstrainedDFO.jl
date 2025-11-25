@@ -6,8 +6,7 @@ export rmads
 
 function local_bb_wrapper(f, M::AbstractManifold, p, v)
     global n_evals, eval_data
-    d = get_vector(M, p, v)
-    Pd = retract(M, p, d)
+    Pd = retract(M, p, v)
     fd = f(Pd)
     n_evals += 1
     # norm(v) ≤ 1.0e-8 && println("Small v. Linked gap: $(distance(M, Pd, p)). Eval nb: $(n_evals). Corresponding point: $(Pd)")
@@ -33,7 +32,6 @@ function rmads(M::AbstractManifold, f, max_bb_eval::Int; p0 = rand(M), kwargs...
 
     while n_evals < max_bb_eval
         # Construct the local blackbox within ℝ^q
-        n_evals == 0 && println(p)
         local_bb(v) = local_bb_wrapper(f, M, p, v)
 
         # Create the q-dimensional problem for NOMAD
@@ -45,8 +43,7 @@ function rmads(M::AbstractManifold, f, max_bb_eval::Int; p0 = rand(M), kwargs...
         # Solve the subproblem
         local_result = solve(local_problem, zeros(q))
         vℓ = local_result.x_best_feas
-        dℓ = get_vector(M, p, vℓ)
-        new_p = retract(M, p, dℓ)
+        new_p = retract(M, p, vℓ)
         fℓ = f(new_p)
         # println("f(p) = $(fℓ), n_evals=$(n_evals)")
         η = norm(p .- new_p)
