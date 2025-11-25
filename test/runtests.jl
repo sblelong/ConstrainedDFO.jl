@@ -1,6 +1,6 @@
-using ConstrainedDFO
+using ConstrainedDFO, ManifoldsBase
 using Test
 
 @testset "ConstrainedDFO.jl" begin
-    # Write your tests here.
+    include("EqualityManifold.jl")
 end

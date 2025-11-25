@@ -12,7 +12,7 @@ using JuMP
 using Ipopt
 using ForwardDiff
 
-export EqualityManifold, eval_defining_function
+export EqualityManifold
 
 """
     EqualityManifold <: AbstractManifold{ℝ}
@@ -34,9 +34,17 @@ struct EqualityManifold <: AbstractManifold{ℝ}
     dimension::Int
 end
 
-representation_size(M::EqualityManifold) = (M.dimension + 1,)
+####################################################################
+# Some basic features/getters/setters of an `EqualityManifold`.
+####################################################################
 
 manifold_dimension(M::EqualityManifold) = M.dimension
+
+representation_size(M::EqualityManifold) = (manifold_dimension(M) + 1,)
+
+function get_embedding(M::EqualityManifold)
+    return Euclidean(representation_size(M)...)
+end
 
 eval_defining_function(M::EqualityManifold, p) = M.defining_function(p)
 
@@ -46,7 +54,46 @@ function eval_defining_jacobian(M::EqualityManifold, p)
     return ∇hp
 end
 
+####################################################################
+# Checks on an `EqualityManifold` and its tangent spaces.
+####################################################################
+
+"""
+    check_size(M::EqualityManifold, p)
+
+Checks whether point ``p`` has the same length as the `representation_size` of ``M``.
+"""
+function check_size(M::EqualityManifold, p)
+    if size(p) ≠ representation_size(M)
+        return DomainError("Vector $(p) cannot belong to $(M) with representation size $(representation_size(M)): it has length $(length(p)).")
+    else
+        return nothing
+    end
+end
+
+"""
+    check_size(M::EqualityManifold, p, X)
+
+Checks whether point ``p`` and vector ``X`` have the same length as the `representation_size` of ``M``.
+"""
+function check_size(M::EqualityManifold, p, X)
+    if size(X) ≠ representation_size(M)
+        return DomainError("Vector $(X) cannot be a tangent vector to $(M) with dimension $(manifold_dimension(M)): it has length $(length(X)).")
+    else
+        return check_size(M, p)
+    end
+end
+
+"""
+    check_point(M::EqualityManifold, p; kwargs...)
+
+Checks whether ``h(x)=0`` where ``h`` is the defining function for ``M``. A tolerance can be given as part of the `kwargs`.
+"""
 function check_point(M::EqualityManifold, p; kwargs...)
+    s = check_size(M, p)
+    if !isnothing(s)
+        return s
+    end
     h = eval_defining_function(M, p)
     if !all(isapprox.(h, 0.0; kwargs...))
         return DomainError(
@@ -57,7 +104,16 @@ function check_point(M::EqualityManifold, p; kwargs...)
     return nothing
 end
 
+"""
+    check_vector(M::EqualityManifold, p, X; kwargs...)
+
+Checks whether ``\\nabla h(p)^\\top X = 0``.
+"""
 function check_vector(M::EqualityManifold, p, X; kwargs...)
+    s = check_point(M, p)
+    if !isnothing(s)
+        return s
+    end
     ∇hp = eval_defining_jacobian(M, p)
     ∇hpX = ∇hp * X
     if !all(isapprox.(∇hpX, 0.0; kwargs...))
@@ -67,6 +123,29 @@ function check_vector(M::EqualityManifold, p, X; kwargs...)
         )
     end
     return nothing
+end
+
+####################################################################
+# Tangent spaces bases computation.
+####################################################################
+
+default_basis(::EqualityManifold) = DefaultOrthonormalBasis()
+
+"""
+    get_basis(M::EqualityManifold, p, ::DefaultOrthonormalBasis)
+
+Uses the defining function ``h`` for `M` and conputes a basis of ``T_p\\mathcal{M}`` as an orthonormal basis of ``\\ker(\\nabla h(x)^\\top)``.
+"""
+get_basis(::EqualityManifold, p, ::DefaultOrthonormalBasis)
+
+function get_basis_orthonormal(M::EqualityManifold, p, N::AbstractNumbers; kwargs...)
+    dim = manifold_dimension(M)
+    B = DefaultOrthogonalBasis(N)
+    ∇hp = eval_defining_jacobian(M, p)
+    basis = nullspace(∇hp)
+    r = rank(basis)
+    r ≠ dim && error("Jacobian of the defining function for $(M) with dimension $(dim) has rank $(r) at $(p).")
+    return basis
 end
 
 """
@@ -84,12 +163,26 @@ function get_vector_orthonormal!(M::EqualityManifold, Y, p, c, N::AbstractNumber
 end
 
 """
-    retract(::EqualityManifold, p, X, ::AbstractRetractionMethod)
+    get_coordinates(M::EqualityManifold, p, X, B::DefaultOrthonormalBasis)
+
+A VERY TEMPORARY implementation that would allow, by a naive linear system resolution, to retrieve coefficients in a tangent space, from an embedded tangent vector. That is:
+* p ∈ M
+* X ∈ TxM ⊂ ℝ^n
+* The result is c ∈ ℝ^dim(M) such that X = Bc where B has its columns being an orthonormal basis of TxM.
 """
-function retract(M::EqualityManifold, p, X, m::AbstractRetractionMethod)
-    check_vector(M, p, X)
-    return retract(M, p, X, m)
+get_coordinates(::EqualityManifold, p, X, ::DefaultOrthonormalBasis)
+
+function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbers)
+    B = get_basis(M, p, DefaultOrthonormalBasis(N))
+    c = B \ X
+    return c
 end
+
+####################################################################
+# Retractions
+####################################################################
+
+default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 
 """
     retract(::EqualityManifold, p, X, ::ProjectionRetraction)
@@ -110,61 +203,4 @@ function retract_project!(M::EqualityManifold, q, p, X)
     optimize!(model)
     q = value.(y)
     return q
-end
-
-function get_embedding(M::EqualityManifold)
-    return Euclidean(representation_size(M)...)
-end
-
-default_retraction_method(::EqualityManifold) = ProjectionRetraction()
-
-function check_size(M::EqualityManifold, p)
-    if length(p) ≠ representation_size(M)[1]
-        return DomainError("Vector $(p) cannot belong to $(M) with representation size $(representation_size(M)): it has length $(length(p)).")
-    else
-        return nothing
-    end
-end
-function check_size(M::EqualityManifold, p, X)
-    if length(X) ≠ representation_size(M)[1]
-        return DomainError("Vector $(X) cannot be a tangent vector to $(M) with dimension $(manifold_dimension(M)): it has length $(length(X)).")
-    else
-        return check_size(M, p)
-    end
-end
-
-default_basis(::EqualityManifold) = DefaultOrthonormalBasis()
-
-"""
-    get_basis(M::EqualityManifold, p, ::DefaultOrthonormalBasis)
-
-Uses the defining function ``h`` for `M` and conputes a basis of ``T_p\\mathcal{M}`` as an orthonormal basis of ``\\ker(\\nabla h(x)^\\top)``.
-"""
-get_basis(::EqualityManifold, p, ::DefaultOrthonormalBasis)
-
-function get_basis_orthonormal(M::EqualityManifold, p, N::AbstractNumbers; kwargs...)
-    dim = manifold_dimension(M)
-    B = DefaultOrthogonalBasis(N)
-    ∇hp = eval_defining_jacobian(M, p)
-    basis = nullspace(∇hp)
-    r = rank(basis)
-    println("Returning basis with size $(r)")
-    r ≠ dim && error("Jacobian of the defining function for $(M) with dimension $(dim) has rank $(r) at $(p).")
-    return basis
-end
-
-"""
-    get_coordinates(M::EqualityManifold, p, X, B::DefaultOrthonormalBasis)
-
-A VERY TEMPORARY implementation that would allow, by a naive linear system resolution, to retrieve coefficients in a tangent space, from an embedded tangent vector. That is:
-* p ∈ M
-* X ∈ TxM ⊂ ℝ^n
-* The result is c ∈ ℝ^dim(M) such that X = Bc where B has its columns being an orthonormal basis of TxM.
-"""
-get_coordinates(::EqualityManifold, p, X, ::DefaultOrthonormalBasis)
-
-function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbers)
-    B = get_basis(M, p, DefaultOrthonormalBasis(N))
-    c = B \ X
-    return c
 end
