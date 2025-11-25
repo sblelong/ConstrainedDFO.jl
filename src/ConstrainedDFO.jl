@@ -1,5 +1,7 @@
 module ConstrainedDFO
 
+include("equalities/EqualityManifold.jl")
+
 include("solvers/Solvers.jl")
 using .Solvers
 

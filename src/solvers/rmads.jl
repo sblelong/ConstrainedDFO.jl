@@ -7,7 +7,7 @@ export rmads
 function local_bb_wrapper(f, M::AbstractManifold, p, v)
     global n_evals, eval_data
     d = get_vector(M, p, v)
-    Pd = retract(M, p, d, ProjectionRetraction())
+    Pd = retract(M, p, d)
     fd = f(Pd)
     n_evals += 1
     # norm(v) ≤ 1.0e-8 && println("Small v. Linked gap: $(distance(M, Pd, p)). Eval nb: $(n_evals). Corresponding point: $(Pd)")
