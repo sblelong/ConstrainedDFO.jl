@@ -135,6 +135,10 @@ default_basis(::EqualityManifold) = DefaultOrthonormalBasis()
     get_basis(M::EqualityManifold, p, ::DefaultOrthonormalBasis)
 
 Uses the defining function ``h`` for `M` and conputes a basis of ``T_p\\mathcal{M}`` as an orthonormal basis of ``\\ker(\\nabla h(x)^\\top)``.
+
+# Warning
+
+This implementation does not match the format intended in `ManifoldsBase`: it returns a `Matrix` whose columns are a basis of ``T_p\\mathcal{M}``.
 """
 get_basis(::EqualityManifold, p, ::DefaultOrthonormalBasis)
 
@@ -153,11 +157,10 @@ end
 
 Based on computing a basis of the tangent space with an SVD of the Jacobian of h.
 """
-get_vector(::EqualityManifold, p, X, ::DefaultOrthonormalBasis)
+get_vector(::EqualityManifold, p, c, ::DefaultOrthonormalBasis)
 
 function get_vector_orthonormal!(M::EqualityManifold, Y, p, c, N::AbstractNumbers)
-    basis = get_basis(M, p, DefaultOrthonormalBasis())
-    println(c)
+    basis = get_basis(M, p, DefaultOrthonormalBasis(N))
     Y = basis * c
     return Y
 end
@@ -190,12 +193,16 @@ default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 retract(M::EqualityManifold, p, X, ::ProjectionRetraction)
 
 function retract_project!(M::EqualityManifold, q, p, X)
+    if !is_vector(M, p, X)
+        error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
+    end
     n = representation_size(M)[1]
     h(y) = eval_defining_function(M, y)
     m = length(h(p))
-    pX = p + get_vector(M, p, X, DefaultOrthonormalBasis())
+    pX = p .+ X
 
     model = Model(Ipopt.Optimizer)
+    set_silent(model)
     @variable(model, y[1:n])
     @NLobjective(model, Min, 0.5 * sum((y[i] - pX[i])^2 for i in 1:n))
     @NLconstraint(model, [j = 1:m], h(y)[j] == 0)
