@@ -1,6 +1,7 @@
 module ConstrainedDFO
 
-include("equalities/EqualityManifold.jl")
+include("structures/EqualityManifold.jl")
+include("structures/StoppingCriteria.jl")
 
 include("solvers/Solvers.jl")
 using .Solvers
