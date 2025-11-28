@@ -1,6 +1,7 @@
 using Manopt
 
-export StopAfterEvaluation, StopWhenInsideRadius
+import Manopt: get_reason
+export StopAfterEvaluation, StopWhenWithinRadius
 
 """
     StopAfterEvaluation <: StoppingCriterion
@@ -36,12 +37,30 @@ function get_reason(c::StopAfterEvaluation)
     return ""
 end
 
-mutable struct StopWhenInsideRadius <: StoppingCriterion end
+mutable struct StopWhenWithinRadius <: StoppingCriterion
+    at_iteration::Int
+    radius::Float64
+end
 
-function (c::StopWhenInsideRadius)(
-        mp::AbstractManoptProblem, s::AbstractManoptSolverState, norm_d
+StopWhenWithinRadius() = StopWhenWithinRadius(-1, typemax(Float64))
+
+function (c::StopWhenWithinRadius)(
+        mp::AbstractManoptProblem, s::AbstractManoptSolverState, norm_d, k::Int
     )
     M = get_manifold(mp)
     p = get_iterate(s)
-    return norm_d ≤ injectivity_bound(M, p, ProjectionRetraction())
+    inj = injectivity_bound(M, p, ProjectionRetraction())
+    if norm_d ≤ inj
+        c.at_iteration = k
+        c.radius = inj
+        return true
+    end
+    return false
+end
+
+function get_reason(c::StopWhenWithinRadius)
+    if c.at_iteration > 1
+        return "A subproblem has been solved within the injectivity radius (bound: $(c.radius)) at iteration $(c.at_iteration)"
+    end
+    return ""
 end
