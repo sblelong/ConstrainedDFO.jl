@@ -12,7 +12,7 @@ using JuMP
 using Ipopt
 using ForwardDiff
 
-export EqualityManifold
+export EqualityManifold, injectivity_bound
 
 """
     EqualityManifold <: AbstractManifold{ℝ}
@@ -210,4 +210,30 @@ function retract_project!(M::EqualityManifold, q, p, X)
     optimize!(model)
     q = value.(y)
     return q
+end
+
+"""
+    injectivity_bound(M::AbstractManifold, p)
+
+Returns a lower bound on the injectivity radius of `M` at `p` when endowed with a retraction of a given type. This bound can be useful in case the exact injectivity radius cannot be computed.
+"""
+injectivity_bound(M::AbstractManifold)
+
+"""
+    injectivity_bound(M::EqualityManifold, p, m::ProjectionRetraction)
+
+Gives a lower bound on the injectivity radius of `M` at `p` with orthogonal projection as a retraction. This radius coincices with the concept of reach as defined by Federer (1959).
+"""
+injectivity_bound(M::AbstractManifold, p, m::ProjectionRetraction)
+
+function injectivity_bound(M::AbstractManifold, p, m::AbstractRetractionMethod)
+    return _injectivity_bound(M, p, m)
+end
+
+function _injectivity_bound(M::AbstractManifold, p, ::ProjectionRetraction)
+    return injectivity_bound_project(M, p)
+end
+
+function injectivity_bound_project(M::AbstractManifold, p)
+    return typemax(Float64)
 end
