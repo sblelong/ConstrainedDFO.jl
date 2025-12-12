@@ -5,6 +5,7 @@ This structure is used to represent the feasible set for equality-constrained pr
 
 using ManifoldsBase
 import ManifoldsBase: representation_size, manifold_dimension, check_point, check_vector, retract_project!, get_embedding, default_retraction_method, check_size, default_basis, get_basis, get_basis_orthonormal, get_vector_orthonormal!, get_coordinates_orthonormal
+
 using Manifolds
 
 using LinearAlgebra
@@ -12,7 +13,7 @@ using JuMP
 using Ipopt
 using ForwardDiff
 
-export EqualityManifold, injectivity_bound
+export EqualityManifold
 
 """
     EqualityManifold <: AbstractManifold{ℝ}
@@ -52,6 +53,21 @@ function eval_defining_jacobian(M::EqualityManifold, p)
     h(x) = eval_defining_function(M, x)
     ∇hp = ForwardDiff.jacobian(h, p)
     return ∇hp
+end
+
+function eval_defining_hessian(M::EqualityManifold, p, i::Int)
+    hi(x) = eval_defining_function(M, x)[i]
+    Hhip = ForwardDiff.hessian(hi, p)
+    return Hhip
+end
+
+function eval_defining_hessians(M::EqualityManifold, p)
+    nb_defining_functions = length(eval_defining_function(M, p))
+    hessians = Matrix[]
+    for i in 1:nb_defining_functions
+        push!(hessians, eval_defining_hessian(M, p, i))
+    end
+    return hessians
 end
 
 ####################################################################
@@ -117,6 +133,7 @@ function check_vector(M::EqualityManifold, p, X; kwargs...)
     ∇hp = eval_defining_jacobian(M, p)
     ∇hpX = ∇hp * X
     if !all(isapprox.(∇hpX, 0.0; kwargs...))
+        print("!! ", ∇hpX)
         return DomainError(
             ∇hp * X,
             "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(∇hpX)."
@@ -182,6 +199,38 @@ function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbe
 end
 
 ####################################################################
+# Projection
+####################################################################
+
+"""
+    project(M::AbstractManifold, p)
+
+Project point `p` on the manifold `M`.
+"""
+project(::AbstractManifold, p)
+
+"""
+    project(M::EqualityManifold, p)
+
+Computes the metric projection of `p` on `M`.
+"""
+function project(M::EqualityManifold, p)
+    n = representation_size(M)[1]
+    h(y) = eval_defining_function(M, y)
+    m = length(h(p))
+
+    model = Model(Ipopt.Optimizer)
+    set_silent(model)
+    @variable(model, y[1:n])
+    @NLobjective(model, Min, 0.5 * sum((y[i] - p[i])^2 for i in 1:n))
+    @NLconstraint(model, [j = 1:m], h(y)[j] == 0)
+
+    optimize!(model)
+    q = value.(y)
+    return q
+end
+
+####################################################################
 # Retractions
 ####################################################################
 
@@ -193,47 +242,31 @@ default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 retract(M::EqualityManifold, p, X, ::ProjectionRetraction)
 
 function retract_project!(M::EqualityManifold, q, p, X)
-    if !is_vector(M, p, X)
-        error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
+    if !is_vector(M, p, X; atol = 1.0e-6)
+        # error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
     end
-    n = representation_size(M)[1]
-    h(y) = eval_defining_function(M, y)
-    m = length(h(p))
     pX = p .+ X
-
-    model = Model(Ipopt.Optimizer)
-    set_silent(model)
-    @variable(model, y[1:n])
-    @NLobjective(model, Min, 0.5 * sum((y[i] - pX[i])^2 for i in 1:n))
-    @NLconstraint(model, [j = 1:m], h(y)[j] == 0)
-
-    optimize!(model)
-    q = value.(y)
+    q = project(M, pX)
     return q
 end
 
-"""
-    injectivity_bound(M::AbstractManifold, p)
+####################################################################
+# Injectivity radii
+####################################################################
 
-Returns a lower bound on the injectivity radius of `M` at `p` when endowed with a retraction of a given type. This bound can be useful in case the exact injectivity radius cannot be computed.
-"""
-injectivity_bound(M::AbstractManifold)
-
-"""
-    injectivity_bound(M::EqualityManifold, p, m::ProjectionRetraction)
-
-Gives a lower bound on the injectivity radius of `M` at `p` with orthogonal projection as a retraction. This radius coincices with the concept of reach as defined by Federer (1959).
-"""
-injectivity_bound(M::AbstractManifold, p, m::ProjectionRetraction)
-
-function injectivity_bound(M::AbstractManifold, p, m::AbstractRetractionMethod)
-    return _injectivity_bound(M, p, m)
+function ManifoldsBase._injectivity_radius(M::EqualityManifold, p, m::ProjectionRetraction)
+    hessians = eval_defining_hessians(M, p)
+    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
+    return maximum(spectral_radii)
 end
 
-function _injectivity_bound(M::AbstractManifold, p, ::ProjectionRetraction)
-    return injectivity_bound_project(M, p)
-end
+####################################################################
+# Random choice of points
+####################################################################
 
-function injectivity_bound_project(M::AbstractManifold, p)
-    return typemax(Float64)
+function ManifoldsBase.rand(M::EqualityManifold)
+    n = representation_size(M)[1]
+    p = Base.rand(Float64, n)
+    projp = project(M, p)
+    return projp
 end
