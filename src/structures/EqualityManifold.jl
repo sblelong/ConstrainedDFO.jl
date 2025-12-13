@@ -133,7 +133,7 @@ function check_vector(M::EqualityManifold, p, X; kwargs...)
     ∇hp = eval_defining_jacobian(M, p)
     ∇hpX = ∇hp * X
     if !all(isapprox.(∇hpX, 0.0; kwargs...))
-        print("!! ", ∇hpX)
+        println("!! ", ∇hp, X, ∇hpX)
         return DomainError(
             ∇hp * X,
             "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(∇hpX)."
@@ -257,7 +257,7 @@ end
 function ManifoldsBase._injectivity_radius(M::EqualityManifold, p, m::ProjectionRetraction)
     hessians = eval_defining_hessians(M, p)
     spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
-    return maximum(spectral_radii)
+    return 1 / maximum(spectral_radii)
 end
 
 ####################################################################

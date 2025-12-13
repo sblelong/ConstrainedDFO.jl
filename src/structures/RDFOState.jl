@@ -1,7 +1,5 @@
 using Manopt
 
-export RDFOState
-
 """
 # Fields
 * `p` is the current iterate on the manifold.
@@ -25,6 +23,10 @@ function RDFOState(
     return RDFOState{P, SC}(p, zeros(representation_size(M)), stopping_criterion)
 end
 
-get_iterate(s::RDFOState) = s.p
+set_iterate!(s::RDFOState, p) = s.p = p
+set_tangent_iterate!(s::RDFOState, d) = s.d = d
 
+get_iterate(s::RDFOState) = s.p
 get_tangent_iterate(s::RDFOState) = s.d
+
+export RDFOState, set_iterate!, set_tangent_iterate!, get_iterate, get_tangent_iterate
