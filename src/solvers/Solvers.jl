@@ -1,3 +1,6 @@
-module Solvers
+# module Solvers
+include("subsolvers/DFSolver.jl")
+include("subsolvers/mads.jl")
 include("rmads.jl")
-end
+include("rdfo.jl")
+# end

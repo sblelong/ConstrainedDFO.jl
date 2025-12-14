@@ -1,6 +1,7 @@
 using Test
 using ConstrainedDFO
 using LinearAlgebra
+using ManifoldsBase
 
 @testset "Equality Manifolds" begin
     h1(p) = [sum(p .^ 2) - 4]
@@ -50,5 +51,10 @@ using LinearAlgebra
     @test is_vector(M2, p5, X8; atol = 1.0e-12)
 
     @test_throws Any get_basis(M2, p6, DefaultOrthonormalBasis())
+
+    # Random point generation
+    p4 = rand(M1)
+    println(p4)
+    @test is_point(M1, p4)
 
 end
