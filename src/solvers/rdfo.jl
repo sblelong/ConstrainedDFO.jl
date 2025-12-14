@@ -45,11 +45,9 @@ function rDFO(
     iter::Int = 0
     n_evals::Int = 0
     eval_data::Vector{Float64} = fill(typemax(Float64), max_evals)
-    p = p0
+    p = Float64.(p0)
     remaining_evals = max_evals
     processed_solver_details = Dict()
-
-    println("Starting from: p=$(p0), f=$(get_cost(M, mco, p0))")
 
     if typeof(solver) == MADSDFRSolver
         options = Dict()
