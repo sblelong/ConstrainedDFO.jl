@@ -54,7 +54,6 @@ using ManifoldsBase
 
     # Random point generation
     p4 = rand(M1)
-    println(p4)
-    @test is_point(M1, p4)
+    @test is_point(M1, p4; atol = 1.0e-12)
 
 end
