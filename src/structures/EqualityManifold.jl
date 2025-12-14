@@ -203,18 +203,11 @@ end
 ####################################################################
 
 """
-    project(M::AbstractManifold, p)
-
-Project point `p` on the manifold `M`.
-"""
-project(::AbstractManifold, p)
-
-"""
     project(M::EqualityManifold, p)
 
 Computes the metric projection of `p` on `M`.
 """
-function project(M::EqualityManifold, p)
+function ManifoldsBase.project(M::EqualityManifold, p)
     n = representation_size(M)[1]
     h(y) = eval_defining_function(M, y)
     m = length(h(p))
