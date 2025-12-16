@@ -5,7 +5,7 @@ using ManifoldsBase
 
 @testset "Equality Manifolds" begin
     h1(p) = [sum(p .^ 2) - 4]
-    M1 = EqualityManifold(h1, 2)
+    M1 = EqualityManifold(h1, 2, 3)
 
     @test manifold_dimension(M1) == 2
     @test representation_size(M1) == (3,)
@@ -36,7 +36,7 @@ using ManifoldsBase
     @test is_vector(M1, p1, X5)
 
     h2(p) = [p[1]^2 - p[2]^3]
-    M2 = EqualityManifold(h2, 1)
+    M2 = EqualityManifold(h2, 1, 2)
     p4 = [1.0, 1.0]
     p5 = [0.1, (0.01)^(1 / 3)]
     p6 = [0.0, 0.0]

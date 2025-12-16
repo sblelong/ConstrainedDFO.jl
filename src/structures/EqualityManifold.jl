@@ -33,6 +33,7 @@ for some smooth function ``h: \\mathbb{R}^n\\to\\mathbb{R}`` such that ``\\nabla
 struct EqualityManifold <: AbstractManifold{ℝ}
     defining_function::Function
     dimension::Int
+    embedding_dimension::Int
 end
 
 ####################################################################

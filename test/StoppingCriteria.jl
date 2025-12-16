@@ -4,7 +4,7 @@ using Manopt
 
 @testset "Stopping Criteria" begin
     h(p) = [sum(p .^ 2) - 4]
-    M = EqualityManifold(h, 2)
+    M = EqualityManifold(h, 2, 3)
     p = [2.0, 0.0, 0.0]
     f(p) = sum(p)
     mco = ManifoldCostObjective(f)
