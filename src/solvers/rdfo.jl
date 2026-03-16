@@ -23,10 +23,11 @@ function rDFO(
         solver::AbstractDFRSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
-        retraction_method::AbstractRetractionMethod = default_retraction_method(M)
+        retraction_method::AbstractRetractionMethod = default_retraction_method(M),
+        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method)
     )
     mco = ManifoldCostObjective(f)
-    return rDFO(M, mco, p0; solver, stopping_criterion, retraction_method)
+    return rDFO(M, mco, p0; solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound)
 end
 
 function rDFO(
@@ -36,7 +37,8 @@ function rDFO(
         solver::AbstractDFRSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
-        retraction_method::AbstractRetractionMethod = default_retraction_method(M)
+        retraction_method::AbstractRetractionMethod = default_retraction_method(M),
+        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method)
     )
     rdfos = RDFOState(M, p0, stopping_criterion, retraction_method)
     mpb = DefaultManoptProblem(M, mco)
@@ -45,9 +47,10 @@ function rDFO(
     iter::Int = 0
     n_evals::Int = 0
     eval_data::Vector{Float64} = fill(typemax(Float64), max_evals)
-    p = Float64.(p0)
     remaining_evals = max_evals
     processed_solver_details = Dict()
+
+    p = is_point(M, p0) ? p0 : project(M, p0)
 
     if typeof(solver) == MADSDFRSolver
         options = Dict()
@@ -56,8 +59,14 @@ function rDFO(
         end
     end
 
-    @printf("| %10s | %10s | %10s | %14s |\n", "iteration", "# evals", "total evals", "f")
-    @printf("|-%10s-|-%10s-|-%10s-|-%14s-|\n", "-"^10, "-"^10, "-"^10, "-"^14)
+    iterates_history = Matrix{Float64}[]
+    objective_history = Vector{Float64}[]
+
+    v_history = Matrix{Float64}[]
+    d_history = Matrix{Float64}[]
+
+    # @printf("| %10s | %10s | %10s | %13s |\n", "iteration", "# evals", "total evals", "f")
+    # @printf("|-%10s-|-%10s-|-%11s-|-%13s-|\n", "-"^10, "-"^10, "-"^10, "-"^14)
 
 
     while true
@@ -65,12 +74,11 @@ function rDFO(
         local_blackbox(v) = retract_eval(M, mco, p, v, retraction_method, solver) # Will embed v in TpM, then retract this embedding on M and finally evaluate the objective at this retracted point.
 
         # Compute the injectivity radius, or a lower bound to it.
-        radius = injectivity_radius(M, p, retraction_method)
+        radius = invertibility_radius(M, p, retraction_method, invertibility_bound)
 
         # Solve the q-dimensional subproblem with the given solver, with stopping criterion being the injectivity radius.
 
         if typeof(solver) == MADSDFRSolver && solver.transfer_mesh_size
-            # TODO. Here, manage the Δ values for a "hotstart" of MADS.
             options["initial_mesh_size"] = processed_solver_details["best_mesh_size"]
         end
 
@@ -82,7 +90,7 @@ function rDFO(
         # Embed the vs in ℝ^n
         ds = vs_to_ds(M, p, vs)
 
-        # Retract the vs on M
+        # Retract the ds on M
         Rpds = ds_to_Rpds(M, p, ds)
 
         # Retrieve the costs of all evaluated points
@@ -113,14 +121,19 @@ function rDFO(
         n_evals += used_evals
         remaining_evals -= used_evals
 
+        push!(iterates_history, Rpds)
+        push!(objective_history, fs)
+        push!(v_history, vs)
+        push!(d_history, ds)
+
         processed_solver_details = process_details(M, solver, solver_details)
 
-        @printf("| %10d | %10d | %10d | %14e |\n", iter, used_evals, n_evals, best_f)
+        # @printf("| %10d | %10d | %11d | %14e |\n", iter, used_evals, n_evals, best_f)
 
-        stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag) && break
+        stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag, retraction_method, invertibility_bound) && break
     end
-    println("A stopping criterion was met.")
-    return p, eval_data
+    # println("A stopping criterion was met.")
+    return p, eval_data[1:n_evals], iterates_history, objective_history, v_history, d_history
 end
 
 function vs_to_ds(M::AbstractManifold, p, vs)
