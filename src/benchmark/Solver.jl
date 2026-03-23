@@ -21,8 +21,13 @@ function solve_problem(::RDFOSolver, BPE::BenchmarkEqualityProblem; max_evals::I
     M = EqualityManifold(h, n - p, n)
 
     f(M::EqualityManifold, x) = eval_obj(BPE, x)
+    g(x) = eval_ineqs(BPE, x)
 
-    return rDFO(M, f, x0; max_evals = max_evals, invertibility_bound = invertibility_bound)
+    if length(g(x0)) > 0
+        return rDFO(M, f, x0; max_evals = max_evals, invertibility_bound = invertibility_bound, inequality_constraints = g)
+    else
+        return rDFO(M, f, x0; max_evals = max_evals, invertibility_bound = invertibility_bound)
+    end
 end
 
 function solve_problem(::RDFOSolver, BPM::BenchmarkManifoldProblem; max_evals::Int = 200 * get_dimension(BPM), kwargs...)

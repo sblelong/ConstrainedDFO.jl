@@ -9,17 +9,23 @@ Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at t
 """
 retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractDFRSolver)
 
-function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver)
+function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing)
     d = get_vector(M, p, v, DefaultOrthonormalBasis())
     Pd = retract(M, p, d, retraction_method)
-    fd = get_cost(M, mco, Pd)
-    return (true, true, [fd])
+    fd = [get_cost(M, mco, Pd)]
+    if isnothing(inequality_constraints)
+        return (true, true, fd)
+    else
+        gd = inequality_constraints(Pd)
+        return (true, true, [fd; gd])
+    end
 end
 
 function rDFO(
         M::AbstractManifold,
         f::Function,
         p0;
+        inequality_constraints::Union{Function, Nothing} = nothing,
         solver::AbstractDFRSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
@@ -27,13 +33,14 @@ function rDFO(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method)
     )
     mco = ManifoldCostObjective(f)
-    return rDFO(M, mco, p0; solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound)
+    return rDFO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound)
 end
 
 function rDFO(
         M::AbstractManifold,
         mco::AbstractManifoldCostObjective,
         p0;
+        inequality_constraints::Union{Function, Nothing} = nothing,
         solver::AbstractDFRSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
@@ -43,6 +50,7 @@ function rDFO(
     rdfos = RDFOState(M, p0, stopping_criterion, retraction_method)
     mpb = DefaultManoptProblem(M, mco)
 
+    n = representation_size(M)[1]
     q = manifold_dimension(M)
     iter::Int = 0
     n_evals::Int = 0
@@ -61,6 +69,9 @@ function rDFO(
 
     iterates_history = Matrix{Float64}[]
     objective_history = Vector{Float64}[]
+    if !isnothing(inequality_constraints)
+        g_history = Matrix{Float64}[]
+    end
 
     v_history = Matrix{Float64}[]
     d_history = Matrix{Float64}[]
@@ -71,7 +82,7 @@ function rDFO(
 
     while true
         # Construct the subproblem blackbox in ℝ^q.
-        local_blackbox(v) = retract_eval(M, mco, p, v, retraction_method, solver) # Will embed v in TpM, then retract this embedding on M and finally evaluate the objective at this retracted point.
+        local_blackbox(v) = retract_eval(M, mco, p, v, retraction_method, solver; inequality_constraints = inequality_constraints) # Will embed v in TpM, then retract this embedding on M and finally evaluate the objective at this retracted point.
 
         # Compute the injectivity radius, or a lower bound to it.
         radius = invertibility_radius(M, p, retraction_method, invertibility_bound)
@@ -82,9 +93,22 @@ function rDFO(
             options["initial_mesh_size"] = processed_solver_details["best_mesh_size"]
         end
 
-        solve!(M, p, solver, local_blackbox, radius, remaining_evals; options)
+        if isnothing(inequality_constraints)
+            solve!(M, p, solver, local_blackbox, radius, remaining_evals; options)
+        else
+            gp = inequality_constraints(p)
+            nb_inequalities = length(gp)
+            init_feasible = all(gp .≤ 0)
+            solve!(M, p, solver, local_blackbox, radius, remaining_evals; options, nb_inequalities = nb_inequalities, init_feasible = init_feasible)
+        end
 
-        vs, fs, solver_details = get_subproblem_result(M, solver)
+        if isnothing(inequality_constraints)
+            vs, fs, solver_details = get_subproblem_result(M, solver)
+        else
+            gp = inequality_constraints(p)
+            nb_inequalities = length(gp)
+            vs, fs, gs, solver_details = get_subproblem_result(M, solver; nb_inequalities = nb_inequalities)
+        end
         # TODO. Check if instead of embedding and evaluating again, the evaluation wrappers (defined in this file) could use global variables to store the data.
 
         # Embed the vs in ℝ^n
@@ -96,17 +120,60 @@ function rDFO(
         # Retrieve the costs of all evaluated points
         fs = vectorized_cost(M, mco, Rpds)
         stratified_fs = fill(typemax(Float64), length(fs))
-        best = fs[1]
-        for i in 1:length(stratified_fs)
-            if fs[i] < best
-                best = fs[i]
+
+        if isnothing(inequality_constraints)
+            best = fs[1]
+            for i in 1:length(stratified_fs)
+                if fs[i] < best
+                    best = fs[i]
+                end
+                stratified_fs[i] = best
             end
-            stratified_fs[i] = best
+        else
+            # Retrieve the values of the inequality constraints for all evaluated points
+            gp = inequality_constraints(p)
+            nb_inequalities = length(gp)
+            gs = vectorized_inequalities(inequality_constraints, Rpds, nb_inequalities)
+            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 0 for j in axes(gs, 2))), axes(gs, 1))
+            feasible_fs = fs[feasible_iterates]
+            best = typemax(Float64)
+
+            for i in 1:length(stratified_fs)
+                fval = (i in feasible_iterates) ? fs[i] : typemax(Float64)
+                if fval < best
+                    best = fval
+                end
+                stratified_fs[i] = best
+            end
         end
 
+        best_f::Float64 = Inf
+        best_eval::Int = 0
+        best_v = zeros(q)
+        best_d = zeros(n)
+        best_p = zeros(n)
+
         # Retrieve the best point
-        best_f, best_eval = findmin(fs)
-        best_v, best_d, best_p = vs[best_eval, :], ds[best_eval, :], Rpds[best_eval, :]
+        if isnothing(inequality_constraints)
+            best_f, best_eval = findmin(fs)
+            best_v, best_d, best_p = vs[best_eval, :], ds[best_eval, :], Rpds[best_eval, :]
+        else
+            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 0 for j in axes(gs, 2))), axes(gs, 1))
+            feasible_fs = fs[feasible_iterates]
+            if length(feasible_fs) == 0
+                best_f = typemax(Float64)
+                best_eval = typemax(Int)
+                best_v, best_d, best_p = fill(typemax(Float64), q), fill(typemax(Float64), n), fill(typemax(Float64), n)
+            else
+                best_f = minimum(feasible_fs)
+                it::Int = 1
+                while fs[it] ≠ best_f || gs[it] > 0.0
+                    it += 1
+                end
+                best_eval = it
+                best_v, best_d, best_p = vs[best_eval, :], ds[best_eval, :], Rpds[best_eval, :]
+            end
+        end
 
         # Check how many evaluations were actually used
         used_evals = size(vs)[1]
@@ -125,11 +192,13 @@ function rDFO(
         push!(objective_history, fs)
         push!(v_history, vs)
         push!(d_history, ds)
+        if !isnothing(inequality_constraints)
+            push!(g_history, gs)
+        end
 
         processed_solver_details = process_details(M, solver, solver_details)
 
         # @printf("| %10d | %10d | %11d | %14e |\n", iter, used_evals, n_evals, best_f)
-
         stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag, retraction_method, invertibility_bound) && break
     end
     # println("A stopping criterion was met.")
@@ -168,4 +237,14 @@ function vectorized_cost(M::AbstractManifold, mco::AbstractManifoldCostObjective
         fs[i] = f
     end
     return fs
+end
+
+function vectorized_inequalities(g::Function, Rpds, nb_inequalities::Int)
+    n_evals = size(Rpds)[1]
+    gs = zeros((n_evals, nb_inequalities))
+    for i in 1:n_evals
+        g_val = g(Rpds[i, :])
+        gs[i, :] = g_val
+    end
+    return gs
 end

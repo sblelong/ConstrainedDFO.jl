@@ -42,7 +42,7 @@ end
 
 manifold_dimension(M::EqualityManifold) = M.dimension
 
-representation_size(M::EqualityManifold) = (manifold_dimension(M) + 1,)
+representation_size(M::EqualityManifold) = (M.embedding_dimension,)
 
 function get_embedding(M::EqualityManifold)
     return Euclidean(representation_size(M)...)
@@ -327,7 +327,7 @@ end
 
 function default_invertibility_bound(M::AbstractManifold, m::AbstractRetractionMethod) end
 
-default_invertibility_bound(::EqualityManifold, ::ProjectionRetraction) = OneOverSpectral()
+default_invertibility_bound(::EqualityManifold, ::ProjectionRetraction) = NOverSqrtSpectral()
 default_invertibility_bound(::Manifolds.Sphere, ::StabilizedRetraction) = ExactInvertibility()
 
 ####################################################################
