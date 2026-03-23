@@ -79,15 +79,28 @@ end
 
 u_hs25(i) = 25 + (-50 * log(0.01 * i))^(2 / 3)
 obj_hs25(x) = begin
-    f = sum([(-0.01 * i + exp(-1 / x[1] * (u_hs25(i) - x[2])^(x[3])))^2 for i in 1:99])
+    f = 1.0e20
+    try
+        f = sum([(-0.01 * i + exp(-1 / x[1] * (u_hs25(i) - x[2])^(x[3])))^2 for i in 1:99])
+    catch e end
+    return f
 end
 
 obj_hs62(x) = begin
-    (((x[1] + x[2] + x[3] + 0.03) / (0.09x[1] + x[2] + x[3] + 0.03)) == 0 || ((x[2] + x[3] + 0.03) / (0.07x[2] + x[3] + 0.03)) == 0 || (x[3] + 0.03) / (0.13x[3] + 0.03) == 0) && return typemax(Float64)
-    return -32.174 * (255 * log((x[1] + x[2] + x[3] + 0.03) / (0.09x[1] + x[2] + x[3] + 0.03)) + 280 * log((x[2] + x[3] + 0.03) / (0.07x[2] + x[3] + 0.03)) + 290 * log((x[3] + 0.03) / (0.13x[3] + 0.03)))
+    f = 1.0e20
+    try
+        f = -32.174 * (255 * log((x[1] + x[2] + x[3] + 0.03) / (0.09x[1] + x[2] + x[3] + 0.03)) + 280 * log((x[2] + x[3] + 0.03) / (0.07x[2] + x[3] + 0.03)) + 290 * log((x[3] + 0.03) / (0.13x[3] + 0.03)))
+    catch e end
+    return f
 end
 
-obj_hs110(x) = sum([log(x[i] - 2)^2 + log(10 - x[i])^2 - prod(x)^2 for i in 1:10])
+obj_hs110(x) = begin
+    f = 1.0e20
+    try
+        f = sum([log(x[i] - 2)^2 + log(10 - x[i])^2 - prod(x)^2 for i in 1:10])
+    catch e end
+    return f
+end
 
 obj_hs5(x) = sin(x[1] + x[2]) + (x[1] - x[2])^2 - 1.5x[1] + 2.5x[2] + 1
 
@@ -362,26 +375,24 @@ manifold_benchmarks = [
 
     # Rosenbrock on spheres with various radii (divide by the norm for Manopt.jl)
     BenchmarkEqualityProblem(2, obj_rosenbrock, x -> [], x -> [eq_sphere(x)], [0.0, -1.0]),
+    BenchmarkEqualityProblem(2, obj_rosenbrock, x -> [], x -> [eq_sphere(x)], [-2.17, 1.77]),
     BenchmarkEqualityProblem(3, obj_rosenbrock, x -> [], x -> [eq_sphere(x; radius = 4.0)], [0.0, -4.0, 0.0]),
+    BenchmarkEqualityProblem(3, obj_rosenbrock, x -> [], x -> [eq_sphere(x; radius = 4.0)], [0.25, 3.48, 3.48]),
     BenchmarkEqualityProblem(5, obj_rosenbrock, x -> [], x -> [eq_sphere(x; radius = 2.0)], ones(5)),
+    BenchmarkEqualityProblem(5, obj_rosenbrock, x -> [], x -> [eq_sphere(x; radius = 2.0)], [-3.38, -3.08, -1.06, -4.59, -3.98]),
     BenchmarkEqualityProblem(7, obj_rosenbrock, x -> [], x -> [eq_sphere(x; radius = 4.0)], [0.0, -4.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
     BenchmarkEqualityProblem(15, obj_rosenbrock, x -> [], x -> [eq_sphere(x)], ones(15)),
-
-    # Rosenbrock on ellipses or ellipsoids. Can be reparametrized to a sphere for the Exp map point of view.
-    BenchmarkEqualityProblem(2, obj_rosenbrock, x -> [], x -> [(x[1] / 3)^2 + (x[2] / 1.5)^2 - 5], [-1.0, 1.0]),
-    BenchmarkEqualityProblem(2, obj_rosenbrock, x -> [], x -> [(x[1] / 1)^2 + (x[2] / 5)^2 - 2], [1.0, -1.0]),
-    BenchmarkEqualityProblem(3, obj_rosenbrock, x -> [], x -> [(x[1] / 1)^2 + (x[2] / 5)^2 + (x[3] / 2) - 1], ones(3)),
-    BenchmarkEqualityProblem(3, obj_rosenbrock, x -> [], x -> [(x[1] / 4)^2 + (x[2] / 5)^2 + (x[3] / 3)^2 - 4], [-1.0, 1.0]),
 
     # Some HS objectives that could be restricted to spheres or ellipses
     # HS5
     BenchmarkEqualityProblem(2, obj_hs5, x -> [], x -> [eq_sphere(x)], [1.0, 0.0]),
+    BenchmarkEqualityProblem(2, obj_hs5, x -> [], x -> [eq_sphere(x)], [4.49, 3.08]),
 
     # HS25
-    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 100)], [100, 12.5, 3]),
-    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 100)], [100, 12.5, 3]),
-    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [(x[1] / 1)^2 + (x[2] / 5)^2 + (x[3] / 2) - 1.0e4], [100, 12.5, 3]),
-    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [(x[1] / 4)^2 + (x[2] / 5)^2 + (x[3] / 3) - 600], [100, 12.5, 3]),
+    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 100.0)], [100, 12.5, 3]),
+    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 100.0)], [100, 12.5, 3]),
+    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 50.0)], [4.89, -2.88, -0.66]),
+    BenchmarkEqualityProblem(3, obj_hs25, x -> [], x -> [eq_sphere(x; radius = 50.0)], -[100, 12.5, 3]),
 
     # HS54
     BenchmarkEqualityProblem(6, obj_hs54, x -> [], x -> [eq_sphere(x; radius = 1.0e8)], [6.0e3, 1.5, 4.0e6, 2, 3.0e-3, 5.0e7]),
@@ -389,11 +400,12 @@ manifold_benchmarks = [
 
     # HS62
     BenchmarkEqualityProblem(3, obj_hs62, x -> [], x -> [eq_sphere(x)], [0.7, 0.2, 0.1]),
-    BenchmarkEqualityProblem(3, obj_hs62, x -> [], x -> [(x[1] / 4)^2 + (x[2] / 5)^2 + (x[3] / 3) - 3], [0.7, 0.2, 0.1]),
+    BenchmarkEqualityProblem(3, obj_hs62, x -> [], x -> [eq_sphere(x; radius = 0.75)], [0.7, 0.2, 0.1]),
+    BenchmarkEqualityProblem(3, obj_hs62, x -> [], x -> [eq_sphere(x; radius = 0.75)], [1.0, 0.0, -1.0]),
 
     # HS110
-    BenchmarkEqualityProblem(10, obj_hs110, x -> [], x -> [eq_sphere(x) - 30], 9 .* ones(10)),
-    BenchmarkEqualityProblem(10, obj_hs110, x -> [], x -> [eq_sphere(x) - 30], [[30.0] ; [0.0 for _ in 1:8]]),
+    BenchmarkEqualityProblem(10, obj_hs110, x -> [], x -> [eq_sphere(x; radius = 30.0)], 9 .* ones(10)),
+    BenchmarkEqualityProblem(10, obj_hs110, x -> [], x -> [eq_sphere(x; radius = 30.0)], [[30.0] ; [0.0 for _ in 1:9]]),
 ]
 
 nonlinear_benchmarks = [
