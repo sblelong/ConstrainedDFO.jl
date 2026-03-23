@@ -2,3 +2,4 @@
 /local
 *.log
 .CondaPkg
+*.json
