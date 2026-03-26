@@ -134,12 +134,12 @@ function rDFO(
             gp = inequality_constraints(p)
             nb_inequalities = length(gp)
             gs = vectorized_inequalities(inequality_constraints, Rpds, nb_inequalities)
-            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 0 for j in axes(gs, 2))), axes(gs, 1))
+            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 1.0e-8 for j in axes(gs, 2))), axes(gs, 1))
             feasible_fs = fs[feasible_iterates]
-            best = typemax(Float64)
+            best = 1.0e20
 
             for i in 1:length(stratified_fs)
-                fval = (i in feasible_iterates) ? fs[i] : typemax(Float64)
+                fval = (i in feasible_iterates) ? fs[i] : 1.0e20
                 if fval < best
                     best = fval
                 end
@@ -147,7 +147,7 @@ function rDFO(
             end
         end
 
-        best_f::Float64 = Inf
+        best_f::Float64 = 1.0e20
         best_eval::Int = 0
         best_v = zeros(q)
         best_d = zeros(n)
@@ -158,16 +158,16 @@ function rDFO(
             best_f, best_eval = findmin(fs)
             best_v, best_d, best_p = vs[best_eval, :], ds[best_eval, :], Rpds[best_eval, :]
         else
-            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 0 for j in axes(gs, 2))), axes(gs, 1))
+            feasible_iterates = findall(i -> all(@inbounds(gs[i, j] ≤ 1.0e-8 for j in axes(gs, 2))), axes(gs, 1))
             feasible_fs = fs[feasible_iterates]
             if length(feasible_fs) == 0
-                best_f = typemax(Float64)
+                best_f = 1.0e20
                 best_eval = typemax(Int)
                 best_v, best_d, best_p = fill(typemax(Float64), q), fill(typemax(Float64), n), fill(typemax(Float64), n)
             else
                 best_f = minimum(feasible_fs)
                 it::Int = 1
-                while fs[it] ≠ best_f || gs[it] > 0.0
+                while fs[it] ≠ best_f || gs[it] > 1.0e-8
                     it += 1
                 end
                 best_eval = it

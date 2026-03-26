@@ -131,7 +131,7 @@ function get_subproblem_result(M::AbstractManifold, MS::MADSDFRSolver; nb_inequa
                     first_ineq_index = length(remaining) - nb_inequalities + 1
                     g = [s == "inf" ? typemax(Float64) : parse(Float64, s) for s in remaining[first_ineq_index:end]]
                     vs[n_eval, :] .= v
-                    fs[n_eval] = f0
+                    fs[n_eval] = f
                     mesh_indices[n_eval, :] .= mesh_index
                     gs[n_eval, :] .= g
                 end

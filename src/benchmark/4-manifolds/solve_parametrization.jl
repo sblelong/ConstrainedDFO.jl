@@ -1,7 +1,30 @@
 using ConstrainedDFO
-using Manifolds
 using ProgressBars
 using JSON
+using NOMAD
+using Manifolds
+
+function hyperspherical_to_cartesian(θ::Vector{Float64})
+    n = length(θ) + 1
+    x = zeros(n)
+
+    x[1] = cos(θ[1])
+    for i in 2:(n - 1)
+        x[i] = prod([sin(θ[j]) for j in 1:(i - 1)]) * cos(θ[i])
+    end
+    x[n] = prod(sin.(θ))
+
+    return x
+end
+
+function cartesian_to_hyperspherical(x::Vector{Float64})
+    n = length(x)
+    θ = zeros(n - 1)
+    for i in 1:(n - 1)
+        θ[i] = atan(norm(x[(i + 1):end]), x[i])
+    end
+    return θ
+end
 
 A2 = [
     -10.0 1.0;
@@ -160,14 +183,67 @@ manifold_benchmarks_manifolds = [
     BenchmarkManifoldProblem(ScaledSphere(9, 30.0), obj_hs110, x -> [], [[30.0] ; [0.0 for _ in 1:9]]),
 ]
 
-data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/2-retractions/data/Exp/"
+data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/4-manifolds/data/parametrization"
+STUPID_MAX = 1.0e20
 
 for (i, problem) in ProgressBar(enumerate(manifold_benchmarks_manifolds))
-    result, stratified_f, x_history, f_history, v_history, d_history = solve_problem(RDFOSolver(), problem)
-    data = Dict(
-        "stratified_f" => stratified_f
+    M = get_equality_manifold(problem)
+    x0 = get_x0(problem)
+    if !is_point(M, x0)
+        x0 = project(M, x0)
+    end
+
+    radius = get_radius(M)
+
+    # Compute the initial point in spherical coordinates
+    θ0 = cartesian_to_hyperspherical(x0 ./ radius)
+
+    bb(θ) = begin
+        x = radius .* hyperspherical_to_cartesian(θ)
+        stabilized_x = project(M, x)
+        f = eval_obj(problem, stabilized_x)
+        return (true, true, [f])
+    end
+
+    n = get_dimension(problem)
+
+    noptions = NOMAD.NomadOptions(max_bb_eval = 1000 * n, display_stats = ["BBE", "SOL", "OBJ"], display_all_eval = true)
+    npb = NomadProblem(
+        n - 1,
+        1,
+        ["OBJ"],
+        bb;
+        lower_bound = zeros(n - 1),
+        upper_bound = [π .* ones(n - 2) ; [2π]],
+        options = noptions
     )
-    open(joinpath(data_path, "$(i).json"), "w") do io
-        JSON.print(io, data)
+
+    redirect_to_files(joinpath(data_path, "$(i).txt")) do
+        result = solve(npb, θ0)
+    end
+
+    # Read the generated file and turn into a stratified_fs vector.
+    open(joinpath(data_path, "$(i).txt")) do logf
+        stratified_f = Float64[]
+        best = typemax(Float64)
+        for line in eachline(logf)
+            if occursin(r"^\d+", line)
+                parts = split(line)
+                n_eval = parse(Int, parts[1])
+                bracket_end = findfirst(isequal(')'), line)
+                remaining = split(line[(bracket_end + 1):end])
+                f = (remaining[1] == "inf") ? STUPID_MAX : parse(Float64, remaining[1])
+                best = min(f, best)
+                push!(stratified_f, best)
+            end
+        end
+
+        data = Dict(
+            "stratified_f" => stratified_f
+        )
+
+        open(joinpath(data_path, "$(i).json"), "w") do io
+            JSON.print(io, data)
+        end
     end
 end

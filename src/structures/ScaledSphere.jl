@@ -18,6 +18,7 @@ representation_size(M::ScaledSphere) = (M.dimension + 1,)
 get_embedding(M::ScaledSphere) = Euclidean(representation_size(M)...)
 
 get_radius(M::ScaledSphere) = M.radius
+get_radius(M::Manifolds.Sphere) = 1.0
 
 function check_point(M::ScaledSphere, p; kwargs...)
     if !isapprox(norm(p), M.radius; kwargs...)
@@ -61,18 +62,53 @@ end
 default_retraction_method(::ScaledSphere) = ExponentialRetraction()
 
 function exp!(M::ScaledSphere, q, p, X)
-    n = manifold_dimension(M)
-    println(n)
-    S = Manifolds.Sphere(n)
+    nX = norm(X)
     r = get_radius(M)
-    q = r .* exp(S, p ./ r, X)
-    println(q)
+    if nX == 0
+        q .= p
+    else
+        q .= cos(nX / r) .* p + r * sin(nX / M.radius) .* (1 / nX) .* X
+    end
+    q .= project(M, q)
     return q
 end
 
 default_invertibility_bound(M::ScaledSphere, m::ExponentialRetraction) = ExactInvertibility()
-injectivity_radius(M::ScaledSphere, p, m::ExponentialRetraction) = π * get_radius(M)
+ManifoldsBase.injectivity_radius(M::ScaledSphere) = π * get_radius(M)
+ManifoldsBase.injectivity_radius(M::ScaledSphere, p, m::ExponentialRetraction) = π * get_radius(M)
 invertibility_radius(M::ScaledSphere, p, m::ExponentialRetraction, b::ExactInvertibility) = injectivity_radius(M, p, m)
+
+# Logarithmic map
+function ManifoldsBase.log!(M::ScaledSphere, X, p, q)
+    r = get_radius(M)
+
+    cosθ = clamp(dot(p, q) / (r^2), -1, 1)
+    return if cosθ ≈ -1
+        fill!(X, zero(eltype(X)))
+        if p[1] ≈ r
+            X[2] = 1
+        else
+            X[1] = 1
+        end
+        copyto!(X, X .- dot(p, X) / r .* p)
+        X .*= π * r / norm(X)
+    else
+        θ = acos(cosθ)
+        X .= θ .* (q .- cosθ .* p) ./ sin(θ)
+    end
+    return project!(M, X, p, X)
+end
+
+ManifoldsBase.inner(M::ScaledSphere, p, X, Y) = dot(X, Y)
+
+function ManifoldsBase.parallel_transport_to!(M::ScaledSphere, Y, p, X, q)
+    n = manifold_dimension(M)
+    r = get_radius(M)
+    S = Manifolds.Sphere(n)
+
+    Y .= ManifoldsBase.parallel_transport_to(S, p ./ r, X, q ./ r)
+    return Y
+end
 
 # Projection
 
@@ -81,4 +117,4 @@ function ManifoldsBase.project(M::ScaledSphere, p)
     return r .* (p / norm(p))
 end
 
-export ScaledSphere
+export ScaledSphere, get_radius

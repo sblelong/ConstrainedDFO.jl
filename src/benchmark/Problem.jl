@@ -6,6 +6,12 @@ mutable struct BenchmarkEqualityProblem <: AbstractBenchmarkProblem
     ineq_constraints::Function
     eq_constraints::Function
     x0::Vector{Float64}
+    A::Union{Nothing, Matrix{Float64}}
+    b::Union{Nothing, Vector{Float64}}
+end
+
+function BenchmarkEqualityProblem(dimension::Int, objective::Function, ineq_constraints::Function, eq_constraints::Function, x0; A::Union{Nothing, Matrix{Float64}} = nothing, b::Union{Nothing, Vector{Float64}} = nothing)
+    return BenchmarkEqualityProblem(dimension, objective, ineq_constraints, eq_constraints, x0, A, b)
 end
 
 mutable struct BenchmarkManifoldProblem <: AbstractBenchmarkProblem
@@ -26,6 +32,9 @@ eval_eqs(BPE::BenchmarkEqualityProblem, x) = BPE.eq_constraints(x)
 
 get_x0(BP::AbstractBenchmarkProblem) = BP.x0
 
+nb_inequality_constraints(BP::AbstractBenchmarkProblem) = length(eval_ineqs(BP, get_x0(BP)))
+has_inequality_constraints(BP::AbstractBenchmarkProblem) = nb_inequality_constraints(BP) > 0
+
 function get_equality_manifold(BPE::BenchmarkEqualityProblem)
     x0 = get_x0(BPE)
     n = length(x0)
@@ -37,4 +46,4 @@ function get_equality_manifold(BPE::BenchmarkEqualityProblem)
 end
 get_equality_manifold(BPM::BenchmarkManifoldProblem) = BPM.manifold
 
-export BenchmarkEqualityProblem, BenchmarkManifoldProblem, get_dimension, eval_obj, eval_ineqs, eval_eqs, get_x0, get_equality_manifold
+export BenchmarkEqualityProblem, BenchmarkManifoldProblem, get_dimension, eval_obj, eval_ineqs, eval_eqs, get_x0, get_equality_manifold, has_inequality_constraints, nb_inequality_constraints

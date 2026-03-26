@@ -1,7 +1,17 @@
+using Manopt
 using ConstrainedDFO
 using Manifolds
 using ProgressBars
 using JSON
+
+global objective_values_storage::Vector{Float64}
+
+function objective_wrapper(obj::Function, x)
+    global objective_values_storage
+    f = obj(x)
+    push!(objective_values_storage, f)
+    return f
+end
 
 A2 = [
     -10.0 1.0;
@@ -96,74 +106,89 @@ A30 = [
     0.0    -7.5    2.0    -6.0    7.0    -4.0    2.5    -1.0    1.0    9.0    -3.0    -1.0    1.5    4.0    -5.0    5.0    2.5    5.5    -1.5    5.5    -2.5    9.0    3.0    -2.5    5.5    5.0    -0.5    1.5    8.5    -7.0
 ]
 
-manifold_benchmarks_manifolds = [
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> obj_rayleigh(x, A2), x -> [], [1.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> obj_rayleigh(x, A2), x -> [], ones(2)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> -obj_rayleigh(x, A2), x -> [], [1.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> -obj_rayleigh(x, A2), x -> [], -ones(2)),
+manifold_benchmarks_manopt = [
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(y -> obj_rayleigh(y, A2), x), x -> [], [1.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(y -> obj_rayleigh(x, A2), x), x -> [], ones(2)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(y -> -obj_rayleigh(x, A2), x), x -> [], [1.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(y -> -obj_rayleigh(x, A2), x), x -> [], -ones(2)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> obj_rayleigh(x, A3), x -> [], [1.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> obj_rayleigh(x, A3), x -> [], -ones(3)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> -obj_rayleigh(x, A3), x -> [], [1.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> -obj_rayleigh(x, A3), x -> [], -ones(3)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> objective_wrapper(y -> obj_rayleigh(y, A3), x), x -> [], [1.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> objective_wrapper(y -> obj_rayleigh(y, A3), x), x -> [], -ones(3)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> objective_wrapper(y -> -obj_rayleigh(y, A3), x), x -> [], [1.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> objective_wrapper(y -> -obj_rayleigh(y, A3), x), x -> [], -ones(3)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> obj_rayleigh(x, A5), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> obj_rayleigh(x, A5), x -> [], -ones(5)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> -obj_rayleigh(x, A5), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> -obj_rayleigh(x, A5), x -> [], -ones(5)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> objective_wrapper(y -> obj_rayleigh(y, A5), x), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> objective_wrapper(y -> obj_rayleigh(y, A5), x), x -> [], -ones(5)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> objective_wrapper(y -> -obj_rayleigh(y, A5), x), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(4), x -> objective_wrapper(y -> -obj_rayleigh(y, A5), x), x -> [], -ones(5)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> obj_rayleigh(x, A7), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> obj_rayleigh(x, A7), x -> [], -ones(7)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> -obj_rayleigh(x, A7), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> -obj_rayleigh(x, A7), x -> [], -ones(7)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> objective_wrapper(y -> obj_rayleigh(y, A7), x), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> objective_wrapper(y -> obj_rayleigh(y, A7), x), x -> [], -ones(7)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> objective_wrapper(y -> -obj_rayleigh(y, A7), x), x -> [], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(6), x -> objective_wrapper(y -> -obj_rayleigh(y, A7), x), x -> [], -ones(7)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> obj_rayleigh(x, A10), x -> [], [[1.0] ; [0.0 for _ in 1:9]]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> obj_rayleigh(x, A10), x -> [], -ones(10)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> -obj_rayleigh(x, A10), x -> [], [[1.0] ; [0.0 for _ in 1:9]]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> -obj_rayleigh(x, A10), x -> [], -ones(10)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> obj_rayleigh(x, A10), x -> [], ones(10)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> -obj_rayleigh(x, A10), x -> [], ones(10)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], [[1.0] ; [0.0 for _ in 1:9]]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], -ones(10)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], [[1.0] ; [0.0 for _ in 1:9]]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], -ones(10)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], ones(10)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(9), x -> objective_wrapper(y -> obj_rayleigh(y, A10), x), x -> [], ones(10)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> obj_rayleigh(x, A15), x -> [], [[1.0] ; [0.0 for _ in 1:14]]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> obj_rayleigh(x, A15), x -> [], -ones(15)),
-    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> -obj_rayleigh(x, A15), x -> [], [[1.0] ; [0.0 for _ in 1:14]]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> -obj_rayleigh(x, A15), x -> [], -ones(15)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> objective_wrapper(y -> obj_rayleigh(y, A15), x), x -> [], [[1.0] ; [0.0 for _ in 1:14]]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> objective_wrapper(y -> obj_rayleigh(y, A15), x), x -> [], -ones(15)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> objective_wrapper(y -> -obj_rayleigh(y, A15), x), x -> [], [[1.0] ; [0.0 for _ in 1:14]]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> objective_wrapper(y -> -obj_rayleigh(y, A15), x), x -> [], -ones(15)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(29), x -> obj_rayleigh(x, A30), x -> [], [[1.0] ; [0.0 for _ in 1:29]]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(29), x -> -obj_rayleigh(x, A30), x -> [], -ones(30)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(29), x -> objective_wrapper(y -> obj_rayleigh(y, A30), x), x -> [], [[1.0] ; [0.0 for _ in 1:29]]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(29), x -> objective_wrapper(y -> -obj_rayleigh(y, A30), x), x -> [], -ones(30)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), obj_rosenbrock, x -> [], [0.0, -1.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), obj_rosenbrock, x -> [], [-2.17, 1.77]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 4.0), obj_rosenbrock, x -> [], [0.0, -4.0, 0.0]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 4.0), obj_rosenbrock, x -> [], [0.25, 3.48, 3.48]),
-    BenchmarkManifoldProblem(ScaledSphere(4, 2.0), obj_rosenbrock, x -> [], ones(5)),
-    BenchmarkManifoldProblem(ScaledSphere(4, 2.0), obj_rosenbrock, x -> [], [-3.38, -3.08, -1.06, -4.59, -3.98]),
-    BenchmarkManifoldProblem(ScaledSphere(6, 4.0), obj_rosenbrock, x -> [], [0.0, -4.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(14), obj_rosenbrock, x -> [], ones(15)),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [0.0, -1.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [-2.17, 1.77]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 4.0), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [0.0, -4.0, 0.0]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 4.0), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [0.25, 3.48, 3.48]),
+    BenchmarkManifoldProblem(ScaledSphere(4, 2.0), x -> objective_wrapper(obj_rosenbrock, x), x -> [], ones(5)),
+    BenchmarkManifoldProblem(ScaledSphere(4, 2.0), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [-3.38, -3.08, -1.06, -4.59, -3.98]),
+    BenchmarkManifoldProblem(ScaledSphere(6, 4.0), x -> objective_wrapper(obj_rosenbrock, x), x -> [], [0.0, -4.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(14), x -> objective_wrapper(obj_rosenbrock, x), x -> [], ones(15)),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), obj_hs5, x -> [], [1.0, 0.0]),
-    BenchmarkManifoldProblem(Manifolds.Sphere(1), obj_hs5, x -> [], [4.49, 3.08]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(obj_hs5, x), x -> [], [1.0, 0.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(1), x -> objective_wrapper(obj_hs5, x), x -> [], [4.49, 3.08]),
 
-    BenchmarkManifoldProblem(ScaledSphere(2, 100.0), obj_hs25, x -> [], [100.0, 12.5, 3.0]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 100.0), obj_hs25, x -> [], [-78.2, 9.1, -15.6]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 50.0), obj_hs25, x -> [], [4.89, -2.88, -0.66]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 50.0), obj_hs25, x -> [], -[100.0, 12.5, 3.0]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 100.0), x -> objective_wrapper(obj_hs25, x), x -> [], [100.0, 12.5, 3.0]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 100.0), x -> objective_wrapper(obj_hs25, x), x -> [], [-78.2, 9.1, -15.6]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 50.0), x -> objective_wrapper(obj_hs25, x), x -> [], [4.89, -2.88, -0.66]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 50.0), x -> objective_wrapper(obj_hs25, x), x -> [], -[100.0, 12.5, 3.0]),
 
-    BenchmarkManifoldProblem(ScaledSphere(5, 1.0e8), obj_hs54, x -> [], [6.0e3, 1.5, 4.0e6, 2, 3.0e-3, 5.0e7]),
-    BenchmarkManifoldProblem(ScaledSphere(5, 1.0e8), obj_hs54, x -> [], [1.0e8, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    BenchmarkManifoldProblem(ScaledSphere(5, 1.0e8), x -> objective_wrapper(obj_hs54, x), x -> [], [6.0e3, 1.5, 4.0e6, 2, 3.0e-3, 5.0e7]),
+    BenchmarkManifoldProblem(ScaledSphere(5, 1.0e8), x -> objective_wrapper(obj_hs54, x), x -> [], [1.0e8, 0.0, 0.0, 0.0, 0.0, 0.0]),
 
-    BenchmarkManifoldProblem(Manifolds.Sphere(2), obj_hs62, x -> [], [0.7, 0.2, 0.1]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 0.75), obj_hs62, x -> [], [0.7, 0.2, 0.1]),
-    BenchmarkManifoldProblem(ScaledSphere(2, 0.75), obj_hs62, x -> [], [1.0, 0.0, -1.0]),
+    BenchmarkManifoldProblem(Manifolds.Sphere(2), x -> objective_wrapper(obj_hs62, x), x -> [], [0.7, 0.2, 0.1]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 0.75), x -> objective_wrapper(obj_hs62, x), x -> [], [0.7, 0.2, 0.1]),
+    BenchmarkManifoldProblem(ScaledSphere(2, 0.75), x -> objective_wrapper(obj_hs62, x), x -> [], [1.0, 0.0, -1.0]),
 
-    BenchmarkManifoldProblem(ScaledSphere(9, 30.0), obj_hs110, x -> [], 9 .* ones(10)),
-    BenchmarkManifoldProblem(ScaledSphere(9, 30.0), obj_hs110, x -> [], [[30.0] ; [0.0 for _ in 1:9]]),
+    BenchmarkManifoldProblem(ScaledSphere(9, 30.0), x -> objective_wrapper(obj_hs110, x), x -> [], 9 .* ones(10)),
+    BenchmarkManifoldProblem(ScaledSphere(9, 30.0), x -> objective_wrapper(obj_hs110, x), x -> [], [[30.0] ; [0.0 for _ in 1:9]]),
 ]
 
-data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/2-retractions/data/Exp/"
+data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/4-manifolds/data/manopt"
 
-for (i, problem) in ProgressBar(enumerate(manifold_benchmarks_manifolds))
-    result, stratified_f, x_history, f_history, v_history, d_history = solve_problem(RDFOSolver(), problem)
+for (i, problem) in ProgressBar(enumerate(manifold_benchmarks_manopt))
+    global objective_values_storage
+    objective_values_storage = Float64[]
+
+    M = get_equality_manifold(problem)
+    obj(M, x) = eval_obj(problem, x)
+    x0 = get_x0(problem)
+
+    result = mesh_adaptive_direct_search(M, obj, x0; stopping_criterion = StopAfterIteration(1000 * get_dimension(problem)) | StopWhenPollSizeLess(1.0e-10))
+
+    stratified_f = Float64[]
+    best = typemax(Float64)
+    for f_val in objective_values_storage
+        best = min(best, f_val)
+        push!(stratified_f, best)
+    end
+
     data = Dict(
         "stratified_f" => stratified_f
     )
