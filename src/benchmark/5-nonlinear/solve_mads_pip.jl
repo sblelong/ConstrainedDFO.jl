@@ -1,9 +1,12 @@
+using Pkg
+Pkg.activate(".")
+
 using ConstrainedDFO
 using JSON
 using ProgressBars
 using ManifoldsBase
 
-data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data/mads-pip/"
+data_path = "/home/benasach/dev/ConstrainedDFO.jl/src/benchmark/5-nonlinear/data/mads-pip"
 STUPID_MAX = 1.0e20
 
 for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
@@ -11,14 +14,14 @@ for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
     m = nb_inequality_constraints(problem)
 
     M = get_equality_manifold(problem)
-    x0 = get_x0(problem)R
+    x0 = get_x0(problem)
     budget = 1000 * n
 
     p = nb_equality_constraints(problem)
 
     open(joinpath(data_path, "param.txt"), "w") do io
         write(io, "DIMENSION $(n)\n")
-        write(io, "BB_EXE \"\$julia /home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/blackbox.jl \$$(id_instance)\"\n")
+        write(io, "BB_EXE \"\$julia /home/benasach/dev/ConstrainedDFO.jl/src/benchmark/5-nonlinear/blackbox.jl \$$(id_instance)\"\n")
 
         write(io, "BB_OUTPUT_TYPE OBJ ")
         for i in 1:m
@@ -47,5 +50,5 @@ for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
     end
 
     # Solve the problem with NOMAD
-    run(ignorestatus(`/home/sblelong/dev/nomad4dev/build/release/bin/nomad $(joinpath(data_path, "param.txt"))`))
+    run(ignorestatus(`/home/benasach/dev/nomad4dev/build/release/bin/nomad $(joinpath(data_path, "param.txt"))`))
 end

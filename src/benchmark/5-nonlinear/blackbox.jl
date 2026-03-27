@@ -1,6 +1,3 @@
-# using Pkg
-# Pkg.activate("/home/sblelong/.julia/dev/ConstrainedDFO/")
-# using ConstrainedDFO
 using DelimitedFiles
 
 abstract type AbstractBenchmarkProblem end
