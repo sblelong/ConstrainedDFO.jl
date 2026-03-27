@@ -145,6 +145,7 @@ starting_hs119_2 = project(M_hs119, -5 .* ones(16))
 obj_hs6(x) = (1 - x[1])^2
 obj_hs7(x) = log(1 + x[1]^2) - x[2]
 obj_hs27(x) = 0.01(x[1] - 1)^2 + (x[2] - x[1]^2)^2
+obj_hs47(x) = (x[1] - x[2])^2 + (x[2] - x[3])^3 + (x[3] - x[4])^4 + (x[4] - x[5])^4
 obj_hs60(x) = (x[1] - 1)^2 + (x[1] - x[2])^2 + (x[2] - x[3])^4
 obj_hs61(x) = 4x[1]^2 + 2x[2]^2 + 2x[3]^2 - 33x[1] + 16x[2] - 24x[3]
 obj_hs63(x) = 1000 - x[1]^2 - 2x[2]^2 - x[3]^2 - x[1] * x[2] - x[1] * x[3]
@@ -153,7 +154,13 @@ obj_hs74(x) = 3x[1] + 1.0e-6 * x[1]^3 + 2x[2] + 2 / 3 * 1.0e-6 * x[2]^3
 obj_hs77(x) = (x[1] - 1)^2 + (x[1] - x[2])^2 + (x[3] - 1)^2 + (x[4] - 1)^4 + (x[5] - 1)^6
 
 c_hs111 = [-6.089, -17.164, -34.054, -5.914, -24.721, -14.986, -24.1, -10.708, -26.662, -22.179]
-obj_hs111(x) = sum([exp(x[i]) * (c_hs111[i] + x[i] - ln(sum([exp(x[k]) for k in 1:10]))) for i in 1:10])
+obj_hs111(x) = begin
+    f = 1.0e20
+    try
+        f = sum([exp(x[i]) * (c_hs111[i] + x[i] - log(sum([exp(x[k]) for k in 1:10]))) for i in 1:10])
+    catch e end
+    return f
+end
 
 eq_hs111(x) = [exp(x[1]) + 2 * exp(x[2]) + 2 * exp(x[3]) + exp(x[6]) + exp(x[10]) - 2, exp(x[4]) + 2 * exp(x[5]) + exp(x[6]) + exp(x[7]) - 1, exp(x[3]) + exp(x[7]) + exp(x[8]) + 2 * exp(x[9]) + exp(x[10]) - 1]
 
@@ -162,7 +169,7 @@ eq_hs81(x) = [eq_sphere(x; radius = sqrt(10)), x[2] * x[3] - 5x[4] * x[5], x[1]^
 
 eq_hs80(x) = [eq_sphere(x; radius = sqrt(10)), x[2] * x[3] - 5x[4] * x[5], x[1]^3 + x[2]^3 + 1]
 
-export eq_sphere, eq_sum1, eq_hs119, obj_hs71
+export eq_sphere, eq_sum1, eq_hs119, obj_hs71, obj_hs111, eq_hs111
 
 # Some first test problems
 linear_benchmark_sphere(dim::Int, x0::Vector{Float64}; use_manifolds::Bool = false) = begin
@@ -450,9 +457,9 @@ nonlinear_benchmarks = [
     BenchmarkEqualityProblem(2, obj_hs7, x -> [], x -> [(1 + x[1]^2)^2 + x[2]^2 - 4], [-8.75, -9.36]),
 
     # HS8 is a feasibility problem, so we limit to 3 instances.
-    BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [2.0, 1.0]),
-    BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [-6.0, 6.56]),
-    BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [3.88, 3.18]),
+    # BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [2.0, 1.0]),
+    # BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [-6.0, 6.56]),
+    # BenchmarkEqualityProblem(2, x -> 1, x -> [], x -> [eq_sphere(x; radius = 5.0), x[1] * x[2] - 9], [3.88, 3.18]),
 
     # HS26
     BenchmarkEqualityProblem(3, obj_hs26, x -> [], x -> [(1 + x[2]) * x[1] + x[3]^4 - 3], [-2.6, 2.0, 2.0]),
@@ -503,14 +510,14 @@ nonlinear_benchmarks = [
     BenchmarkEqualityProblem(4, x -> sum([x[i] - i for i in 1:4]), x -> [], x -> [x[1] - 2, x[3]^2 + x[4]^2 - 2], [10.94, 12.89, 29.72, -1.58]),
 
     # HS47
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [2.0, sqrt(2), -1, 2 - sqrt(2), 0.5]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-28.99, -28.67, -19.83, -16.98, -26.97]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [13.43, 14.87, -6.89, 14.82, 28.42]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [27.22, 24.34, 10.26, 19.08, -13.19]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-5.12, -19.33, -17.65, -2.49, 20.05]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-10.69, -6.89, 25.01, 29.29, 10.77]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [1.18, 8.99, 3.01, 10.41, -19.88]),
-    BenchmarkEqualityProblem(5, x -> obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-17.06, 23.59, 15.5, -18.72, -8.4]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [2.0, sqrt(2), -1, 2 - sqrt(2), 0.5]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-28.99, -28.67, -19.83, -16.98, -26.97]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [13.43, 14.87, -6.89, 14.82, 28.42]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [27.22, 24.34, 10.26, 19.08, -13.19]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-5.12, -19.33, -17.65, -2.49, 20.05]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-10.69, -6.89, 25.01, 29.29, 10.77]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [1.18, 8.99, 3.01, 10.41, -19.88]),
+    BenchmarkEqualityProblem(5, obj_hs47, x -> [], x -> [x[1] + x[2]^2 + x[3]^3 - 3, x[2] - x[3]^2 + x[4] - 1, x[1] * x[5] - 1], [-17.06, 23.59, 15.5, -18.72, -8.4]),
 
     # HS56
     BenchmarkEqualityProblem(7, x -> -x[1] * x[2] * x[3], x -> [], x -> [x[1] - 4.2 * sin(x[4])^2, x[2] - 4.2 * sin(x[5])^2, x[3] - 4.2 * sin(x[6])^2, x[1] + 2x[2] + 2x[3] - 7.2 * sin(x[7])^2], [1.0, 1.0, 1.0, asin(sqrt(1 / 4.2)), asin(sqrt(1 / 4.2)), asin(sqrt(1 / 4.2)), asin(sqrt(5 / 7.2))]),
@@ -522,13 +529,13 @@ nonlinear_benchmarks = [
     BenchmarkEqualityProblem(7, x -> -x[1] * x[2] * x[3], x -> [], x -> [x[1] - 4.2 * sin(x[4])^2, x[2] - 4.2 * sin(x[5])^2, x[3] - 4.2 * sin(x[6])^2, x[1] + 2x[2] + 2x[3] - 7.2 * sin(x[7])^2], [7.0, 14.42, 8.73, -13.35, -8.85, 8.39, 10.41]),
 
     # HS60
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [2.0, 2.0, 2.0]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [-18.72, 0.76, 6.52]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [17.5, 24.62, 25.9]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [7.41, -27.75, -9.06]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [4.12, 11.77, -28.31]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [-9.7, -14.03, 4.09]),
-    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1](1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [7.75, -10.07, 7.65]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [2.0, 2.0, 2.0]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [-18.72, 0.76, 6.52]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [17.5, 24.62, 25.9]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [7.41, -27.75, -9.06]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [4.12, 11.77, -28.31]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [-9.7, -14.03, 4.09]),
+    BenchmarkEqualityProblem(3, obj_hs60, x -> [[-x[i] - 10 for i in 1:3] ; [x[i] - 10 for i in 1:3]], x -> [x[1] * (1 + x[2]^2) + x[3]^4 - 4 - 3 * sqrt(2)], [7.75, -10.07, 7.65]),
 
     # HS61
     BenchmarkEqualityProblem(3, obj_hs61, x -> [], x -> [3x[1] - 2x[2]^2 - 7, 4x[1] - x[3]^2 - 11], [0.0, 0.0, 0.0]),
@@ -565,10 +572,10 @@ nonlinear_benchmarks = [
     BenchmarkEqualityProblem(5, obj_hs77, x -> [], x -> [x[1]^2 * x[4] + sin(x[4] - x[5]) - 2 * sqrt(2), x[2] + x[3]^4 * x[4]^2 - 8 - sqrt(2)], [4.6, 4.15, -5.21, -1.02, 1.85]),
 
     # HS80 without its inequalities
-    BenchmarkEqualityProblem(5, x -> exp(prod(x)), x -> [], x -> eq_hs80, [-2.0, 2.0, 2.0, -1.0, -1.0]),
+    BenchmarkEqualityProblem(5, x -> exp(prod(x)), x -> [], eq_hs80, [-2.0, 2.0, 2.0, -1.0, -1.0]),
 
     # True HS80
-    BenchmarkEqualityProblem(5, x -> exp(prod(x)), x -> [[-2.3 - x[i] for i in 1:2] ; [x[i] - 2.3 for i in 1:2] ; [-3.2 - x[i] for i in 3:5] ; [x[i] - 3.2 for i in 3:5]], x -> eq_hs80, [-2.0, 2.0, 2.0, -1.0, -1.0]),
+    BenchmarkEqualityProblem(5, x -> exp(prod(x)), x -> [[-2.3 - x[i] for i in 1:2] ; [x[i] - 2.3 for i in 1:2] ; [-3.2 - x[i] for i in 3:5] ; [x[i] - 3.2 for i in 3:5]], eq_hs80, [-2.0, 2.0, 2.0, -1.0, -1.0]),
 
     # HS81
     BenchmarkEqualityProblem(5, obj_hs81, x -> [[-2.3 - x[i] for i in 1:2] ; [x[i] - 2.3 for i in 1:2] ; [-3.2 - x[i] for i in 3:5] ; [x[i] - 3.2 for i in 3:5]], eq_hs81, [-2.0, 2.0, 2.0, -1.0, -1.0]),

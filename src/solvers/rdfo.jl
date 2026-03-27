@@ -9,15 +9,24 @@ Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at t
 """
 retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractDFRSolver)
 
-function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing)
-    d = get_vector(M, p, v, DefaultOrthonormalBasis())
-    Pd = retract(M, p, d, retraction_method)
-    fd = [get_cost(M, mco, Pd)]
-    if isnothing(inequality_constraints)
-        return (true, true, fd)
-    else
-        gd = inequality_constraints(Pd)
-        return (true, true, [fd; gd])
+function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0)
+    return try
+        d = get_vector(M, p, v, DefaultOrthonormalBasis())
+        Pd = retract(M, p, d, retraction_method)
+        fd = [get_cost(M, mco, Pd)]
+        if isnothing(inequality_constraints)
+            return (true, true, fd)
+        else
+            gd = inequality_constraints(Pd)
+            return (true, true, [fd; gd])
+        end
+    catch e
+        println("FAAAILED: $(e)")
+        if isnothing(inequality_constraints)
+            return (true, true, [1.0e20])
+        else
+            return (true, true, [[1.0e20] ; [1.0e20 for _ in 1:nb_inequalities]])
+        end
     end
 end
 

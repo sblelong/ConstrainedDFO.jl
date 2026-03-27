@@ -35,6 +35,8 @@ get_x0(BP::AbstractBenchmarkProblem) = BP.x0
 nb_inequality_constraints(BP::AbstractBenchmarkProblem) = length(eval_ineqs(BP, get_x0(BP)))
 has_inequality_constraints(BP::AbstractBenchmarkProblem) = nb_inequality_constraints(BP) > 0
 
+nb_equality_constraints(BPE::BenchmarkEqualityProblem) = length(eval_eqs(BPE, get_x0(BPE)))
+
 function get_equality_manifold(BPE::BenchmarkEqualityProblem)
     x0 = get_x0(BPE)
     n = length(x0)
@@ -46,4 +48,4 @@ function get_equality_manifold(BPE::BenchmarkEqualityProblem)
 end
 get_equality_manifold(BPM::BenchmarkManifoldProblem) = BPM.manifold
 
-export BenchmarkEqualityProblem, BenchmarkManifoldProblem, get_dimension, eval_obj, eval_ineqs, eval_eqs, get_x0, get_equality_manifold, has_inequality_constraints, nb_inequality_constraints
+export BenchmarkEqualityProblem, BenchmarkManifoldProblem, get_dimension, eval_obj, eval_ineqs, eval_eqs, get_x0, get_equality_manifold, has_inequality_constraints, nb_inequality_constraints, nb_equality_constraints

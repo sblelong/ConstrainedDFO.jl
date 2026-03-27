@@ -2,5 +2,4 @@
 /local
 *.log
 .CondaPkg
-*.json
-*.txt
+nomadtmp*
