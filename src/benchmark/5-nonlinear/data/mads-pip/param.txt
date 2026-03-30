@@ -1,12 +1,12 @@
-DIMENSION 2
-BB_EXE "$julia /home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/blackbox.jl $6"
-BB_OUTPUT_TYPE OBJ EQPB
-X0 ( 2.0 2.0 )
-MAX_BB_EVAL 2000
+DIMENSION 10
+BB_EXE "$julia /home/benasach/dev/ConstrainedDFO.jl/src/benchmark/5-nonlinear/blackbox.jl $100"
+BB_OUTPUT_TYPE OBJ EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EB EQPB EQPB EQPB
+X0 ( 2.3 2.3 2.3 2.3 2.3 2.3 2.3 2.3 2.3 2.3 )
+MAX_BB_EVAL 10000
 QUAD_MODEL_SEARCH no
 NM_SEARCH no
 DIRECTION_TYPE ORTHO 2N
 MADSPIP_OPTIMIZATION yes
 DISPLAY_DEGREE 0
 DISPLAY_ALL_EVAL yes
-STATS_FILE "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data/mads-pip/6.txt" BBE ( SOL ) BBO
+STATS_FILE "/home/benasach/dev/ConstrainedDFO.jl/src/benchmark/5-nonlinear/data/mads-pip/100.txt" BBE ( SOL ) BBO
