@@ -41,6 +41,7 @@ global data_array::Array{Float64, 3}
 data_array = fill(typemax(Float64), (n_algs, n_instances, max_evaluations))
 
 for (alg_id, (alg_name, alg_data)) in enumerate(data_dict)
+    println("Alg $(alg_id) is $(alg_name)")
     # For every instance
     for id_instance in 1:n_instances
         global data_array
@@ -67,7 +68,7 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-3
+τ = 1.0e-5
 # A stupid max for Naps.
 STUPID_MAX::Int = 1.0e6
 
@@ -133,16 +134,16 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((1.0, αmax), (0.0, 1.05)),
-        xlabel = L"Ratio $\alpha$ d'évaluations",
-        ylabel = L"Proportion $\rho_a(\alpha)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = "Ratio d'évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(αs, ρaαs[1, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_1(x)$")
-    stairs!(αs, ρaαs[2, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_2(x)$")
-    stairs!(αs, ρaαs[3, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_3(x)$")
-    stairs!(αs, ρaαs[4, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_4(x)$")
-    stairs!(αs, ρaαs[5, :]; label = L"$\mathrm{Exp}_{x}$, $\rho(x)=\mathrm{inj}(x)$")
-    axislegend(position = :rb; labelsize = 20)
+    stairs!(αs, ρaαs[2, :]; label = L"$\rho_1(x)$")
+    stairs!(αs, ρaαs[4, :]; label = L"$\rho_2(x)$")
+    stairs!(αs, ρaαs[3, :]; label = L"$\rho_3(x)$")
+    stairs!(αs, ρaαs[1, :]; label = L"$\rho_4(x)$")
+    stairs!(αs, ρaαs[5, :]; label = L"$\mathrm{Exp}_{x}$, $\mathrm{inj}(x)$")
+    axislegend(position = :rb; labelsize = 25)
     CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manifolds-performance-profile-$(τ).pdf", fig; px_per_unit = 4)
 end

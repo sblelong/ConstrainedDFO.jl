@@ -1,18 +1,18 @@
 using ConstrainedDFO
 using JSON
 using ProgressBars
+using ManifoldsBase
 
 data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data/mads-pip/"
 STUPID_MAX = 1.0e20
-εeq = 1.0e-8
+εeq = 1.0e-6
 εineq = 1.0e-8
 
-for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks[1:1]))
+for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks[1:25]))
     n = get_dimension(problem)
     m = nb_inequality_constraints(problem)
 
     M = get_equality_manifold(problem)
-    x0 = project(M, get_x0(problem))
     budget = 1000 * n
 
     p = nb_equality_constraints(problem)
@@ -51,7 +51,7 @@ for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks[1:1]))
             "stratified_f" => stratified_f
         )
 
-        open(joinpath(data_path, "$(id_instance).json"), "w") do io
+        open(joinpath(data_path, "$(id_instance)-1e-6.json"), "w") do io
             JSON.print(io, data)
         end
     end

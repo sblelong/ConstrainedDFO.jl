@@ -64,7 +64,7 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-3
+τ = 1.0e-2
 # A stupid max for Naps.
 STUPID_MAX::Int = 1.0e6
 
@@ -76,8 +76,22 @@ accuracy_ratios = zeros((n_algs, n_instances, max_evaluations))
 for alg_id in 1:n_algs
     for id_instance in 1:n_instances
         f0 = data_array[alg_id, id_instance, 1]
-        for n_eval in 2:max_evaluations
-            accuracy_ratios[alg_id, id_instance, n_eval] = (data_array[alg_id, id_instance, n_eval] == f0) ? 0.0 : (data_array[alg_id, id_instance, n_eval] - f0) / (optimals[id_instance] - f0)
+        if f0 == 1.0e20
+            # The accuracy ratios should be computed with f0 = objective value for the first feasible iterate found.
+            if data_array[alg_id, id_instance, end] == f0
+                continue # The accuracy ratios remain 0 for this problem.
+            else
+                first_feasible_idx = findfirst(x -> x ≠ 1.0e20, data_array[alg_id, id_instance, :])
+                first_feasible_obj = data_array[alg_id, id_instance, first_feasible_idx]
+                # println("Alg $(alg_id) on instance $(id_instance). First feasible value: $(first_feasible_obj)")
+                for n_eval in 2:max_evaluations
+                    accuracy_ratios[alg_id, id_instance, n_eval] = (min(data_array[alg_id, id_instance, n_eval] - first_feasible_obj, 0.0)) / (optimals[id_instance] - first_feasible_obj)
+                end
+            end
+        else
+            for n_eval in 2:max_evaluations
+                accuracy_ratios[alg_id, id_instance, n_eval] = (data_array[alg_id, id_instance, n_eval] == f0) ? 0.0 : (data_array[alg_id, id_instance, n_eval] - f0) / (optimals[id_instance] - f0)
+            end
         end
     end
 end
@@ -130,13 +144,13 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((1.0, αmax), (0.0, 1.05)),
-        xlabel = L"Ratio $\alpha$ d'évaluations",
-        ylabel = L"Proportion $\rho_a(\alpha)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = "Ratio d'évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(αs, ρaαs[1, :]; label = L"\text{RDFO}")
-    stairs!(αs, ρaαs[2, :]; label = L"\text{MADS avec convertisseur linéaire}")
-    axislegend(position = :rb; labelsize = 20)
+    stairs!(αs, ρaαs[1, :]; label = "RDFO", linewidth = 2)
+    stairs!(αs, ρaαs[2, :]; label = "MADS avec convertisseur linéaire", linewidth = 2)
+    axislegend(position = :rb; labelsize = 25)
     CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-linear-performance-profile-$(τ).pdf", fig; px_per_unit = 4)
 end

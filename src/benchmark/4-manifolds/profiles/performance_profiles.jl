@@ -67,7 +67,7 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-5
+τ = 1.0e-2
 # A stupid max for Naps.
 STUPID_MAX::Int = 1.0e6
 
@@ -103,6 +103,7 @@ end
 raps = zeros(n_algs, n_instances)
 for id_instance in 1:n_instances # This outer loop should be about instances, so the minimum can be easily found every time.
     smallest_first_solved_index = minimum(Naps[:, id_instance])
+    println(smallest_first_solved_index)
     for alg_id in 1:n_algs
         if Taps[alg_id, id_instance] == 0
             raps[alg_id, id_instance] = STUPID_MAX
@@ -133,15 +134,15 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((1.0, αmax), (0.0, 1.05)),
-        xlabel = L"Ratio $\alpha$ d'évaluations",
-        ylabel = L"Proportion $\rho_a(\alpha)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = "Ratio d'évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(αs, ρaαs[2, :]; label = L"\text{RDFO} ($\mathrm{proj}_{\mathcal{M}}$)")
+    stairs!(αs, ρaαs[2, :]; label = L"\text{RDFO} ($\mathrm{proj}$)")
     stairs!(αs, ρaαs[4, :]; label = L"\text{RDFO} ($\mathrm{Exp}$)")
     stairs!(αs, ρaαs[3, :]; label = "MADS (Manopt.jl)")
     stairs!(αs, ρaαs[1, :]; label = "Coordonnées sphériques")
-    axislegend(position = :rb; labelsize = 20)
+    axislegend(position = :rb; labelsize = 24)
     CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manopt-performance-profile-$(τ).pdf", fig; px_per_unit = 4)
 end

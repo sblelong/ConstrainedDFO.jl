@@ -104,7 +104,7 @@ for alg_id in 1:n_algs
 end
 
 # Compute the data profile function
-k_max = 200
+k_max = 250
 
 # Values of the data profile function
 # daks[alg_id, k] = portion of problems that were τ-solved by solver `alg_id` within k * (dimension + 1) evaluations.
@@ -121,16 +121,16 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((0, k_max), (0.0, 1.05)),
-        xlabel = L"Nombre $k$ de gradients simplexes ($n_p+1$ évaluations)",
-        ylabel = L"Proportion $d_a(k)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = L"Groupes de $n+1$ évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(0:k_max, daks[2, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_1(x)$")
-    stairs!(0:k_max, daks[4, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_2(x)$")
-    stairs!(0:k_max, daks[3, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_3(x)$")
-    stairs!(0:k_max, daks[1, :]; label = L"$\mathrm{proj}_{\mathcal{M}}$, $\rho_4(x)$")
-    stairs!(0:k_max, daks[5, :]; label = L"$\mathrm{Exp}_{x}$, $\rho(x)=\mathrm{inj}(x)$")
-    axislegend(position = :rb; labelsize = 20)
+    stairs!(0:k_max, daks[2, :]; label = L"$\rho_1(x)$", linewidth = 2)
+    stairs!(0:k_max, daks[4, :]; label = L"$\rho_2(x)$", linewidth = 2)
+    stairs!(0:k_max, daks[3, :]; label = L"$\rho_3(x)$", linewidth = 2)
+    stairs!(0:k_max, daks[1, :]; label = L"$\rho_4(x)$", linewidth = 2)
+    stairs!(0:k_max, daks[5, :]; label = L"$\mathrm{Exp}_{x}$, $\mathrm{inj}(x)$", linewidth = 2)
+    axislegend(position = :rb; labelsize = 25)
     CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manifolds-data-profile-$(τ).pdf", fig; px_per_unit = 4)
 end

@@ -67,9 +67,9 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-5
+τ = 1.0e-2
 # A stupid max for Naps.
-STUPID_MAX::Float64 = 1.0e6
+STUPID_MAX::Int = 1.0e6
 
 # Find optimals for all problems
 optimals = [minimum([data_array[alg_id, id_instance, end] for alg_id in 1:n_algs]) for id_instance in 1:n_instances]
@@ -120,15 +120,15 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((0, k_max), (0.0, 1.05)),
-        xlabel = L"Nombre $k$ de gradients simplexes ($n_p+1$ évaluations)",
-        ylabel = L"Proportion $d_a(k)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = L"Groupes de $n+1$ évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(0:k_max, daks[2, :]; label = L"\text{RDFO} ($\mathrm{proj}_{\mathcal{M}}$)")
+    stairs!(0:k_max, daks[2, :]; label = L"\text{RDFO} ($\mathrm{proj}$)")
     stairs!(0:k_max, daks[4, :]; label = L"\text{RDFO} ($\mathrm{Exp}$)")
     stairs!(0:k_max, daks[3, :]; label = "MADS (Manopt.jl)")
     stairs!(0:k_max, daks[1, :]; label = "Coordonnées sphériques")
-    axislegend(position = :rb; labelsize = 20)
+    axislegend(position = :rb; labelsize = 25)
     CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manopt-data-profile-$(τ).pdf", fig; px_per_unit = 4)
 end
