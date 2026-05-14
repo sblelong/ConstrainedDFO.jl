@@ -9,11 +9,11 @@ Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at t
 """
 retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractDFRSolver)
 
-function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0)
+function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0, εeqs::Float64 = 1.0e-8)
     return try
         d = get_vector(M, p, v, DefaultOrthonormalBasis())
         Pd = retract(M, p, d, retraction_method)
-        fd = [get_cost(M, mco, Pd)]
+        fd = is_point(M, Pd; atol = εeqs) ? [get_cost(M, mco, Pd)] : [1.0e20]
         if isnothing(inequality_constraints)
             return (true, true, fd)
         else
@@ -39,10 +39,11 @@ function rDFO(
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
-        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method)
+        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method),
+        εeqs::Float64 = 1.0e-8
     )
     mco = ManifoldCostObjective(f)
-    return rDFO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound)
+    return rDFO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound, εeqs = εeqs)
 end
 
 function rDFO(
@@ -54,7 +55,8 @@ function rDFO(
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
-        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method)
+        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method),
+        εeqs::Float64 = 1.0e-8
     )
     rdfos = RDFOState(M, p0, stopping_criterion, retraction_method)
     mpb = DefaultManoptProblem(M, mco)
@@ -67,7 +69,8 @@ function rDFO(
     remaining_evals = max_evals
     processed_solver_details = Dict()
 
-    p = is_point(M, p0) ? p0 : project(M, p0)
+    p = is_point(M, p0; atol = εeqs) ? p0 : project(M, p0)
+    !is_point(M, p; atol = εeqs) && return p, [1.0e20], [], [], [], [], []
 
     if typeof(solver) == MADSDFRSolver
         options = Dict()
@@ -84,14 +87,16 @@ function rDFO(
 
     v_history = Matrix{Float64}[]
     d_history = Matrix{Float64}[]
+    main_iterates = Vector{Float64}[]
 
     # @printf("| %10s | %10s | %10s | %13s |\n", "iteration", "# evals", "total evals", "f")
     # @printf("|-%10s-|-%10s-|-%11s-|-%13s-|\n", "-"^10, "-"^10, "-"^10, "-"^14)
 
 
     while true
+        push!(main_iterates, p)
         # Construct the subproblem blackbox in ℝ^q.
-        local_blackbox(v) = retract_eval(M, mco, p, v, retraction_method, solver; inequality_constraints = inequality_constraints) # Will embed v in TpM, then retract this embedding on M and finally evaluate the objective at this retracted point.
+        local_blackbox(v) = retract_eval(M, mco, p, v, retraction_method, solver; inequality_constraints = inequality_constraints, εeqs = εeqs) # Will embed v in TpM, then retract this embedding on M and finally evaluate the objective at this retracted point.
 
         # Compute the injectivity radius, or a lower bound to it.
         radius = invertibility_radius(M, p, retraction_method, invertibility_bound)
@@ -102,13 +107,20 @@ function rDFO(
             options["initial_mesh_size"] = processed_solver_details["best_mesh_size"]
         end
 
-        if isnothing(inequality_constraints)
-            solve!(M, p, solver, local_blackbox, radius, remaining_evals; options)
-        else
-            gp = inequality_constraints(p)
-            nb_inequalities = length(gp)
-            init_feasible = all(gp .≤ 0)
-            solve!(M, p, solver, local_blackbox, radius, remaining_evals; options, nb_inequalities = nb_inequalities, init_feasible = init_feasible)
+        try
+            if isnothing(inequality_constraints)
+                solve!(M, p, solver, local_blackbox, radius, remaining_evals; options)
+            else
+                gp = inequality_constraints(p)
+                nb_inequalities = length(gp)
+                init_feasible = all(gp .≤ 0)
+                solve!(M, p, solver, local_blackbox, radius, remaining_evals; options, nb_inequalities = nb_inequalities, init_feasible = init_feasible)
+            end
+        catch e
+            # An error thrown here means that solving the subproblem has failed.
+            # It is most likely due to a Jacobian that does not have full rank at the current iterate.
+            eval_data[1] = get_cost(M, mco, p)
+            return p, eval_data[1:1], iterates_history, objective_history, v_history, d_history
         end
 
         if isnothing(inequality_constraints)
@@ -207,11 +219,13 @@ function rDFO(
 
         processed_solver_details = process_details(M, solver, solver_details)
 
+        (norm(p) == typemax(Float64) || !is_point(M, p; atol = εeqs)) && break
+
         # @printf("| %10d | %10d | %11d | %14e |\n", iter, used_evals, n_evals, best_f)
         stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag, retraction_method, invertibility_bound) && break
     end
     # println("A stopping criterion was met.")
-    return p, eval_data[1:n_evals], iterates_history, objective_history, v_history, d_history
+    return p, eval_data[1:n_evals], iterates_history, objective_history, v_history, d_history, main_iterates
 end
 
 function vs_to_ds(M::AbstractManifold, p, vs)

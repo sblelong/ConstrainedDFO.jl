@@ -41,9 +41,8 @@ for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
             "stratified_f" => stratified_f
         )
 
-        open(joinpath(data_path, "$(i).json"), "w") do io
+        open(joinpath(data_path, "$(i)-8.json"), "w") do io
             JSON.print(io, data)
         end
-
     end
 end

@@ -68,7 +68,7 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-5
+τ = 1.0e-2
 # A stupid max for Naps.
 STUPID_MAX::Int = 1.0e6
 
@@ -121,16 +121,16 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((0, k_max), (0.0, 1.05)),
-        xlabel = L"Groupes de $n+1$ évaluations",
-        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabel = L"Groups of $(n+1)$ evaluations",
+        ylabel = L"Proportion of $\tau$-solved instances",
         xlabelsize = 22,
         ylabelsize = 22
     )
-    stairs!(0:k_max, daks[2, :]; label = L"$\rho_1(x)$", linewidth = 2)
-    stairs!(0:k_max, daks[4, :]; label = L"$\rho_2(x)$", linewidth = 2)
-    stairs!(0:k_max, daks[3, :]; label = L"$\rho_3(x)$", linewidth = 2)
-    stairs!(0:k_max, daks[1, :]; label = L"$\rho_4(x)$", linewidth = 2)
-    stairs!(0:k_max, daks[5, :]; label = L"$\mathrm{Exp}_{x}$, $\mathrm{inj}(x)$", linewidth = 2)
+    stairs!(0:k_max, daks[2, :]; label = L"$\rho_1$", linewidth = 2, color = :blue)
+    stairs!(0:k_max, daks[4, :]; label = L"$\rho_2$", linewidth = 2, color = :red)
+    stairs!(0:k_max, daks[3, :]; label = L"$\rho_3$", linewidth = 2, color = :green)
+    stairs!(0:k_max, daks[1, :]; label = L"$\rho_4$", linewidth = 2, color = :goldenrod1)
+    stairs!(0:k_max, daks[5, :]; label = L"$\mathrm{Exp}$", linewidth = 2, color = :lightpink1)
     axislegend(position = :rb; labelsize = 25)
-    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manifolds-data-profile-$(τ).pdf", fig; px_per_unit = 4)
+    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-manifolds-data-profile-en-$(τ).pdf", fig; px_per_unit = 4)
 end

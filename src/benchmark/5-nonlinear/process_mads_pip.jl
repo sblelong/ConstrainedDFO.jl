@@ -5,10 +5,10 @@ using ManifoldsBase
 
 data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data/mads-pip/"
 STUPID_MAX = 1.0e20
-εeq = 1.0e-6
+εeq = 1.0e-8
 εineq = 1.0e-8
 
-for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks[1:25]))
+for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
     n = get_dimension(problem)
     m = nb_inequality_constraints(problem)
 
@@ -51,7 +51,7 @@ for (id_instance, problem) in ProgressBar(enumerate(nonlinear_benchmarks[1:25]))
             "stratified_f" => stratified_f
         )
 
-        open(joinpath(data_path, "$(id_instance)-1e-6.json"), "w") do io
+        open(joinpath(data_path, "$(id_instance).json"), "w") do io
             JSON.print(io, data)
         end
     end

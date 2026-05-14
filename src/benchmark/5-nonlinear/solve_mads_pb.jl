@@ -5,7 +5,7 @@ using NOMAD
 
 data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data/mads-pb/"
 
-for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks[89:end]))
+for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks[42:end]))
     n = get_dimension(problem)
     x0 = get_x0(problem)
     p = nb_equality_constraints(problem)
@@ -24,7 +24,7 @@ for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks[89:end]))
         return (true, true, bb_outputs)
     end
 
-    noptions = NOMAD.NomadOptions(max_bb_eval = 1000 * n, display_stats = ["BBE", "SOL", "BBO"], display_all_eval = true)
+    noptions = NOMAD.NomadOptions(max_bb_eval = 1000 * (n + 1), display_stats = ["BBE", "SOL", "BBO"], display_all_eval = true)
     npb = NomadProblem(
         n,
         1 + 2 * p + m,
@@ -33,7 +33,7 @@ for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks[89:end]))
         options = noptions
     )
 
-    redirect_to_files(joinpath(data_path, "$(i + 88).txt")) do
+    redirect_to_files(joinpath(data_path, "$(i + 41).txt")) do
         result = solve(npb, x0)
     end
 end

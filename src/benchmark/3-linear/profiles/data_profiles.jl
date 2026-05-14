@@ -68,9 +68,28 @@ end
 τ = 1.0e-5
 # A stupid max for Naps.
 STUPID_MAX::Int = 1.0e6
+STUPID_MAX_ALGOS::Float64 = 1.0e20
 
 # Find optimals for all problems
 optimals = [minimum([data_array[alg_id, id_instance, end] for alg_id in 1:n_algs]) for id_instance in 1:n_instances]
+
+# Find baseline values for all problems. As infeasible solvers are involved, f0 will be the first objective value associated with a feasible point found by any solver within the batch.
+f0s = fill(typemax(Float64), n_instances)
+unsolved_instances = Int[]
+for id_instance in 1:n_instances
+    # Find the first feasible index for all algorithms
+    first_feasible_indices = map(s -> findfirst(<(STUPID_MAX_ALGOS), s), eachslice(data_array[:, id_instance, :]; dims = 1))
+    first_feasible_objectives = [
+        isnothing(first_feasible_indices[alg_id]) ? STUPID_MAX_ALGOS : data_array[alg_id, id_instance, first_feasible_indices[alg_id]] for alg_id in 1:n_algs
+    ]
+
+    # If this index is always max_evals, no alg has solved this instance.
+    if all(first_feasible_objectives .== STUPID_MAX_ALGOS)
+        push!(unsolved_instances, id_instance)
+    end
+
+    f0s[id_instance] = minimum(first_feasible_objectives)
+end
 
 # Find dimensions of all problems.
 # TODO pay attention to this when using for other test sets.
@@ -80,24 +99,24 @@ dimensions = [get_dimension(pb) for pb in linear_benchmarks]
 accuracy_ratios = zeros((n_algs, n_instances, max_evaluations))
 for alg_id in 1:n_algs
     for id_instance in 1:n_instances
-        f0 = data_array[alg_id, id_instance, 1]
-        if f0 == 1.0e20
-            # The accuracy ratios should be computed with f0 = objective value for the first feasible iterate found.
-            if data_array[alg_id, id_instance, end] == f0
-                continue # The accuracy ratios remain 0 for this problem.
-            else
-                first_feasible_idx = findfirst(x -> x ≠ 1.0e20, data_array[alg_id, id_instance, :])
-                first_feasible_obj = data_array[alg_id, id_instance, first_feasible_idx]
-                # println("Alg $(alg_id) on instance $(id_instance). First feasible value: $(first_feasible_obj)")
-                for n_eval in 2:max_evaluations
-                    accuracy_ratios[alg_id, id_instance, n_eval] = (min(data_array[alg_id, id_instance, n_eval] - first_feasible_obj, 0.0)) / (optimals[id_instance] - first_feasible_obj)
-                end
-            end
-        else
-            for n_eval in 2:max_evaluations
-                accuracy_ratios[alg_id, id_instance, n_eval] = (data_array[alg_id, id_instance, n_eval] == f0) ? 0.0 : (data_array[alg_id, id_instance, n_eval] - f0) / (optimals[id_instance] - f0)
-            end
+        f0 = f0s[id_instance]
+        # if f0 == 1.0e20
+        #     # The accuracy ratios should be computed with f0 = objective value for the first feasible iterate found.
+        #     if data_array[alg_id, id_instance, end] == f0
+        #         continue # The accuracy ratios remain 0 for this problem.
+        #     else
+        #         first_feasible_idx = findfirst(x -> x ≠ 1.0e20, data_array[alg_id, id_instance, :])
+        #         first_feasible_obj = data_array[alg_id, id_instance, first_feasible_idx]
+        #         # println("Alg $(alg_id) on instance $(id_instance). First feasible value: $(first_feasible_obj)")
+        #         for n_eval in 2:max_evaluations
+        #             accuracy_ratios[alg_id, id_instance, n_eval] = (min(data_array[alg_id, id_instance, n_eval] - first_feasible_obj, 0.0)) / (optimals[id_instance] - first_feasible_obj)
+        #         end
+        #     end
+        # else
+        for n_eval in 2:max_evaluations
+            accuracy_ratios[alg_id, id_instance, n_eval] = (data_array[alg_id, id_instance, n_eval] == f0) ? 0.0 : (data_array[alg_id, id_instance, n_eval] - f0) / (optimals[id_instance] - f0)
         end
+        # end
     end
 end
 
@@ -115,7 +134,7 @@ for alg_id in 1:n_algs
 end
 
 # Compute the data profile function
-k_max = 100
+k_max = 150
 
 # Values of the data profile function
 # daks[alg_id, k] = portion of problems that were τ-solved by solver `alg_id` within k * (dimension + 1) evaluations.
@@ -132,13 +151,13 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((0, k_max), (0.0, 1.05)),
-        xlabel = L"Groupes de $n+1$ évaluations",
-        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabel = L"Groups of $(n+1)$ evaluations",
+        ylabel = L"Proportion of $\tau$-solved instances",
         xlabelsize = 22,
         ylabelsize = 22
     )
-    stairs!(0:k_max, daks[1, :]; label = L"\text{RDFO}", linewidth = 2)
-    stairs!(0:k_max, daks[2, :]; label = L"\text{MADS avec convertisseur linéaire}", linewidth = 2)
+    stairs!(0:k_max, daks[1, :]; label = L"\text{RDFO}", linewidth = 2, color = :blue)
+    stairs!(0:k_max, daks[2, :]; label = L"\text{MADS with a linear converter}", linewidth = 2, color = :red)
     axislegend(position = :rb; labelsize = 25)
-    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-linear-data-profile-$(τ).pdf", fig; px_per_unit = 4)
+    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-linear-data-profile-en-$(τ).pdf", fig; px_per_unit = 4)
 end

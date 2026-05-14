@@ -1,0 +1,727 @@
+
+Initialization step with radius =  1.000000000000000E+000
+Function number 1   F =  7.703829271057364E+000   Constraint violation =  2.373524500000000E+003
+The corresponding X is: -6.900000000000000E+000  -3.820000000000000E+000
+The constraint value is:  2.373524500000000E+003  -2.373524500000000E+003
+
+Initialization step with radius =  1.000000000000000E+000
+Function number 2   F =  7.398227184010342E+000   Constraint violation =  1.292948500000000E+003
+The corresponding X is: -5.900000000000000E+000  -3.820000000000000E+000
+The constraint value is:  1.292948500000000E+003  -1.292948500000000E+003
+
+Initialization step with radius =  1.000000000000000E+000
+Function number 3   F =  6.398227184010342E+000   Constraint violation =  1.286308500000000E+003
+The corresponding X is: -5.900000000000000E+000  -2.820000000000000E+000
+The constraint value is:  1.286308500000000E+003  -1.286308500000000E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 4   F =  6.033138387684118E+000   Constraint violation =  6.294271358932809E+002
+The corresponding X is: -4.900018879184440E+000  -2.813855245126474E+000
+The constraint value is:  6.294271358932809E+002  -6.294271358932809E+002
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 5   F =  3.862861022280762E+000   Constraint violation =  2.752740413551502E+002
+The corresponding X is: -3.959615491220886E+000  -1.048737269492361E+000
+The constraint value is:  2.752740413551502E+002  -2.752740413551502E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 6   F = -6.396725937740548E-001   Constraint violation =  7.029720577145530E+001
+The corresponding X is: -2.678123790662077E+000   2.740428736556845E+000
+The constraint value is:  7.029720577145530E+001  -7.029720577145530E+001
+
+Trust region step with radius =  8.000000000000000E+000
+Function number 7   F = -1.017248721644290E+001   Constraint violation =  1.071752464875748E+002
+The corresponding X is: -5.765161029404013E-001   1.045944714092078E+001
+The constraint value is:  1.071752464875748E+002  -1.071752464875748E+002
+
+Trust region step with radius =  1.600000000000000E+001
+Function number 8   F = -2.306780734484465E+001   Constraint violation =  9.154863872864331E+002
+The corresponding X is:  3.857367487554618E+000   2.583282270733230E+001
+The constraint value is:  9.154863872864331E+002  -9.154863872864331E+002
+
+Trust region step with radius =  1.600000000000000E+001
+Function number 9   F = -3.627556108648869E+001   Constraint violation =  1.007982601904406E+004
+The corresponding X is:  9.526723976789524E+000   4.079472088229560E+001
+The constraint value is:  1.007982601904406E+004  -1.007982601904406E+004
+
+Trust region step with radius =  1.599999999999999E+001
+Function number 10   F = -5.152408980352720E+001   Constraint violation =  2.644547966540471E+004
+The corresponding X is:  1.230789387154692E+001   5.655115112573891E+001
+The constraint value is:  2.644547966540471E+004  -2.644547966540471E+004
+
+Trust region step with radius =  1.599999999999999E+001
+Function number 11   F = -5.417358529199728E+001   Constraint violation =  5.963495938012335E+005
+The corresponding X is:  2.772797504466388E+001   6.081976877252852E+001
+The constraint value is:  5.963495938012335E+005  -5.963495938012335E+005
+
+Trust region step with radius =  7.999999999999997E+000
+Function number 12   F = -5.942751387273756E+001   Constraint violation =  3.146931011570086E+004
+The corresponding X is:  1.281612159613941E+001   6.453499134082060E+001
+The constraint value is:  3.146931011570086E+004  -3.146931011570086E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 13   F = -6.748756676801605E+001   Constraint violation =  2.882351604425178E+004
+The corresponding X is:  1.234986888301906E+001   7.252139280878524E+001
+The constraint value is:  2.882351604425178E+004  -2.882351604425178E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 14   F = -7.559840960835302E+001   Constraint violation =  2.247933442063896E+004
+The corresponding X is:  1.120455730052066E+001   8.043898470146290E+001
+The constraint value is:  2.247933442063896E+004  -2.247933442063896E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 15   F = -8.374171503968323E+001   Constraint violation =  1.672995249447360E+004
+The corresponding X is:  9.671847928004917E+000   8.829078716837471E+001
+The constraint value is:  1.672995249447360E+004  -1.672995249447360E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 16   F = -9.194250350493962E+001   Constraint violation =  1.324862244211077E+004
+The corresponding X is:  7.899072703167707E+000   9.609189401306048E+001
+The constraint value is:  1.324862244211077E+004  -1.324862244211077E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 17   F = -1.002574652814003E+002   Constraint violation =  1.209062407327249E+004
+The corresponding X is:  5.933048785502477E+000   1.038465538995525E+002
+The constraint value is:  1.209062407327249E+004  -1.209062407327249E+004
+
+Trust region step with radius =  7.999999999999996E+000
+Function number 18   F = -1.088255842215894E+002   Constraint violation =  1.267167886726290E+004
+The corresponding X is:  3.773970027614768E+000   1.115496947471054E+002
+The constraint value is:  1.267167886726290E+004  -1.267167886726290E+004
+
+Trust region step with radius =  7.999999999999995E+000
+Function number 19   F = -1.180964712814177E+002   Constraint violation =  1.421195881187623E+004
+The corresponding X is:  1.412107533451142E+000   1.191930974944858E+002
+The constraint value is:  1.421195881187623E+004  -1.421195881187623E+004
+
+Trust region step with radius =  7.999999999999994E+000
+Function number 20   F = -1.259301381914224E+002   Constraint violation =  1.607252411726965E+004
+The corresponding X is: -1.149204502911475E+000   1.267719945549020E+002
+The constraint value is:  1.607252411726965E+004  -1.607252411726965E+004
+
+Trust region step with radius =  7.999999999999993E+000
+Function number 21   F = -1.315092031209276E+002   Constraint violation =  1.828907931830678E+004
+The corresponding X is: -3.887441135087386E+000   1.342887797817266E+002
+The constraint value is:  1.828907931830678E+004  -1.828907931830678E+004
+
+Trust region step with radius =  7.999999999999992E+000
+Function number 22   F = -1.331031441510725E+002   Constraint violation =  1.874248148012062E+004
+The corresponding X is:  3.946364406317734E+000   1.359109668053002E+002
+The constraint value is:  1.874248148012062E+004  -1.874248148012062E+004
+
+Trust region step with radius =  3.999999999999996E+000
+Function number 23   F = -1.219703616225102E+002   Constraint violation =  1.507398379365965E+004
+The corresponding X is: -1.108887301444148E+000   1.227721977446545E+002
+The constraint value is:  1.507398379365965E+004  -1.507398379365965E+004
+
+Trust region step with radius =  3.999999999999996E+000
+Function number 24   F = -1.171341494641976E+002   Constraint violation =  1.417970993402458E+004
+The corresponding X is: -2.254842085878840E+000   1.189398632561174E+002
+The constraint value is:  1.417970993402458E+004  -1.417970993402458E+004
+
+Trust region step with radius =  3.999999999999995E+000
+Function number 25   F = -1.139163203409729E+002   Constraint violation =  1.323632089999672E+004
+The corresponding X is: -1.426562795835143E+000   1.150265585889997E+002
+The constraint value is:  1.323632089999672E+004  -1.323632089999672E+004
+
+Trust region step with radius =  7.999999999999989E+000
+Function number 26   F = -1.064304295018474E+002   Constraint violation =  1.145753687252097E+004
+The corresponding X is: -9.190049656468399E-001   1.070426757586336E+002
+The constraint value is:  1.145753687252097E+004  -1.145753687252097E+004
+
+Trust region step with radius =  1.599999999999998E+001
+Function number 27   F = -8.971485281406675E+001   Constraint violation =  8.302886924657279E+003
+The corresponding X is: -1.686083338455235E+000   9.106107412519374E+001
+The constraint value is:  8.302886924657279E+003  -8.302886924657279E+003
+
+Trust region step with radius =  3.199999999999996E+001
+Function number 28   F = -7.234472077215091E+001   Constraint violation =  6.186836495553517E+005
+The corresponding X is:  2.795691269116780E+001   7.900732838423211E+001
+The constraint value is:  6.186836495553517E+005  -6.186836495553517E+005
+
+Trust region step with radius =  1.599999999999998E+001
+Function number 29   F = -1.058964543869148E+002   Constraint violation =  1.146804261099464E+004
+The corresponding X is: -1.483439930183314E+000   1.070597908127623E+002
+The constraint value is:  1.146804261099464E+004  -1.146804261099464E+004
+
+Trust region step with radius =  7.999999999999989E+000
+Function number 30   F = -9.739077299001997E+001   Constraint violation =  9.835045606367847E+003
+The corresponding X is: -2.065467039543455E+000   9.905207331223841E+001
+The constraint value is:  9.835045606367847E+003  -9.835045606367847E+003
+
+Geometry step with radius =  3.999999999999995E+000
+Function number 31   F = -8.828722057665031E+001   Constraint violation =  8.483157831507782E+003
+The corresponding X is: -3.683833135216400E+000   9.096622819992169E+001
+The constraint value is:  8.483157831507782E+003  -8.483157831507782E+003
+
+Trust region step with radius =  3.999999999999995E+000
+Function number 32   F = -8.749235483274384E+001   Constraint violation =  7.657995987772292E+003
+The corresponding X is:  1.869532814686083E-001   8.752670942691709E+001
+The constraint value is:  7.657995987772292E+003  -7.657995987772292E+003
+
+Trust region step with radius =  3.999999999999995E+000
+Function number 33   F = -8.228435544517582E+001   Constraint violation =  7.159652188696041E+003
+The corresponding X is:  2.554933192808083E+000   8.430294281943871E+001
+The constraint value is:  7.159652188696041E+003  -7.159652188696041E+003
+
+Trust region step with radius =  1.999999999999997E+000
+Function number 34   F = -8.582515356148313E+001   Constraint violation =  7.699575370792325E+003
+The corresponding X is:  2.186256233366065E+000   8.757950816302039E+001
+The constraint value is:  7.699575370792325E+003  -7.699575370792325E+003
+
+Geometry step with radius =  1.000000000000000E+000
+Function number 35   F = -8.698760412214038E+001   Constraint violation =  7.570760211928474E+003
+The corresponding X is:  2.001529654944337E-001   8.702688368894273E+001
+The constraint value is:  7.570760211928474E+003  -7.570760211928474E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 36   F = -8.601951566409939E+001   Constraint violation =  7.398378963545912E+003
+The corresponding X is:  1.080871050477211E-001   8.603113076911764E+001
+The constraint value is:  7.398378963545912E+003  -7.398378963545912E+003
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 37   F = -8.403284525890002E+001   Constraint violation =  7.059911178885333E+003
+The corresponding X is: -9.065339821694318E-002   8.404102971330110E+001
+The constraint value is:  7.059911178885333E+003  -7.059911178885333E+003
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 38   F = -7.979901436745372E+001   Constraint violation =  6.408623282205451E+003
+The corresponding X is: -5.557386181082338E-001   8.006815975088871E+001
+The constraint value is:  6.408623282205451E+003  -6.408623282205451E+003
+
+Trust region step with radius =  8.000000000000000E+000
+Function number 39   F = -7.051745941831096E+001   Constraint violation =  5.242473750656794E+003
+The corresponding X is: -2.122436636550665E+000   7.222306846276410E+001
+The constraint value is:  5.242473750656794E+003  -5.242473750656794E+003
+
+Trust region step with radius =  8.000000000000000E+000
+Function number 40   F = -6.279002432143483E+001   Constraint violation =  9.124396073725184E+003
+The corresponding X is: -8.191596685216147E+000   6.701103466551348E+001
+The constraint value is:  9.124396073725184E+003  -9.124396073725184E+003
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 41   F = -6.956119890550823E+001   Constraint violation =  5.031833370811545E+003
+The corresponding X is:  1.640856505594973E+000   7.086747828639088E+001
+The constraint value is:  5.031833370811545E+003  -5.031833370811545E+003
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 42   F = -6.753454759865500E+001   Constraint violation =  4.753148304923889E+003
+The corresponding X is:  1.671231749229634E+000   6.886770896355033E+001
+The constraint value is:  4.753148304923889E+003  -4.753148304923889E+003
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 43   F = -6.339468319699338E+001   Constraint violation =  4.223433129781260E+003
+The corresponding X is:  1.837819536415809E+000   6.487117940540111E+001
+The constraint value is:  4.223433129781260E+003  -4.223433129781260E+003
+
+Trust region step with radius =  8.000000000000000E+000
+Function number 44   F = -5.487353657580764E+001   Constraint violation =  3.292355190415934E+003
+The corresponding X is:  2.574159100492515E+000   5.690513872973447E+001
+The constraint value is:  3.292355190415934E+003  -3.292355190415934E+003
+
+Trust region step with radius =  1.600000000000000E+001
+Function number 45   F = -3.783152932590529E+001   Constraint violation =  8.313875355588341E+003
+The corresponding X is:  8.935289968895187E+000   4.222399388081161E+001
+The constraint value is:  8.313875355588341E+003  -8.313875355588341E+003
+
+Trust region step with radius =  7.999999999999999E+000
+Function number 46   F = -6.315628450411255E+001   Constraint violation =  4.096034098281591E+003
+The corresponding X is: -1.141101317979408E+000   6.399011156122337E+001
+The constraint value is:  4.096034098281591E+003  -4.096034098281591E+003
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 47   F = -5.107284696601253E+001   Constraint violation =  2.835687030640232E+003
+The corresponding X is:  2.303424788633281E+000   5.291431138037669E+001
+The constraint value is:  2.835687030640232E+003  -2.835687030640232E+003
+
+Trust region step with radius =  7.999999999999999E+000
+Function number 48   F = -4.316113341787760E+001   Constraint violation =  2.046757240547456E+003
+The corresponding X is:  2.185843183504128E+000   4.491517551666396E+001
+The constraint value is:  2.046757240547456E+003  -2.046757240547456E+003
+
+Trust region step with radius =  1.600000000000000E+001
+Function number 49   F = -2.602659697645260E+001   Constraint violation =  7.582120741151628E+003
+The corresponding X is:  8.978318079143872E+000   3.042855117584170E+001
+The constraint value is:  7.582120741151628E+003  -7.582120741151628E+003
+
+Trust region step with radius =  7.999999999999999E+000
+Function number 50   F = -5.221652908247523E+001   Constraint violation =  2.748317382068471E+003
+The corresponding X is: -5.096132975572969E-001   5.244740721508535E+001
+The constraint value is:  2.748317382068471E+003  -2.748317382068471E+003
+
+Trust region step with radius =  3.999999999999999E+000
+Function number 51   F = -3.969491638791394E+001   Constraint violation =  1.686193044795393E+003
+The corresponding X is:  1.593927011471387E+000   4.095921352932307E+001
+The constraint value is:  1.686193044795393E+003  -1.686193044795393E+003
+
+Trust region step with radius =  7.999999999999998E+000
+Function number 52   F = -3.140823302540250E+001   Constraint violation =  1.105364913247291E+003
+The corresponding X is:  1.936716486655480E+000   3.296656094237154E+001
+The constraint value is:  1.105364913247291E+003  -1.105364913247291E+003
+
+Trust region step with radius =  7.999999999999998E+000
+Function number 53   F = -2.499418731426257E+001   Constraint violation =  1.161365963802393E+003
+The corresponding X is: -4.309738913580972E+000   2.796838178063105E+001
+The constraint value is:  1.161365963802393E+003  -1.161365963802393E+003
+
+Trust region step with radius =  3.999999999999999E+000
+Function number 54   F = -2.691283797345057E+001   Constraint violation =  1.413400808395891E+003
+The corresponding X is:  4.658320060613394E+000   3.003520050970218E+001
+The constraint value is:  1.413400808395891E+003  -1.413400808395891E+003
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 55   F = -3.410764410203600E+001   Constraint violation =  1.198375919924554E+003
+The corresponding X is:  8.322708046748826E-001   3.463395403806145E+001
+The constraint value is:  1.198375919924554E+003  -1.198375919924554E+003
+
+Trust region step with radius =  1.999999999999999E+000
+Function number 56   F = -2.907336739564810E+001   Constraint violation =  1.152829385911948E+003
+The corresponding X is:  3.401317567419439E+000   3.160459777318338E+001
+The constraint value is:  1.152829385911948E+003  -1.152829385911948E+003
+
+Geometry step with radius =  1.000000000000000E+000
+Function number 57   F = -3.151047540240073E+001   Constraint violation =  1.145332187135567E+003
+The corresponding X is:  2.277207278952519E+000   3.333271121256253E+001
+The constraint value is:  1.145332187135567E+003  -1.145332187135567E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 58   F = -3.168981218757254E+001   Constraint violation =  1.054196644441852E+003
+The corresponding X is:  1.075474394044850E+000   3.245836604086655E+001
+The constraint value is:  1.054196644441852E+003  -1.054196644441852E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 59   F = -3.209886841881373E+001   Constraint violation =  1.028543083174938E+003
+The corresponding X is:  1.355195015837789E-001   3.211706734450441E+001
+The constraint value is:  1.028543083174938E+003  -1.028543083174938E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 60   F = -3.220676743703519E+001   Constraint violation =  1.062922653523821E+003
+The corresponding X is: -7.239805908837197E-001   3.262820293419502E+001
+The constraint value is:  1.062922653523821E+003  -1.062922653523821E+003
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 61   F = -3.110532518270901E+001   Constraint violation =  9.653163053097720E+002
+The corresponding X is:  1.101665073155562E-001   3.111738878332505E+001
+The constraint value is:  9.653163053097720E+002  -9.653163053097720E+002
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 62   F = -3.011808039530120E+001   Constraint violation =  9.042041051623503E+002
+The corresponding X is:  4.115647258168893E-002   3.011977281758171E+001
+The constraint value is:  9.042041051623503E+002  -9.042041051623503E+002
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 63   F = -2.809216902715248E+001   Constraint violation =  7.887105900644798E+002
+The corresponding X is: -2.110172626233261E-001   2.813573440886258E+001
+The constraint value is:  7.887105900644798E+002  -7.887105900644798E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 64   F = -2.317751829488941E+001   Constraint violation =  5.990100244688398E+002
+The corresponding X is: -1.487944146759621E+000   2.434502764988346E+001
+The constraint value is:  5.990100244688398E+002  -5.990100244688398E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 65   F = -2.062267290084731E+001   Constraint violation =  4.363749654546129E+002
+The corresponding X is:  6.112299529506968E-001   2.094010942779568E+001
+The constraint value is:  4.363749654546129E+002  -4.363749654546129E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 66   F = -1.678429578236005E+001   Constraint violation =  2.845052933438649E+002
+The corresponding X is:  4.172764989407939E-001   1.694481443772578E+001
+The constraint value is:  2.845052933438649E+002  -2.845052933438649E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 67   F = -1.173088512478020E+001   Constraint violation =  1.893830730873190E+002
+The corresponding X is:  1.833857622599006E+000   1.320405276126265E+001
+The constraint value is:  1.893830730873190E+002  -1.893830730873190E+002
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 68   F = -1.485603864321401E+001   Constraint violation =  2.356511422736446E+002
+The corresponding X is: -8.369830722781723E-001   1.538698488093672E+001
+The constraint value is:  2.356511422736446E+002  -2.356511422736446E+002
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 69   F = -1.008308078739562E+001   Constraint violation =  1.323165385362107E+002
+The corresponding X is:  1.473134602850848E+000   1.123685198273908E+001
+The constraint value is:  1.323165385362107E+002  -1.323165385362107E+002
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 70   F = -6.919599381539225E+000   Constraint violation =  5.168281544131339E+001
+The corresponding X is:  6.946348056234536E-001   7.313341046636449E+000
+The constraint value is:  5.168281544131339E+001  -5.168281544131339E+001
+
+Trust region step with radius =  4.000000000000000E+000
+Function number 71   F = -2.740356278203480E+000   Constraint violation =  3.447422052231640E+001
+The corresponding X is: -1.875945143352701E+000   4.248684666889813E+000
+The constraint value is:  3.447422052231640E+001  -3.447422052231640E+001
+
+Trust region step with radius =  2.000000000000000E+000
+Function number 72   F = -4.998859780224656E+000   Constraint violation =  1.137198112072460E+002
+The corresponding X is:  2.683561967673621E+000   7.103177434041245E+000
+The constraint value is:  1.137198112072460E+002  -1.137198112072460E+002
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 73   F = -6.869028021645120E+000   Constraint violation =  4.496050445959317E+001
+The corresponding X is: -2.238695342464174E-001   6.917930149416591E+000
+The constraint value is:  4.496050445959317E+001  -4.496050445959317E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 74   F = -5.900566606954198E+000   Constraint violation =  3.210158708229811E+001
+The corresponding X is: -1.440946162031138E-001   5.921117246986459E+000
+The constraint value is:  3.210158708229811E+001  -3.210158708229811E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 75   F = -4.857239877628681E+000   Constraint violation =  2.145639106947298E+001
+The corresponding X is: -2.738933625252053E-001   4.929576887014554E+000
+The constraint value is:  2.145639106947298E+001  -2.145639106947298E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 76   F = -3.566245762481451E+000   Constraint violation =  1.597030961771237E+001
+The corresponding X is: -8.579111501205547E-001   4.117836027027678E+000
+The constraint value is:  1.597030961771237E+001  -1.597030961771237E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 77   F = -4.014092483877356E+000   Constraint violation =  1.363279370109555E+001
+The corresponding X is:  2.288383120989935E-001   4.065134371094873E+000
+The constraint value is:  1.363279370109555E+001  -1.363279370109555E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 78   F = -2.909021662547784E+000   Constraint violation =  6.969656078474795E+000
+The corresponding X is:  4.432371592147805E-001   3.088388173582223E+000
+The constraint value is:  6.969656078474795E+000  -6.969656078474795E+000
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 79   F = -1.710594177379618E+000   Constraint violation =  2.824802976976663E+000
+The corresponding X is:  7.187871845404619E-001   2.127101440321528E+000
+The constraint value is:  2.824802976976663E+000  -2.824802976976663E+000
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 80   F = -1.260754359279770E+000   Constraint violation =  1.574369605080892E+001
+The corresponding X is:  1.624014248696630E+000   2.552029625217758E+000
+The constraint value is:  1.574369605080892E+001  -1.574369605080892E+001
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 81   F = -2.810060740709299E+000   Constraint violation =  4.897456948129285E+000
+The corresponding X is: -1.154461759961833E-002   2.810194010024071E+000
+The constraint value is:  4.897456948129285E+000  -4.897456948129285E+000
+
+Trust region step with radius =  1.000000000000000E+000
+Function number 82   F = -1.701946526247415E+000   Constraint violation =  1.602741794510422E+000
+The corresponding X is: -5.564512401602671E-001   1.971697276166659E+000
+The constraint value is:  1.602741794510422E+000  -1.602741794510422E+000
+
+
+New RHO =  1.000000000000000E-001   Delta =  5.000000000000000E-001   CPEN =  3.166715934698328E-001
+Number of function values = 82   Least value of F = -2.810060740709299E+000   Constraint violation =  4.897456948129285E+000
+The corresponding X is: -1.154461759961833E-002   2.810194010024071E+000
+The constraint value is:  4.897456948129285E+000  -4.897456948129285E+000
+
+Trust region step with radius =  5.000000000000000E-001
+Function number 83   F = -1.022722165914189E+000   Constraint violation =  1.436180534310596E+000
+The corresponding X is: -8.517023348707899E-001   1.568179257892087E+000
+The constraint value is:  1.436180534310596E+000  -1.436180534310596E+000
+
+Geometry step with radius =  2.500000000000000E-001
+Function number 84   F = -1.686379527730855E+000   Constraint violation =  2.234975110635245E+000
+The corresponding X is: -6.573307447289102E-001   2.045510049844290E+000
+The constraint value is:  2.234975110635245E+000  -2.234975110635245E+000
+
+Trust region step with radius =  2.500000000000000E-001
+Function number 85   F = -1.686173026119020E+000   Constraint violation =  5.641148833571537E-001
+The corresponding X is: -3.648303412117582E-001   1.811131305032781E+000
+The constraint value is:  5.641148833571537E-001  -5.641148833571537E-001
+
+Trust region step with radius =  5.000000000000000E-001
+Function number 86   F = -2.084020918382826E+000   Constraint violation =  1.360039459230310E+000
+The corresponding X is:  5.233952513583268E-002   2.086756598885746E+000
+The constraint value is:  1.360039459230310E+000  -1.360039459230310E+000
+
+Trust region step with radius =  2.500000000000000E-001
+Function number 87   F = -1.747860221012596E+000   Constraint violation =  1.337960619914957E-001
+The corresponding X is: -1.196888277912622E-001   1.762083997278850E+000
+The constraint value is:  1.337960619914957E-001  -1.337960619914957E-001
+
+Trust region step with radius =  4.999999999999999E-001
+Function number 88   F = -1.704197823854884E+000   Constraint violation =  6.705329487319407E-001
+The corresponding X is:  3.748643931369860E-001   1.835685027635057E+000
+The constraint value is:  6.705329487319407E-001  -6.705329487319407E-001
+
+Trust region step with radius =  2.500000000000000E-001
+Function number 89   F = -1.636346929197595E+000   Constraint violation =  4.052568589254291E-001
+The corresponding X is: -3.696777026836102E-001   1.764442477734139E+000
+The constraint value is:  4.052568589254291E-001  -4.052568589254291E-001
+
+Trust region step with radius =  1.000000000000000E-001
+Function number 90   F = -1.754866892784867E+000   Constraint violation =  8.174451687549755E-002
+The corresponding X is: -1.992168202643865E-002   1.755263687466207E+000
+The constraint value is:  8.174451687549755E-002  -8.174451687549755E-002
+
+Trust region step with radius =  1.000000000000000E-001
+Function number 91   F = -1.734573372161909E+000   Constraint violation =  4.291117449231141E-002
+The corresponding X is:  7.902667649417495E-002   1.740799167215741E+000
+The constraint value is:  4.291117449231141E-002  -4.291117449231141E-002
+
+Trust region step with radius =  1.000000000000000E-001
+Function number 92   F = -1.733470082167430E+000   Constraint violation =  7.269042139374626E-003
+The corresponding X is: -2.073504236631371E-002   1.733899931750792E+000
+The constraint value is:  7.269042139374626E-003  -7.269042139374626E-003
+
+Trust region step with radius =  2.000000000000000E-001
+Function number 93   F = -1.689330360106970E+000   Constraint violation =  1.166056493008352E-001
+The corresponding X is: -2.207126140203563E-001   1.736895067031917E+000
+The constraint value is:  1.166056493008352E-001  -1.166056493008352E-001
+
+Trust region step with radius =  1.000000000000000E-001
+Function number 94   F = -1.738204865506617E+000   Constraint violation =  5.529758800509388E-002
+The corresponding X is:  7.871410727000161E-002   1.744381660454292E+000
+The constraint value is:  5.529758800509388E-002  -5.529758800509388E-002
+
+Geometry step with radius =  1.000000000000000E-001
+Function number 95   F = -1.782949986379025E+000   Constraint violation =  1.826663311774785E-001
+The corresponding X is: -2.597590671806355E-002   1.783624506568950E+000
+The constraint value is:  1.826663311774785E-001  -1.826663311774785E-001
+
+Trust region step with radius =  1.000000000000000E-001
+Function number 96   F = -1.720482088012907E+000   Constraint violation =  3.942384320210568E-002
+The corresponding X is: -1.207295027381735E-001   1.734952497634987E+000
+The constraint value is:  3.942384320210568E-002  -3.942384320210568E-002
+
+
+New RHO =  1.000000000000000E-002   Delta =  5.000000000000000E-002   CPEN =  3.561508772951858E-001
+Number of function values = 96   Least value of F = -1.733470082167430E+000   Constraint violation =  7.269042139374626E-003
+The corresponding X is: -2.073504236631371E-002   1.733899931750792E+000
+The constraint value is:  7.269042139374626E-003  -7.269042139374626E-003
+
+Trust region step with radius =  5.000000000000000E-002
+Function number 97   F = -1.735035464008511E+000   Constraint violation =  1.502036381064809E-002
+The corresponding X is:  2.922536921784565E-002   1.735889221659627E+000
+The constraint value is:  1.502036381064809E-002  -1.502036381064809E-002
+
+Trust region step with radius =  2.500000000000000E-002
+Function number 98   F = -1.729860941883811E+000   Constraint violation =  3.801863047130816E-003
+The corresponding X is: -4.565836904685992E-002   1.731943458603832E+000
+The constraint value is:  3.801863047130816E-003  -3.801863047130816E-003
+
+Trust region step with radius =  1.000000000000000E-002
+Function number 99   F = -1.732095834567928E+000   Constraint violation =  8.025852294055724E-004
+The corresponding X is: -1.087815746630263E-002   1.732214161876837E+000
+The constraint value is:  8.025852294055724E-004  -8.025852294055724E-004
+
+Trust region step with radius =  2.000000000000000E-002
+Function number 100   F = -1.732208225431874E+000   Constraint violation =  1.000006454505709E-003
+The corresponding X is:  9.121693284658911E-003   1.732291427258885E+000
+The constraint value is:  1.000006454505709E-003  -1.000006454505709E-003
+
+Trust region step with radius =  1.000000000000000E-002
+Function number 101   F = -1.731653935461514E+000   Constraint violation =  6.222140145899502E-004
+The corresponding X is:  1.911799174109564E-002   1.732019366291746E+000
+The constraint value is:  6.222140145899502E-004  -6.222140145899502E-004
+
+Geometry step with radius =  1.000000000000000E-002
+Function number 102   F = -1.737203874710237E+000   Constraint violation =  1.834649081490181E-002
+The corresponding X is:  9.257723768228388E-003   1.737289576487104E+000
+The constraint value is:  1.834649081490181E-002  -1.834649081490181E-002
+
+Trust region step with radius =  1.000000000000000E-002
+Function number 103   F = -1.732165595807805E+000   Constraint violation =  4.018591060948040E-004
+The corresponding X is: -8.775246670496596E-004   1.732166365857050E+000
+The constraint value is:  4.018591060948040E-004  -4.018591060948040E-004
+
+Trust region step with radius =  1.000000000000000E-002
+Function number 104   F = -1.731979563625624E+000   Constraint violation =  3.996832961288277E-004
+The corresponding X is: -1.087729009433262E-002   1.732097872066701E+000
+The constraint value is:  3.996832961288277E-004  -3.996832961288277E-004
+
+
+New RHO =  1.000000000000000E-003   Delta =  5.000000000000001E-003   CPEN =  2.910997445728588E-001
+Number of function values = 104   Least value of F = -1.732165595807805E+000   Constraint violation =  4.018591060948040E-004
+The corresponding X is: -8.775246670496596E-004   1.732166365857050E+000
+The constraint value is:  4.018591060948040E-004  -4.018591060948040E-004
+
+Trust region step with radius =  5.000000000000001E-003
+Function number 105   F = -1.732070122941706E+000   Constraint violation =  1.597445539802678E-004
+The corresponding X is:  4.121847182789744E-003   1.732087112421583E+000
+The constraint value is:  1.597445539802678E-004  -1.597445539802678E-004
+
+Geometry step with radius =  2.500000000000000E-003
+Function number 106   F = -1.733415473151092E+000   Constraint violation =  4.733224336119335E-003
+The corresponding X is: -8.577113081828670E-004   1.733416208819510E+000
+The constraint value is:  4.733224336119335E-003  -4.733224336119335E-003
+
+Trust region step with radius =  2.500000000000000E-003
+Function number 107   F = -1.732043078023664E+000   Constraint violation =  1.239712275058480E-005
+The corresponding X is:  1.622190046340329E-003   1.732045709520748E+000
+The constraint value is: -1.239712275058480E-005   1.239712275058480E-005
+
+Trust region step with radius =  5.000000000000001E-003
+Function number 108   F = -1.732053904983477E+000   Constraint violation =  7.307166956582734E-005
+The corresponding X is: -3.377771518936441E-003   1.732065314258826E+000
+The constraint value is:  7.307166956582734E-005  -7.307166956582734E-005
+
+Trust region step with radius =  2.500000000000000E-003
+Function number 109   F = -1.732034866005181E+000   Constraint violation =  3.762473030288760E-005
+The corresponding X is:  4.122182484956455E-003   1.732051858249251E+000
+The constraint value is:  3.762473030288760E-005  -3.762473030288760E-005
+
+Trust region step with radius =  1.000000000000000E-003
+Function number 110   F = -1.732052165758103E+000   Constraint violation =  6.820333142698587E-006
+The corresponding X is:  6.222134625864339E-004   1.732052552907621E+000
+The constraint value is:  6.820333142698587E-006  -6.820333142698587E-006
+
+Trust region step with radius =  1.000000000000000E-003
+Function number 111   F = -1.732051751866709E+000   Constraint violation =  4.050995075388641E-006
+The corresponding X is: -3.777863207219730E-004   1.732051894589203E+000
+The constraint value is:  4.050995075388641E-006  -4.050995075388641E-006
+
+Trust region step with radius =  1.000000000000000E-003
+Function number 112   F = -1.732048968253257E+000   Constraint violation =  4.000890769795262E-006
+The corresponding X is: -1.377785792284541E-003   1.732050866545145E+000
+The constraint value is:  4.000890769795262E-006  -4.000890769795262E-006
+
+
+New RHO =  1.000000000000000E-004   Delta =  5.000000000000001E-004   CPEN =  2.889491083739338E-001
+Number of function values = 112   Least value of F = -1.732051751866709E+000   Constraint violation =  4.050995075388641E-006
+The corresponding X is: -3.777863207219730E-004   1.732051894589203E+000
+The constraint value is:  4.050995075388641E-006  -4.050995075388641E-006
+
+Trust region step with radius =  5.000000000000001E-004
+Function number 113   F = -1.732051217361149E+000   Constraint violation =  1.501174486939760E-006
+The corresponding X is:  1.222132406471700E-004   1.732051232297225E+000
+The constraint value is:  1.501174486939760E-006  -1.501174486939760E-006
+
+Trust region step with radius =  5.000000000000001E-004
+Function number 114   F = -1.732050485394628E+000   Constraint violation =  9.993778853356616E-007
+The corresponding X is:  6.222131112245615E-004   1.732050872543709E+000
+The constraint value is:  9.993778853356616E-007  -9.993778853356616E-007
+
+Geometry step with radius =  2.500000000000000E-004
+Function number 115   F = -1.732176217306801E+000   Constraint violation =  4.345295394525550E-004
+The corresponding X is:  1.223031790260016E-004   1.732176232264869E+000
+The constraint value is:  4.345295394525550E-004  -4.345295394525550E-004
+
+Trust region step with radius =  2.500000000000000E-004
+Function number 116   F = -1.732050890082939E+000   Constraint violation =  3.750626120790912E-007
+The corresponding X is: -1.277865469508238E-004   1.732050906412340E+000
+The constraint value is:  3.750626120790912E-007  -3.750626120790912E-007
+
+Trust region step with radius =  1.000000000000000E-004
+Function number 117   F = -1.732050797699431E+000   Constraint violation =  2.996995496218346E-008
+The corresponding X is: -2.778660520693629E-005   1.732050798471527E+000
+The constraint value is: -2.996995496218346E-008   2.996995496218346E-008
+
+Trust region step with radius =  2.000000000000001E-004
+Function number 118   F = -1.732050795379101E+000   Constraint violation =  1.198247119305051E-007
+The corresponding X is:  1.722133930288122E-004   1.732050825036554E+000
+The constraint value is:  1.198247119305051E-007  -1.198247119305051E-007
+
+Trust region step with radius =  1.000000000000000E-004
+Function number 119   F = -1.732050799132124E+000   Constraint violation =  5.999981844695412E-008
+The corresponding X is: -1.277866037636336E-004   1.732050815461540E+000
+The constraint value is:  5.999981844695412E-008  -5.999981844695412E-008
+
+
+New RHO =  1.000000000000000E-005   Delta =  5.000000000000002E-005   CPEN =  2.886131925657097E-001
+Number of function values = 119   Least value of F = -1.732050797699431E+000   Constraint violation =  2.996995496218346E-008
+The corresponding X is: -2.778660520693629E-005   1.732050798471527E+000
+The constraint value is: -2.996995496218346E-008   2.996995496218346E-008
+
+Trust region step with radius =  5.000000000000002E-005
+Function number 120   F = -1.732050811116165E+000   Constraint violation =  1.498434176738783E-008
+The corresponding X is:  2.221339306697421E-005   1.732050811609599E+000
+The constraint value is:  1.498434176738783E-008  -1.498434176738783E-008
+
+Trust region step with radius =  5.000000000000002E-005
+Function number 121   F = -1.732050802231927E+000   Constraint violation =  1.000631577596778E-008
+The corresponding X is:  7.221339289367696E-005   1.732050807446701E+000
+The constraint value is:  1.000631577596778E-008  -1.000631577596778E-008
+
+Geometry step with radius =  2.500000000000001E-005
+Function number 122   F = -1.732063311116075E+000   Constraint violation =  4.331641082444548E-005
+The corresponding X is:  2.221443379167111E-005   1.732063311609556E+000
+The constraint value is:  4.331641082444548E-005  -4.331641082444548E-005
+
+Trust region step with radius =  2.500000000000001E-005
+Function number 123   F = -1.732050808639179E+000   Constraint violation =  3.750062482765770E-009
+The corresponding X is: -2.786606757479248E-006   1.732050808646944E+000
+The constraint value is:  3.750062482765770E-009  -3.750062482765770E-009
+
+Trust region step with radius =  2.500000000000001E-005
+Function number 124   F = -1.732050807072693E+000   Constraint violation =  2.499973561498336E-009
+The corresponding X is: -2.778660674461017E-005   1.732050807844788E+000
+The constraint value is:  2.499973561498336E-009  -2.499973561498336E-009
+
+Trust region step with radius =  1.000000000000000E-005
+Function number 125   F = -1.732050807688951E+000   Constraint violation =  7.002611823736515E-010
+The corresponding X is:  7.213393201482577E-006   1.732050807740984E+000
+The constraint value is:  7.002611823736515E-010  -7.002611823736515E-010
+
+Trust region step with radius =  1.000000000000000E-005
+Function number 126   F = -1.732050807556652E+000   Constraint violation =  7.815970093361102E-014
+The corresponding X is: -2.786606796958627E-006   1.732050807564417E+000
+The constraint value is:  7.815970093361102E-014  -7.815970093361102E-014
+
+Trust region step with radius =  2.000000000000000E-005
+Function number 127   F = -1.732050807096273E+000   Constraint violation =  1.199973453935854E-009
+The corresponding X is: -2.278660679689339E-005   1.732050807615502E+000
+The constraint value is:  1.199973453935854E-009  -1.199973453935854E-009
+
+Geometry step with radius =  1.000000000000000E-005
+Function number 128   F = -1.732055807556652E+000   Constraint violation =  1.732053315439686E-005
+The corresponding X is: -2.786594025573813E-006   1.732055807564417E+000
+The constraint value is:  1.732053315439686E-005  -1.732053315439686E-005
+
+Trust region step with radius =  1.000000000000000E-005
+Function number 129   F = -1.732050807660008E+000   Constraint violation =  6.000000496442226E-010
+The corresponding X is:  7.213393201951725E-006   1.732050807712041E+000
+The constraint value is:  6.000000496442226E-010  -6.000000496442226E-010
+
+
+New RHO =  1.000000000000000E-006   Delta =  5.000000000000000E-006   CPEN =  2.886747179214991E-001
+Number of function values = 129   Least value of F = -1.732050807556652E+000   Constraint violation =  7.815970093361102E-014
+The corresponding X is: -2.786606796958627E-006   1.732050807564417E+000
+The constraint value is:  7.815970093361102E-014  -7.815970093361102E-014
+
+Trust region step with radius =  5.000000000000000E-006
+Function number 130   F = -1.732050807516542E+000   Constraint violation =  1.500009005894753E-010
+The corresponding X is: -7.786606796942355E-006   1.732050807577173E+000
+The constraint value is:  1.500009005894753E-010  -1.500009005894753E-010
+
+Trust region step with radius =  2.500000000000000E-006
+Function number 131   F = -1.732050807579573E+000   Constraint violation =  3.750066923657869E-011
+The corresponding X is: -2.866067970050707E-007   1.732050807579655E+000
+The constraint value is:  3.750066923657869E-011  -3.750066923657869E-011
+
+Trust region step with radius =  2.500000000000000E-006
+Function number 132   F = -1.732050807568366E+000   Constraint violation =  2.500044615771913E-011
+The corresponding X is:  2.213393202986764E-006   1.732050807573266E+000
+The constraint value is:  2.500044615771913E-011  -2.500044615771913E-011
+
+Geometry step with radius =  1.000000000000000E-006
+Function number 133   F = -1.732051307579573E+000   Constraint violation =  1.732088558803468E-006
+The corresponding X is: -2.866055190589447E-007   1.732051307579656E+000
+The constraint value is:  1.732088558803468E-006  -1.732088558803468E-006
+
+Trust region step with radius =  1.000000000000000E-006
+Function number 134   F = -1.732050807568287E+000   Constraint violation =  7.000622304076387E-012
+The corresponding X is: -1.286606796957899E-006   1.732050807569942E+000
+The constraint value is:  7.000622304076387E-012  -7.000622304076387E-012
+
+Trust region step with radius =  1.000000000000000E-006
+Function number 135   F = -1.732050807568748E+000   Constraint violation =  0.000000000000000E+000
+The corresponding X is: -2.866067969585184E-007   1.732050807568830E+000
+The constraint value is:  0.000000000000000E+000  -0.000000000000000E+000
+
+Trust region step with radius =  1.999999999999999E-006
+Function number 136   F = -1.732050807567711E+000   Constraint violation =  1.200106680698809E-011
+The corresponding X is:  1.713393203040656E-006   1.732050807570647E+000
+The constraint value is:  1.200106680698809E-011  -1.200106680698809E-011
+
+Trust region step with radius =  1.000000000000000E-006
+Function number 137   F = -1.732050807567998E+000   Constraint violation =  6.000533403494046E-012
+The corresponding X is: -1.286606796958179E-006   1.732050807569654E+000
+The constraint value is:  6.000533403494046E-012  -6.000533403494046E-012
+
+
+Return from COBYLA because the trust region radius reaches its lower bound.
+Number of function values = 137   Least value of F = -1.732050808639179E+000   Constraint violation =  3.750062482765770E-009
+The corresponding X is: -2.786606757479248E-006   1.732050808646944E+000
+The constraint value is:  3.750062482765770E-009  -3.750062482765770E-009

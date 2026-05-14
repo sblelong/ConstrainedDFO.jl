@@ -3,15 +3,18 @@ using CairoMakie
 using LaTeXStrings
 
 # Total number of problems
-n_instances = 25
+n_instances = 100
 # Total number of algorithms
-n_algs = 2
+n_algs = 3
 
 data_dict = Dict(
     "NOverSpectral" => Vector{Float64}[],
-    "mads-pip" => Vector{Float64}[],
+    "cobyla" => Vector{Float64}[],
+    # "mads-pip" => Vector{Float64}[],
+    "mads-pb" => Vector{Float64}[]
 )
 
+algs_names_no_pip = ["NOverSpectral", "mads-pb"]
 base_data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonlinear/data"
 
 # Maximum number of evaluations will be the largest amount of evaluations used by any algorithm on any problem. So that the data fits into a 3-dimensional matrix.
@@ -19,19 +22,45 @@ base_data_path = "/home/sblelong/.julia/dev/ConstrainedDFO/src/benchmark/5-nonli
 global max_evaluations::Int
 max_evaluations = 0
 
+global pip_unsolved_indices::Vector{Int}
+pip_unsolved_indices = Int[]
+
 # For each algorithm: data_dict[alg][i] is the data of algorithm `alg` on problem i.
-for (alg_name, alg_data) in data_dict
-    # Will adjust the length of the vectors later.
-    for id_instance in 1:n_instances
+for id_instance in 1:n_instances
+    global max_evaluations
+    global pip_unsolved_indices
+    filename_pip = joinpath(base_data_path, "mads-pip", "$(id_instance).json")
+    data_pip = JSON.parsefile(filename_pip)
+    f_pip_pb = data_pip["stratified_f"]
+    length(f_pip_pb) == 0 && (push!(pip_unsolved_indices, id_instance); continue) # If PIP has failed, move on.
+    max_evaluations = max(max_evaluations, length(f_pip_pb))
+    push!(data_dict["mads-pip"], f_pip_pb)
+    for alg_name in algs_names_no_pip
         global max_evaluations
-        filename = alg_name == "mads-pip" ? joinpath(base_data_path, "$(alg_name)", "$(id_instance)-1e-6.json") : joinpath(base_data_path, "$(alg_name)", "$(id_instance).json")
+        filename = joinpath(base_data_path, "$(alg_name)", "$(id_instance).json")
         data_alg_pb = JSON.parsefile(filename)
-        # TODO. Pay attention to the way f_alg_pb is retrieved when using for problems with ineq constraints, or nonfeasible methods.
         f_alg_pb = data_alg_pb["stratified_f"]
         max_evaluations = max(max_evaluations, length(f_alg_pb))
         push!(data_dict[alg_name], f_alg_pb)
     end
 end
+
+solved_instances_indices = setdiff(1:n_instances, pip_unsolved_indices)
+n_instances = length(solved_instances_indices)
+
+# for (alg_name, alg_data) in data_dict
+#     # Will adjust the length of the vectors later.
+#     for id_instance in 1:n_instances
+#         global max_evaluations
+#         filename = joinpath(base_data_path, "$(alg_name)", "$(id_instance).json")
+#         # filename = alg_name == "mads-pip" ? joinpath(base_data_path, "$(alg_name)", "$(id_instance)-1e-6.json") : joinpath(base_data_path, "$(alg_name)", "$(id_instance).json")
+#         data_alg_pb = JSON.parsefile(filename)
+#         # TODO. Pay attention to the way f_alg_pb is retrieved when using for problems with ineq constraints, or nonfeasible methods.
+#         f_alg_pb = data_alg_pb["stratified_f"]
+#         max_evaluations = max(max_evaluations, length(f_alg_pb))
+#         push!(data_dict[alg_name], f_alg_pb)
+#     end
+# end
 
 # Turn this data into a neat 3-dimensional Array.
 # Scheme: data_array[id_alg, id_instance, i] = best value at i-th blackbox evaluation for solver id_alg on instance id_instance.
@@ -43,7 +72,6 @@ for (alg_id, (alg_name, alg_data)) in enumerate(data_dict)
     # For every instance
     for id_instance in 1:n_instances
         global data_array
-
         data_from_dict = data_dict[alg_name][id_instance]
 
         # How many evals were performed by this solver on this instance?
@@ -66,7 +94,7 @@ end
 ###########################################
 
 # Tolerance for resolution
-τ = 1.0e-2
+τ = 1.0e-5
 # A stupid max for Naps.
 STUPID_MAX::Float64 = 1.0e6
 
@@ -75,7 +103,7 @@ optimals = [minimum([data_array[alg_id, id_instance, end] for alg_id in 1:n_algs
 
 # Find dimensions of all problems.
 # TODO pay attention to this when using for other test sets.
-dimensions = [get_dimension(pb) for pb in nonlinear_benchmarks[1:25]]
+dimensions = [get_dimension(nonlinear_benchmarks[id_instance]) for id_instance in solved_instances_indices]
 
 # Compute accuracy ratios at each evaluation for each algorithm on each instance.
 accuracy_ratios = zeros((n_algs, n_instances, max_evaluations))
@@ -119,13 +147,14 @@ with_theme(theme_latexfonts()) do
     Axis(
         fig[1, 1],
         limits = ((0, k_max), (0.0, 1.05)),
-        xlabel = L"Nombre $k$ de gradients simplexes ($n_p+1$ évaluations)",
-        ylabel = L"Proportion $d_a(k)$ de problèmes $\tau$-résolus",
-        xlabelsize = 20,
-        ylabelsize = 20
+        xlabel = L"Groupes de $n+1$ évaluations",
+        ylabel = L"Proportion de problèmes $\tau$-résolus",
+        xlabelsize = 22,
+        ylabelsize = 22
     )
-    stairs!(0:k_max, daks[1, :]; label = "RDFO")
-    stairs!(0:k_max, daks[2, :]; label = "MADS-PIP")
-    axislegend(position = :rb; labelsize = 20)
-    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-nonlinear-data-profile-$(τ)-1e-6.pdf", fig; px_per_unit = 4)
+    stairs!(0:k_max, daks[2, :]; label = "RDFO")
+    stairs!(0:k_max, daks[3, :]; label = "MADS-PIP")
+    stairs!(0:k_max, daks[1, :]; label = "MADS-BP")
+    axislegend(position = :rb; labelsize = 25)
+    CairoMakie.save("/home/sblelong/msc-thesis/thesis/figures/num-nonlinear-data-profile-$(τ).pdf", fig; px_per_unit = 4)
 end

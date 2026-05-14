@@ -11,7 +11,7 @@ solve_problem(::AbstractDFSolver, ::AbstractBenchmarkProblem)
 
 mutable struct RDFOSolver <: AbstractDFSolver end
 
-function solve_problem(::RDFOSolver, BPE::BenchmarkEqualityProblem; max_evals::Int = 1000 * get_dimension(BPE), invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(get_equality_manifold(BPE), default_retraction_method(get_equality_manifold(BPE))))
+function solve_problem(::RDFOSolver, BPE::BenchmarkEqualityProblem; max_evals::Int = 1000 * (get_dimension(BPE) + 1), invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(get_equality_manifold(BPE), default_retraction_method(get_equality_manifold(BPE))))
     n = get_dimension(BPE)
     x0 = get_x0(BPE)
 

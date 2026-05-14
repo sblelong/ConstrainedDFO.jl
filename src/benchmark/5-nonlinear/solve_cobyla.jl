@@ -36,44 +36,42 @@ function eqs_wrapper(eqs::Function, x)
     return h
 end
 
-# for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks[5:5]))
-problem = nonlinear_benchmarks[5]
-i = 1
-global objective_values_storage
-objective_values_storage = []
+for (i, problem) in ProgressBar(enumerate(nonlinear_benchmarks))
+    global objective_values_storage
+    objective_values_storage = []
 
-global ineqs_values_storage
-ineqs_values_storage = Vector{Float64}[]
+    global ineqs_values_storage
+    ineqs_values_storage = Vector{Float64}[]
 
-global eqs_values_storage
-eqs_values_storage = Vector{Float64}[]
+    global eqs_values_storage
+    eqs_values_storage = Vector{Float64}[]
 
-global x_obj
-x_obj = Vector{Float64}[]
+    global x_obj
+    x_obj = Vector{Float64}[]
 
-global x_eqs
-x_eqs = Vector{Float64}[]
+    global x_eqs
+    x_eqs = Vector{Float64}[]
 
-n = get_dimension(problem)
-f(x) = objective_wrapper(y -> eval_obj(problem, y), x)
-x0 = get_x0(problem)
-h(x) = eqs_wrapper(y -> eval_eqs(problem, y), x)
+    n = get_dimension(problem)
+    f(x) = objective_wrapper(y -> eval_obj(problem, y), x)
+    x0 = get_x0(problem)
+    h(x) = eqs_wrapper(y -> eval_eqs(problem, y), x)
 
-data = Dict()
+    data = Dict()
 
-if has_inequality_constraints(problem)
-    g(x) = ineqs_wrapper(y -> eval_ineqs(problem, y), x)
-    result, solver_status = cobyla(f, x0; maxfun = 1000 * n, iprint = PRIMA.MSG_FEVL, nonlinear_ineq = g, nonlinear_eq = h)
-    data["f"] = objective_values_storage
-    data["g"] = ineqs_values_storage
-    data["h"] = eqs_values_storage
-else
-    result, solver_status = cobyla(f, x0; maxfun = 1000 * n, iprint = PRIMA.MSG_FEVL, nonlinear_eq = h)
-    data["f"] = objective_values_storage
-    data["h"] = eqs_values_storage
+    if has_inequality_constraints(problem)
+        g(x) = ineqs_wrapper(y -> eval_ineqs(problem, y), x)
+        redirect_to_files(joinpath(data_path, "$(i).txt")) do
+            result, solver_status = cobyla(f, x0; maxfun = 1000 * (n + 1), iprint = PRIMA.MSG_FEVL, nonlinear_ineq = g, nonlinear_eq = h)
+        end
+        # data["f"] = objective_values_storage
+        # data["g"] = ineqs_values_storage
+        # data["h"] = eqs_values_storage
+    else
+        redirect_to_files(joinpath(data_path, "$(i).txt")) do
+            result, solver_status = cobyla(f, x0; maxfun = 1000 * (n + 1), iprint = PRIMA.MSG_FEVL, nonlinear_eq = h)
+        end
+        # data["f"] = objective_values_storage
+        # data["h"] = eqs_values_storage
+    end
 end
-
-open(joinpath(data_path, "$(i + 4).json"), "w") do io
-    JSON.print(io, data)
-end
-# end
