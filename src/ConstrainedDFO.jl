@@ -4,6 +4,7 @@ include("structures/EqualityManifold.jl")
 include("structures/StoppingCriteria.jl")
 include("structures/RDFOState.jl")
 include("structures/EvalManager.jl")
+include("structures/ScaledSphere.jl")
 
 include("solvers/Solvers.jl")
 # using .Solvers

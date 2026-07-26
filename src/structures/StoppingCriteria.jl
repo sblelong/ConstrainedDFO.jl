@@ -83,7 +83,7 @@ end
 StopRadiusAndBudget(max_evals::Int) = StopRadiusAndBudget(typemax(Float64), max_evals, -1, -1)
 
 function (c::StopRadiusAndBudget)(
-        mp::AbstractManoptProblem, s::AbstractManoptSolverState, k::Int, n_evals::Int, flag::Bool
+        mp::AbstractManoptProblem, s::AbstractManoptSolverState, k::Int, n_evals::Int, flag::Bool, m::AbstractRetractionMethod, b::AbstractInvertibilityBound
     )
     if flag
         return n_evals ≥ c.max_evals
@@ -91,8 +91,9 @@ function (c::StopRadiusAndBudget)(
     n_evals ≥ c.max_evals && return true
     M = get_manifold(mp)
     p = get_iterate(s)
+    all(p .== typemax(Float64)) && return true
     d = get_tangent_iterate(s)
-    inj = injectivity_radius(M, p, ProjectionRetraction())
+    inj = invertibility_radius(M, p, m, b)
     if norm(d) ≤ inj
         c.at_iteration = k
         c.radius = inj

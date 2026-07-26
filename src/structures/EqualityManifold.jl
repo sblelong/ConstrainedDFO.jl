@@ -1,19 +1,29 @@
 """
 This file contains the description of a submanifold of ℝ^n defined by a unique defining function.
-This structure is used to represent the feasible set for equality-constrained problems when such set is a Riemannian submanifold of ℝ^n.
+This structure is used to represent the feasible set for equality-constrained problems when such set is a Riemannian submanifold embedded in ℝ^n.
 """
 
+import ManifoldsBase:
+    check_size,
+    check_point,
+    check_vector,
+    default_basis,
+    default_retraction_method,
+    get_basis,
+    get_basis_orthonormal,
+    get_coordinates_orthonormal,
+    get_vector_orthonormal!,
+    get_embedding,
+    manifold_dimension,
+    representation_size,
+    retract_project!
+
 using ManifoldsBase
-import ManifoldsBase: representation_size, manifold_dimension, check_point, check_vector, retract_project!, get_embedding, default_retraction_method, check_size, default_basis, get_basis, get_basis_orthonormal, get_vector_orthonormal!, get_coordinates_orthonormal
-
 using Manifolds
-
 using LinearAlgebra
 using JuMP
 using Ipopt
 using ForwardDiff
-
-export EqualityManifold
 
 """
     EqualityManifold <: AbstractManifold{ℝ}
@@ -42,7 +52,7 @@ end
 
 manifold_dimension(M::EqualityManifold) = M.dimension
 
-representation_size(M::EqualityManifold) = (manifold_dimension(M) + 1,)
+representation_size(M::EqualityManifold) = (M.embedding_dimension,)
 
 function get_embedding(M::EqualityManifold)
     return Euclidean(representation_size(M)...)
@@ -246,13 +256,89 @@ end
 
 ####################################################################
 # Injectivity radii
+# TODO. Change this hierarchy of definitions so that the injectivity_radius is called whenever the exponential map is defined, instead of relying on the Sphere only.
 ####################################################################
 
-function ManifoldsBase._injectivity_radius(M::EqualityManifold, p, m::ProjectionRetraction)
+# Types of artificial lower bounds
+abstract type AbstractInvertibilityBound end
+
+"""
+    When it exists, computes the exact value of the invertibility radius; i.e., the injectivity_radius of the exponential map in most cases.
+"""
+mutable struct ExactInvertibility <: AbstractInvertibilityBound end
+
+"""
+    Computes a lower bound to the invertibility radius as
+
+    \\frac{1}{\\max\\{\\lambda(\nabla^2 h_i(x)) : i\\in\\{1,...,p\\}\\}}.
+"""
+mutable struct OneOverSpectral <: AbstractInvertibilityBound end
+
+"""
+    Computes a lower bound to the invertibility radius as
+
+    \\frac{n}{\\max\\{\\lambda(\nabla^2 h_i(x)) : i\\in\\{1,...,p\\}\\}}.
+"""
+mutable struct NOverSpectral <: AbstractInvertibilityBound end
+
+"""
+    Computes a lower bound to the invertibility radius as
+
+    \\frac{1}{\\sqrt{\\max\\{\\lambda(\nabla^2 h_i(x)) : i\\in\\{1,...,p\\}\\}}}.
+"""
+mutable struct OneOverSqrtSpectral <: AbstractInvertibilityBound end
+
+"""
+    Computes a lower bound to the invertibility radius as
+
+    \\frac{n}{\\sqrt{\\max\\{\\lambda(\nabla^2 h_i(x)) : i\\in\\{1,...,p\\}\\}}}.
+"""
+mutable struct NOverSqrtSpectral <: AbstractInvertibilityBound end
+
+"""
+    TODO.
+    Write the doc that describes this as a lower bound on the radius where the retraction is supposed to be invertible.
+"""
+function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod, b::AbstractInvertibilityBound) end
+
+invertibility_radius(M::Manifolds.Sphere, p, m::StabilizedRetraction, b::ExactInvertibility) = injectivity_radius(M, p, m)
+
+"""
+    TODO. Document here.
+    This function precisely returns an artificial lower bound.
+"""
+invertibility_radius(M::EqualityManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), b::AbstractInvertibilityBound = OneOverSpectral()) = invertibility_radius(M, p, m, b)
+
+function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSpectral)
     hessians = eval_defining_hessians(M, p)
     spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
     return 1 / maximum(spectral_radii)
 end
+
+function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::NOverSpectral)
+    n = representation_size(M)[1]
+    hessians = eval_defining_hessians(M, p)
+    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
+    return n / maximum(spectral_radii)
+end
+
+function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSqrtSpectral)
+    hessians = eval_defining_hessians(M, p)
+    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
+    return 1 / sqrt(maximum(spectral_radii))
+end
+
+function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::NOverSqrtSpectral)
+    n = representation_size(M)[1]
+    hessians = eval_defining_hessians(M, p)
+    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
+    return n / sqrt(maximum(spectral_radii))
+end
+
+function default_invertibility_bound(M::AbstractManifold, m::AbstractRetractionMethod) end
+
+default_invertibility_bound(::EqualityManifold, ::ProjectionRetraction) = NOverSqrtSpectral()
+default_invertibility_bound(::Manifolds.Sphere, ::StabilizedRetraction) = ExactInvertibility()
 
 ####################################################################
 # Random choice of points
@@ -264,3 +350,8 @@ function ManifoldsBase.rand(M::EqualityManifold)
     projp = project(M, p)
     return projp
 end
+
+export EqualityManifold
+
+
+export invertibility_radius, AbstractInvertibilityBound, OneOverSpectral, NOverSpectral, OneOverSqrtSpectral, NOverSqrtSpectral
