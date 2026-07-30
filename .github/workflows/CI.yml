@@ -44,5 +44,15 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v3
+      - name: Symlink gfortran (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # make sure gfortran is available
+          # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+          # https://github.com/actions/runner-images/issues/3371
+          # ln version - new path 'MacOS14'
+          sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_V} /usr/local/bin/gfortran
+          sudo mkdir -p /usr/local/gfortran
+          sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_V}/*/lib/gcc/${GCC_V} /usr/local/gfortran/lib
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
