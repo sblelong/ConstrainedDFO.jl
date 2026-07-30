@@ -54,6 +54,6 @@ jobs:
           sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_V} /usr/local/bin/gfortran
           sudo mkdir -p /usr/local/gfortran
           sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_V}/*/lib/gcc/${GCC_V} /usr/local/gfortran/lib
-          gcc --version
+          ls /opt/homebrew/bin
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
