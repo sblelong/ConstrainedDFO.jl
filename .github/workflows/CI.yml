@@ -23,13 +23,20 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - 'lts'
           - '1'
         os:
-          - windows-latest
-          - macOS-latest
           - ubuntu-latest
+          - windows-latest
         arch:
           - x64
+        include:
+          - version: "lts"
+            os: macos-latest
+            arch: arm64
+          - version: "1"
+            os: macos-latest
+            arch: arm64
     steps:
       - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v3
