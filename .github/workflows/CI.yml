@@ -26,7 +26,7 @@ jobs:
           - '1'
         os:
           - windows-latest
-          - macOS-13
+          - macOS-latest
           - ubuntu-latest
         arch:
           - x64
