@@ -1,4 +1,4 @@
-using GLMakie
+using CairoMakie
 using LaTeXStrings
 using PRIMA
 
