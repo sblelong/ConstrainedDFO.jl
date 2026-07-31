@@ -263,14 +263,14 @@ end
 abstract type AbstractInvertibilityBound end
 
 """
+    ExactInvertibility
+
     When it exists, computes the exact value of the invertibility radius; i.e., the injectivity_radius of the exponential map in most cases.
 """
 mutable struct ExactInvertibility <: AbstractInvertibilityBound end
 
 """
-    Computes a lower bound to the invertibility radius as
-
-    \\frac{1}{\\max\\{\\lambda(\nabla^2 h_i(x)) : i\\in\\{1,...,p\\}\\}}.
+    OneOverSpectral <: AbstractInvertibilityBound
 """
 mutable struct OneOverSpectral <: AbstractInvertibilityBound end
 
@@ -296,6 +296,8 @@ mutable struct OneOverSqrtSpectral <: AbstractInvertibilityBound end
 mutable struct NOverSqrtSpectral <: AbstractInvertibilityBound end
 
 """
+    invertibility_radius(M, p; m, b)
+
     TODO.
     Write the doc that describes this as a lower bound on the radius where the retraction is supposed to be invertible.
 """
@@ -309,6 +311,17 @@ invertibility_radius(M::Manifolds.Sphere, p, m::StabilizedRetraction, b::ExactIn
 """
 invertibility_radius(M::EqualityManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), b::AbstractInvertibilityBound = OneOverSpectral()) = invertibility_radius(M, p, m, b)
 
+"""
+    invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSpectral)
+
+Return a lower bound on the [`invertibility_radius`](@ref) of the `ProjectionRetraction` as
+
+```math
+    \\frac{1}{\\max\\{\\lambda(H_{h_i}(x)) : i\\in\\{1,...,p\\}\\}}.
+```
+
+where ``H_{h_i}`` is the Hessian matrix of the defining subfunction ``h_i`` for `M`.
+"""
 function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSpectral)
     hessians = eval_defining_hessians(M, p)
     spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]

@@ -1,3 +1,5 @@
-# ConstrainedDFO
+# ConstrainedDFO.jl
 
-[![Build Status](https://github.com/sblelong/ConstrainedDFO.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/sblelong/ConstrainedDFO.jl/actions/workflows/CI.yml?query=branch%3Amain)
+| License                                                                                                  | CI                                                                                                                                                                                                          | Documentation |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| [![Licence](https://img.shields.io/badge/License-MPL--2.0-blue)](https://www.mozilla.org/en-US/MPL/2.0/) | [![Build Status](https://github.com/sblelong/ConstrainedDFO.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/sblelong/ConstrainedDFO.jl/actions/workflows/CI.yml?query=branch%3Amain) | TBD           |
