@@ -3,3 +3,5 @@
 *.log
 .CondaPkg
 nomadtmp*
+docs/Manifest.toml
+docs/build
