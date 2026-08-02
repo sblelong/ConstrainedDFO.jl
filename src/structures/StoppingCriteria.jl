@@ -10,8 +10,6 @@ abstract type DFStoppingCriterion <: StoppingCriterion end
     StopAfterEvaluation <: DFStoppingCriterion
 
 A functor for a stopping criterion to stop after a maximal number of blackbox evaluations. Fields and constructor are the same as `StopAfterIteration`.
-
-TODO.
 """
 mutable struct StopAfterEvaluation <: DFStoppingCriterion
     max_evals::Int

@@ -1,6 +1,10 @@
 using Manopt
 
 """
+    RDFOState <: AbstractManoptSolverState
+
+[`AbstractManoptSolverState`](@extref Manopt.AbstractManoptSolverState) dedicated to the RDFO solver.
+
 # Fields
 * `p` is the current iterate on the manifold.
 * `d` is the current best tangent vector found at ``T_p\\mathcal{M}``.
