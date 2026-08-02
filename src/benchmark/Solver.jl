@@ -1,7 +1,7 @@
 using ManifoldsBase
 
 """
-    Test
+    solve_problem(::AbstractDFSolver, ::AbstractBenchmarkProblem)
 """
 solve_problem(::AbstractDFSolver, ::AbstractBenchmarkProblem)
 
