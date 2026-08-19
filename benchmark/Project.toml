@@ -1,6 +1,7 @@
 [deps]
 CUTEst = "1b53aba6-35b6-5f92-a507-53c67d53f819"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ConstrainedDFO = "12b7d493-2132-44b7-a248-b28c3eff80ff"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
@@ -10,3 +11,6 @@ NOMAD = "02130f1c-4665-5b79-af82-ff1385104aa0"
 PRIMA = "0a7d04aa-8ac2-47b3-b7a7-9dbd6ad661ed"
 ProgressBars = "49802e3a-d2f1-5c88-81d8-b72133a6f568"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[sources]
+ConstrainedDFO = {path = ".."}
