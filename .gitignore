@@ -5,3 +5,6 @@
 nomadtmp*
 docs/Manifest.toml
 docs/build
+benchmark/**/*.json
+benchmark/**/*.txt
+benchmark/Manifest.toml
