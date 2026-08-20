@@ -35,6 +35,7 @@ using LinearAlgebra
 using Manifolds
 using ManifoldsBase
 using Manopt:
+    AbstractManifoldCostObjective,
     AbstractManoptProblem,
     AbstractManoptSolverState
 using NOMAD
@@ -72,12 +73,13 @@ export get_eval_budget,
     set_tangent_iterate!,
     update_remaining_evals!
 
-include("solvers/rdfo.jl")
+include("solvers/derivative_free_riemannian_optimization.jl")
 include("solvers/tangent_solvers/DFSolver.jl")
 include("solvers/tangent_solvers/mads.jl")
 
 export AbstractDFRSolver,
     AbstractDFSolver,
+    DFROSolver,
     MADSDFRSolver
 
 export process_details,
