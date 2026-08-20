@@ -52,7 +52,7 @@ function DFROSolver(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method),
         εeqs::Float64 = 1.0e-8
     )
-    rdfos = RDFOState(M, p0, stopping_criterion, retraction_method)
+    rdfos = DFROState(M, p0, stopping_criterion, retraction_method)
     mpb = DefaultManoptProblem(M, mco)
 
     n = representation_size(M)[1]

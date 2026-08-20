@@ -71,8 +71,8 @@ export get_eval_budget,
     get_remaining_evals,
     update_remaining_evals!
 
-include("types/RDFOState.jl")
-export RDFOState
+include("types/DFROState.jl")
+export DFROState
 export
     get_iterate,
     get_radius,

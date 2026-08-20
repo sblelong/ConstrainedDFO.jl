@@ -35,13 +35,13 @@ eval_defining_function(M::EqualityManifold, p) = M.defining_function(p)
 
 function eval_defining_jacobian(M::EqualityManifold, p)
     h(x) = eval_defining_function(M, x)
-    ∇hp = ForwardDiff.jacobian(h, p)
+    ∇hp = jacobian(h, p)
     return ∇hp
 end
 
 function eval_defining_hessian(M::EqualityManifold, p, i::Int)
     hi(x) = eval_defining_function(M, x)[i]
-    Hhip = ForwardDiff.hessian(hi, p)
+    Hhip = hessian(hi, p)
     return Hhip
 end
 
