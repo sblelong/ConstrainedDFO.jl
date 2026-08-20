@@ -1,6 +1,3 @@
-using NOMAD
-using ManifoldsBase
-
 mutable struct MADSDFRSolver <: AbstractDFRSolver
     log_path::String
     last_eval::Int
@@ -172,5 +169,3 @@ function process_details(M::AbstractManifold, MS::MADSDFRSolver, details::Dict)
     end
     return processed_details
 end
-
-export MADSDFRSolver, solve!, process_details

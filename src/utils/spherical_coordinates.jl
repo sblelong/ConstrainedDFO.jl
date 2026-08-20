@@ -10,5 +10,3 @@ function spherical_to_cartesian(θ::Vector{Float64})
 
     return x
 end
-
-export spherical_to_cartesian

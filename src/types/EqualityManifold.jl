@@ -1,31 +1,4 @@
 """
-This file contains the description of a submanifold of ℝ^n defined by a unique defining function.
-This structure is used to represent the feasible set for equality-constrained problems when such set is a Riemannian submanifold embedded in ℝ^n.
-"""
-
-import ManifoldsBase:
-    check_size,
-    check_point,
-    check_vector,
-    default_basis,
-    default_retraction_method,
-    get_basis,
-    get_basis_orthonormal,
-    get_coordinates_orthonormal,
-    get_vector_orthonormal!,
-    get_embedding,
-    manifold_dimension,
-    representation_size,
-    retract_project!
-
-using ManifoldsBase
-using Manifolds
-using LinearAlgebra
-using JuMP
-using Ipopt
-using ForwardDiff
-
-"""
     EqualityManifold <: AbstractManifold{ℝ}
 
 A smooth Riemannian submanifold of ``\\mathbb{R}^n`` defined as the set
@@ -62,13 +35,13 @@ eval_defining_function(M::EqualityManifold, p) = M.defining_function(p)
 
 function eval_defining_jacobian(M::EqualityManifold, p)
     h(x) = eval_defining_function(M, x)
-    ∇hp = ForwardDiff.jacobian(h, p)
+    ∇hp = jacobian(h, p)
     return ∇hp
 end
 
 function eval_defining_hessian(M::EqualityManifold, p, i::Int)
     hi(x) = eval_defining_function(M, x)[i]
-    Hhip = ForwardDiff.hessian(hi, p)
+    Hhip = hessian(hi, p)
     return Hhip
 end
 
@@ -382,8 +355,3 @@ function ManifoldsBase.rand(M::EqualityManifold)
     projp = project(M, p)
     return projp
 end
-
-export EqualityManifold
-
-
-export invertibility_radius, AbstractInvertibilityBound, OneOverSpectral, NOverSpectral, OneOverSqrtSpectral, NOverSqrtSpectral

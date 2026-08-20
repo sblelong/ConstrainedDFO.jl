@@ -1,9 +1,3 @@
-using ManifoldsBase, Manifolds
-using ManifoldsBase: ℝ
-using LinearAlgebra
-
-import ManifoldsBase: representation_size, manifold_dimension, check_point, check_vector, retract_project!, get_embedding, default_retraction_method, check_size, default_basis, get_basis, get_basis_orthonormal, get_vector_orthonormal!, get_coordinates_orthonormal, exp!
-
 struct ScaledSphere <: AbstractManifold{ℝ}
     dimension::Int
     radius::Float64
@@ -116,5 +110,3 @@ function ManifoldsBase.project(M::ScaledSphere, p)
     r = get_radius(M)
     return r .* (p / norm(p))
 end
-
-export ScaledSphere, get_radius

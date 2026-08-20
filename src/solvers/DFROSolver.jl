@@ -1,9 +1,3 @@
-using ManifoldsBase
-using Manopt
-using Printf
-
-export rDFO
-
 """
 Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at this retracted point.
 """
@@ -30,7 +24,7 @@ function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p
     end
 end
 
-function rDFO(
+function DFROSolver(
         M::AbstractManifold,
         f::Function,
         p0;
@@ -43,10 +37,10 @@ function rDFO(
         εeqs::Float64 = 1.0e-8
     )
     mco = ManifoldCostObjective(f)
-    return rDFO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound, εeqs = εeqs)
+    return DFRO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound, εeqs = εeqs)
 end
 
-function rDFO(
+function DFROSolver(
         M::AbstractManifold,
         mco::AbstractManifoldCostObjective,
         p0;
@@ -58,7 +52,7 @@ function rDFO(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method),
         εeqs::Float64 = 1.0e-8
     )
-    rdfos = RDFOState(M, p0, stopping_criterion, retraction_method)
+    rdfos = DFROState(M, p0, stopping_criterion, retraction_method)
     mpb = DefaultManoptProblem(M, mco)
 
     n = representation_size(M)[1]
