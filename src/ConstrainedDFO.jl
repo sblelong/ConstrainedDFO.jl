@@ -24,7 +24,8 @@ import ManifoldsBase:
     retract_project!
 import Manopt:
     get_reason,
-    stop_solver!
+    stop_solver!,
+    StoppingCriterion
 
 using ForwardDiff:
     jacobian,
@@ -42,48 +43,54 @@ using NOMAD
 using Random
 using ResumableFunctions
 
+# Riemannian submanifolds of ℝ^n defined as feasible sets for equality constraints
 include("types/EqualityManifold.jl")
-include("types/EvalManager.jl")
-include("types/RDFOState.jl")
-include("types/ScaledSphere.jl")
-include("types/StoppingCriteria.jl")
-
-export AbstractEvalManager,
-    AbstractInvertibilityBound,
-    DFStoppingCriterion,
+export AbstractInvertibilityBound,
     EqualityManifold,
-    FractionEvalManager,
     NOverSqrtSpectral,
     NOverSpectral,
     OneOverSqrtSpectral,
-    OneOverSpectral,
-    RDFOState,
-    ScaledSphere,
+    OneOverSpectral
+export invertibility_radius
+
+# Scaled sphere, this structure is useful for comparison against parametrization
+include("types/ScaledSphere.jl")
+export ScaledSphere
+
+# Stopping criteria for derivative-free solvers
+include("types/StoppingCriteria.jl")
+export DFStoppingCriterion,
     StopAfterEvaluation,
     StopRadiusAndBudget,
     StopWhenWithinRadius
 
+include("types/EvalManager.jl")
+export AbstractEvalManager,
+    FractionEvalManager
 export get_eval_budget,
-    get_iterate,
-    get_radius,
     get_remaining_evals,
-    get_tangent_iterate,
-    invertibility_radius,
-    set_iterate!,
-    set_tangent_iterate!,
     update_remaining_evals!
 
-include("solvers/derivative_free_riemannian_optimization.jl")
+include("types/RDFOState.jl")
+export RDFOState
+export
+    get_iterate,
+    get_radius,
+    get_tangent_iterate,
+    set_iterate!,
+    set_tangent_iterate!
+
+# Solvers
 include("solvers/tangent_solvers/DFSolver.jl")
-include("solvers/tangent_solvers/mads.jl")
-
 export AbstractDFRSolver,
-    AbstractDFSolver,
-    DFROSolver,
-    MADSDFRSolver
-
+    AbstractDFSolver
+include("solvers/tangent_solvers/mads.jl")
+export MADSDFRSolver
 export process_details,
     solve!
+
+include("solvers/DFROSolver.jl")
+export DFROSolver
 
 include("utils/latin_hypercube_sampling.jl")
 include("utils/redirect.jl")
