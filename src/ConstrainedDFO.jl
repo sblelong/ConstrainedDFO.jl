@@ -1,4 +1,4 @@
-@doc """
+"""
     ConstrainedDFO.jl: derivative-free optimization under constraints.
 
 - Documentation: [https://sblelong.github.io/ConstrainedDFO.jl/dev/](https://sblelong.github.io/ConstrainedDFO.jl/dev/)
@@ -81,9 +81,8 @@ export
     set_tangent_iterate!
 
 # Solvers
-include("solvers/tangent_solvers/DFSolver.jl")
-export AbstractDFRSolver,
-    AbstractDFSolver
+include("solvers/tangent_solvers/TangentSolver.jl")
+export AbstractTangentSolver
 include("solvers/tangent_solvers/mads.jl")
 export MADSDFRSolver
 export process_details,

@@ -1,7 +1,7 @@
 """
 Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at this retracted point.
 """
-retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractDFRSolver)
+retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractTangentSolver)
 
 function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0, εeqs::Float64 = 1.0e-8)
     return try
@@ -24,12 +24,15 @@ function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p
     end
 end
 
+"""
+    TODO.
+"""
 function DFROSolver(
         M::AbstractManifold,
         f::Function,
         p0;
         inequality_constraints::Union{Function, Nothing} = nothing,
-        solver::AbstractDFRSolver = MADSDFRSolver(),
+        solver::AbstractTangentSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
@@ -45,7 +48,7 @@ function DFROSolver(
         mco::AbstractManifoldCostObjective,
         p0;
         inequality_constraints::Union{Function, Nothing} = nothing,
-        solver::AbstractDFRSolver = MADSDFRSolver(),
+        solver::AbstractTangentSolver = MADSDFRSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),

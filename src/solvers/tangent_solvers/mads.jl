@@ -1,4 +1,4 @@
-mutable struct MADSDFRSolver <: AbstractDFRSolver
+mutable struct MADSDFRSolver <: AbstractTangentSolver
     log_path::String
     last_eval::Int
     flag::Bool

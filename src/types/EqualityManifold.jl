@@ -19,10 +19,6 @@ struct EqualityManifold <: AbstractManifold{ℝ}
     embedding_dimension::Int
 end
 
-####################################################################
-# Some basic features/getters/setters of an `EqualityManifold`.
-####################################################################
-
 manifold_dimension(M::EqualityManifold) = M.dimension
 
 representation_size(M::EqualityManifold) = (M.embedding_dimension,)
