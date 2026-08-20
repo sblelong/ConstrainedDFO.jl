@@ -1,9 +1,3 @@
-using Manopt
-using LinearAlgebra
-
-import Manopt: get_reason, stop_solver!
-export DFStoppingCriterion, StopAfterEvaluation, StopWhenWithinRadius, StopRadiusAndBudget
-
 abstract type DFStoppingCriterion <: StoppingCriterion end
 
 """

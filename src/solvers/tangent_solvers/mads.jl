@@ -1,6 +1,3 @@
-using NOMAD
-using ManifoldsBase
-
 mutable struct MADSDFRSolver <: AbstractDFRSolver
     log_path::String
     last_eval::Int

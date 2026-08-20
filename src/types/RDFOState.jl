@@ -1,5 +1,3 @@
-using Manopt
-
 """
     RDFOState <: AbstractManoptSolverState
 

@@ -1,5 +1,3 @@
-export AbstractEvalManager, FractionEvalManager, get_eval_budget, get_remaining_evals, update_remaining_evals!
-
 abstract type AbstractEvalManager end
 
 mutable struct DefaultEvalManager <: AbstractEvalManager
