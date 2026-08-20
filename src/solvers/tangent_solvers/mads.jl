@@ -169,5 +169,3 @@ function process_details(M::AbstractManifold, MS::MADSDFRSolver, details::Dict)
     end
     return processed_details
 end
-
-export MADSDFRSolver, solve!, process_details
