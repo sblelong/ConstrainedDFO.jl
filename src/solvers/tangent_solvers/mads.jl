@@ -24,7 +24,7 @@ struct ProgressiveBarrier <: AbstractNOMADBarrierType end
 
 Subsolver using the Mesh Adaptive Direct Search (MADS) algorithm in tangent spaces. To be used together with the master solver [`DFROSolver`](@ref).
 
-Note: the implementation makes use of the interface to the NOMAD 3 software offered by [`NOMAD.jl`](@extref NOMAD)
+Note: the implementation makes use of the interface to the NOMAD 3 software offered by [`NOMAD.jl`](@extref NOMAD.solve)
 """
 mutable struct MADSTangentSolver <: AbstractTangentSolver
     log_path::String
