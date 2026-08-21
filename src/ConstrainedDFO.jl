@@ -7,6 +7,8 @@
 """
 module ConstrainedDFO
 
+FAILURE_MAX = 1.0e20
+
 import ManifoldsBase:
     check_size,
     check_point,
@@ -38,7 +40,8 @@ using ManifoldsBase
 using Manopt:
     AbstractManifoldCostObjective,
     AbstractManoptProblem,
-    AbstractManoptSolverState
+    AbstractManoptSolverState,
+    get_cost
 using NOMAD
 using Random
 using ResumableFunctions
@@ -82,11 +85,13 @@ export
 
 # Solvers
 include("solvers/tangent_solvers/TangentSolver.jl")
-export AbstractTangentSolver
-include("solvers/tangent_solvers/mads.jl")
-export MADSDFRSolver
-export process_details,
+export AbstractTangentSolver,
+    BlackboxDataType
+export blackbox_wrapper_store!,
+    get_last_subproblem_result,
     solve!
+include("solvers/tangent_solvers/mads.jl")
+export MADSTangentSolver
 
 include("solvers/DFROSolver.jl")
 export DFROSolver
