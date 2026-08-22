@@ -86,7 +86,7 @@ export
 # Solvers
 include("solvers/tangent_solvers/TangentSolver.jl")
 export AbstractTangentSolver,
-    BlackboxDataType
+    BlackboxTangentData
 export blackbox_wrapper_store!,
     get_last_subproblem_result,
     solve!

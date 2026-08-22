@@ -219,6 +219,7 @@ function DFROSolver(
         (norm(p) == typemax(Float64) || !is_point(M, p; atol = εeqs)) && break
 
         # @printf("| %10d | %10d | %11d | %14e |\n", iter, used_evals, n_evals, best_f)
+        # TODO. Reset internal storage of the tangent solver (after having transferred its data into a global array here).
         stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag, retraction_method, invertibility_bound) && break
     end
     # println("A stopping criterion was met.")

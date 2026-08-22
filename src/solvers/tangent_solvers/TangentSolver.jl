@@ -6,20 +6,30 @@ An abstract type for all solvers used to solve subproblems in tangent spaces wit
 abstract type AbstractTangentSolver end
 
 """
-    BlackboxDataType
+    BlackboxTangentData
 
 A structure representing all the data expected to be returned by an [`AbstractTangentSolver`](@ref) evaluating a blackbox.
 """
-mutable struct BlackboxDataType
-    x::Vector{Float64}
+mutable struct BlackboxTangentData
+    d::Vector{Float64}
+    p::Vector{Float64}
     f::Float64
     g::Vector{Float64}
 end
 
-function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxDataType)
-    push!(TS.data_Rpv, eval_data.x)
+function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangentData)
+    push!(TS.data_d, eval_data.d)
+    push!(TS.data_Rpv, eval_data.p)
     push!(TS.data_f, eval_data.f)
     length(eval_data.g) > 0 && push!(TS.data_g, eval_data.g)
+    return TS
+end
+
+function clear_storage!(TS::AbstractTangentSolver)
+    TS.data_d = Vector{Float64}[]
+    TS.data_Rpv = Vector{Float64}[]
+    TS.data_f = Float64[]
+    TS.data_g = Vector{Float64}[]
     return TS
 end
 
@@ -45,7 +55,7 @@ function retract_eval_store!(
         gRpv = Float64[]
     end
 
-    eval_data = BlackboxDataType(Rpv, fRpv, gRpv)
+    eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
 
     _store_eval_data!(TS, eval_data)
 
@@ -53,16 +63,16 @@ function retract_eval_store!(
 end
 
 """
-    format_eval_data(TS::AbstractTangentSolver, eval_data::BlackboxDataType)
+    format_eval_data(TS::AbstractTangentSolver, eval_data::BlackboxTangentData)
 
-This should be implemented for all concrete types inheriting from [`AbstractTangentSolver`](@ref) in order to convert the data stored inside a [`BlackboxDataType`](@ref) object in a format readble by the tangent solver.
+This should be implemented for all concrete types inheriting from [`AbstractTangentSolver`](@ref) in order to convert the data stored inside a [`BlackboxTangentData`](@ref) object in a format readble by the tangent solver.
 """
-function format_eval_data(TS::AbstractTangentSolver, eval_data::BlackboxDataType) end
+function format_eval_data(TS::AbstractTangentSolver, eval_data::BlackboxTangentData) end
 
 """
     blackbox_wrapper_store!(TS::AbstractTangentSolver, M::AbstractManifold, p, R::AbstractRetractionMethod, f, n_ineqs::Int, g, v)
 
-Retract the tangent vector `v` to the manifold `M` and evaluate the blackbox made of the objective function `f` and the inequality constraints `g`. The results are stored within the relevant attributes of the [`AbstractTangentSolver`](@ref).
+Retract the tangent vector `v` to the manifold `M` and evaluate the blackbox made of the objective function `f` and the inequality constraints `g`. The results are stored within corresponding attributes of the [`AbstractTangentSolver`](@ref).
 """
 function blackbox_wrapper_store!(
         TS::AbstractTangentSolver,

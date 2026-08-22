@@ -28,16 +28,16 @@ Note: the implementation makes use of the interface to the NOMAD 3 software offe
 """
 mutable struct MADSTangentSolver <: AbstractTangentSolver
     log_path::String
-    last_eval::Int # TODO. Useful?
     flag::Bool
     barrier::AbstractNOMADBarrierType
+    data_d::Vector{Vector{Float64}}
     data_Rpv::Vector{Vector{Float64}}
     data_f::Vector{Float64}
     data_g::Vector{Vector{Float64}}
 end
 
-MADSTangentSolver() = MADSTangentSolver("./tmp.log", 0, false, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
-MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, 0, false, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
+MADSTangentSolver() = MADSTangentSolver("./tmp.log", false, ExtremeBarrier(), Vector{Float64}[], Vector{Float64}[], Float64[], Vector{Float64}[])
+MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, false, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
 
 set_log_path!(MS::MADSTangentSolver, s::String) = MS.log_path = s
 set_last_eval!(MS::MADSTangentSolver, eval::Int) = MS.last_eval = eval
@@ -53,7 +53,7 @@ function _build_nomad_problem(B::ProgressiveBarrier, q::Int, n_ineqs::Int, bb, n
     return problem
 end
 
-function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxDataType)
+function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData)
     return (true, true, [eval_data.f ; eval_data.g])
 end
 
@@ -68,6 +68,7 @@ function solve!(
         g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
+    radius = invertibility_radius(M, p; R, ρ)
 
     for budget in (10, max_evals)
         budget > max_evals && continue
@@ -84,13 +85,38 @@ function solve!(
 
         problem = _build_nomad_problem(MTS.barrier, q, n_ineqs, bb, nomad_options)
 
-        redirect_to_files(MTS.log_path) do
+        redirect_to_files(MTS.log_path) do # TODO. Is it even useful to redirect to external files if the tangent solver object stores everything?
             result = solve(problem, zeros(q))
         end
 
-        # TODO. Catch up here. Implement post-processing of the NOMAD run. Think of exiting the loop if an improving solution was found outside of the radius.
-    end
+        # Check if an improving solution was found outside of the invertibility radius. If so, break and discard the remainder from the storage: these evaluations should not exist.
 
+        n_evals = length(MTS.data_d)
+        improving_outside_radius = false
+        best_feasible_f = MTS.data_f[1]
+        if n_ineqs > 0
+            for id_eval in eachindex(MTS.data_d)
+                if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ 0.0)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
+                    best_feasible_f = MTS.data_f[id_eval]
+                    if norm(MTS.data_d[id_eval]) ≥ radius
+                        improving_outside_radius = true
+                        break
+                    end
+                end
+            end
+        else
+            for id_eval in eachindex(MTS.data_d)
+                if MTS.data_f[id_eval] < best_feasible_f
+                    best_feasible_f = MTS.data_f[id_eval]
+                    if norm(MTS.data_d[id_eval]) ≥ radius
+                        improving_outside_radius = true
+                        break
+                    end
+                end
+            end
+        end
+        improving_outside_radius && break
+    end
     return MTS
 end
 
@@ -137,12 +163,6 @@ end
 #                     d = get_vector(M, p, v)
 #                     remaining = split(line[(bracket_end + 1):end])
 #                     f = parse(Float64, remaining[1])
-
-#                     # numbers = [parse(Float64, m.match) for m in eachmatch(r"-?\d+\.?\d*", line)]
-#                     # eval_nb = numbers[1]
-#                     # v = numbers[2:(1 + q)]
-#                     # d = get_vector(M, p, v)
-#                     # f = numbers[2 + q]
 
 #                     if nb_inequalities > 0
 #                         # If there are inequalities:
