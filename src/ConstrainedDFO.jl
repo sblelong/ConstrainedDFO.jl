@@ -1,4 +1,4 @@
-@doc """
+"""
     ConstrainedDFO.jl: derivative-free optimization under constraints.
 
 - Documentation: [https://sblelong.github.io/ConstrainedDFO.jl/dev/](https://sblelong.github.io/ConstrainedDFO.jl/dev/)
@@ -6,6 +6,8 @@
 - Issues: [https://github.com/sblelong/ConstrainedDFO.jl/issues](https://github.com/sblelong/ConstrainedDFO.jl/issues)
 """
 module ConstrainedDFO
+
+FAILURE_MAX = 1.0e20
 
 import ManifoldsBase:
     check_size,
@@ -38,7 +40,8 @@ using ManifoldsBase
 using Manopt:
     AbstractManifoldCostObjective,
     AbstractManoptProblem,
-    AbstractManoptSolverState
+    AbstractManoptSolverState,
+    get_cost
 using NOMAD
 using Random
 using ResumableFunctions
@@ -47,6 +50,7 @@ using ResumableFunctions
 include("types/EqualityManifold.jl")
 export AbstractInvertibilityBound,
     EqualityManifold,
+    ExactInvertibility,
     NOverSqrtSpectral,
     NOverSpectral,
     OneOverSqrtSpectral,
@@ -81,13 +85,19 @@ export
     set_tangent_iterate!
 
 # Solvers
-include("solvers/tangent_solvers/DFSolver.jl")
-export AbstractDFRSolver,
-    AbstractDFSolver
-include("solvers/tangent_solvers/mads.jl")
-export MADSDFRSolver
-export process_details,
+include("solvers/tangent_solvers/TangentSolver.jl")
+export AbstractTangentSolver,
+    BlackboxTangentData
+export blackbox_wrapper_store!,
+    get_data_d,
+    get_data_f,
+    get_data_g,
+    get_data_Rpv,
+    get_last_subproblem_result,
+    get_radius_flag,
     solve!
+include("solvers/tangent_solvers/MADSTangentSolver.jl")
+export MADSTangentSolver
 
 include("solvers/DFROSolver.jl")
 export DFROSolver

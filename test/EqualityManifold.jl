@@ -1,8 +1,3 @@
-using Test
-using ConstrainedDFO
-using LinearAlgebra
-using ManifoldsBase
-
 @testset "Equality Manifolds" begin
     h1(p) = [sum(p .^ 2) - 4]
     M1 = EqualityManifold(h1, 2, 3)

@@ -4,7 +4,8 @@ using DocumenterInterLinks
 
 links = InterLinks(
     "ManifoldsBase" => ("https://juliamanifolds.github.io/ManifoldsBase.jl/stable/"),
-    "Manopt" => ("https://manoptjl.org/stable/")
+    "Manopt" => ("https://manoptjl.org/stable/"),
+    "NOMAD" => ("https://bbopt.github.io/NOMAD.jl/stable/"),
 )
 
 makedocs(

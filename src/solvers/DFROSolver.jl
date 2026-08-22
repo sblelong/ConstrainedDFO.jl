@@ -1,9 +1,9 @@
 """
 Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at this retracted point.
 """
-retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractDFRSolver)
+retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractTangentSolver)
 
-function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSDFRSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0, εeqs::Float64 = 1.0e-8)
+function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSTangentSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0, εeqs::Float64 = 1.0e-8)
     return try
         d = get_vector(M, p, v, DefaultOrthonormalBasis())
         Pd = retract(M, p, d, retraction_method)
@@ -24,12 +24,15 @@ function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p
     end
 end
 
+"""
+    TODO.
+"""
 function DFROSolver(
         M::AbstractManifold,
         f::Function,
         p0;
         inequality_constraints::Union{Function, Nothing} = nothing,
-        solver::AbstractDFRSolver = MADSDFRSolver(),
+        solver::AbstractTangentSolver = MADSTangentSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
@@ -45,7 +48,7 @@ function DFROSolver(
         mco::AbstractManifoldCostObjective,
         p0;
         inequality_constraints::Union{Function, Nothing} = nothing,
-        solver::AbstractDFRSolver = MADSDFRSolver(),
+        solver::AbstractTangentSolver = MADSTangentSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
@@ -66,7 +69,7 @@ function DFROSolver(
     p = is_point(M, p0; atol = εeqs) ? p0 : project(M, p0)
     !is_point(M, p; atol = εeqs) && return p, [1.0e20], [], [], [], [], []
 
-    if typeof(solver) == MADSDFRSolver
+    if typeof(solver) == MADSTangentSolver
         options = Dict()
         if solver.transfer_mesh_size
             processed_solver_details = Dict("best_mesh_size" => ones(q))
@@ -97,7 +100,7 @@ function DFROSolver(
 
         # Solve the q-dimensional subproblem with the given solver, with stopping criterion being the injectivity radius.
 
-        if typeof(solver) == MADSDFRSolver && solver.transfer_mesh_size
+        if typeof(solver) == MADSTangentSolver && solver.transfer_mesh_size
             options["initial_mesh_size"] = processed_solver_details["best_mesh_size"]
         end
 
@@ -216,6 +219,7 @@ function DFROSolver(
         (norm(p) == typemax(Float64) || !is_point(M, p; atol = εeqs)) && break
 
         # @printf("| %10d | %10d | %11d | %14e |\n", iter, used_evals, n_evals, best_f)
+        # TODO. Reset internal storage of the tangent solver (after having transferred its data into a global array here).
         stopping_criterion(mpb, rdfos, iter, n_evals, solver.flag, retraction_method, invertibility_bound) && break
     end
     # println("A stopping criterion was met.")
