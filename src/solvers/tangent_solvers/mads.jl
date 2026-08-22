@@ -115,6 +115,7 @@ function solve!(
                 end
             end
         end
+        clear_storage!(MTS) # Very important! The storage should be cleared before trying with another budget, to prevent duplicates.
         improving_outside_radius && break
     end
     return MTS
