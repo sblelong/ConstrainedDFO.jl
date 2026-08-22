@@ -1,6 +1,9 @@
 using Test
 using ConstrainedDFO
-using Manopt
+using Manopt:
+    ManifoldCostObjective,
+    DefaultManoptProblem,
+    get_reason
 
 @testset "Stopping Criteria" begin
     h(p) = [sum(p .^ 2) - 4]

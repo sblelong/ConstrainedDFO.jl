@@ -17,7 +17,14 @@ mutable struct BlackboxTangentData
     g::Vector{Float64}
 end
 
+get_data_d(TS::AbstractTangentSolver) = TS.data_d
+get_data_Rpv(TS::AbstractTangentSolver) = TS.data_Rpv
+get_data_f(TS::AbstractTangentSolver) = TS.data_f
+get_data_g(TS::AbstractTangentSolver) = TS.data_g
+get_radius_flag(TS::AbstractTangentSolver) = TS.radius_flag
+
 function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangentData)
+    println(length(TS.data_d))
     push!(TS.data_d, eval_data.d)
     push!(TS.data_Rpv, eval_data.p)
     push!(TS.data_f, eval_data.f)

@@ -28,7 +28,7 @@ Note: the implementation makes use of the interface to the NOMAD 3 software offe
 """
 mutable struct MADSTangentSolver <: AbstractTangentSolver
     log_path::String
-    flag::Bool
+    radius_flag::Bool
     barrier::AbstractNOMADBarrierType
     data_d::Vector{Vector{Float64}}
     data_Rpv::Vector{Vector{Float64}}
@@ -68,10 +68,12 @@ function solve!(
         g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
-    radius = invertibility_radius(M, p; R, ρ)
+    radius = invertibility_radius(M, p, R, ρ)
 
     for budget in (10, max_evals)
         budget > max_evals && continue
+
+        clear_storage!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
 
         # Set display format in the NOMAD history file
         if n_ineqs > 0
@@ -92,7 +94,7 @@ function solve!(
         # Check if an improving solution was found outside of the invertibility radius. If so, break and discard the remainder from the storage: these evaluations should not exist.
 
         n_evals = length(MTS.data_d)
-        improving_outside_radius = false
+        improving_outside_radius::Bool = false
         best_feasible_f = MTS.data_f[1]
         if n_ineqs > 0
             for id_eval in eachindex(MTS.data_d)
@@ -115,7 +117,8 @@ function solve!(
                 end
             end
         end
-        clear_storage!(MTS) # Very important! The storage should be cleared before trying with another budget, to prevent duplicates.
+
+        MTS.radius_flag = improving_outside_radius
         improving_outside_radius && break
     end
     return MTS

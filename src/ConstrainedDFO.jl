@@ -50,6 +50,7 @@ using ResumableFunctions
 include("types/EqualityManifold.jl")
 export AbstractInvertibilityBound,
     EqualityManifold,
+    ExactInvertibility,
     NOverSqrtSpectral,
     NOverSpectral,
     OneOverSqrtSpectral,
@@ -88,9 +89,14 @@ include("solvers/tangent_solvers/TangentSolver.jl")
 export AbstractTangentSolver,
     BlackboxTangentData
 export blackbox_wrapper_store!,
+    get_data_d,
+    get_data_f,
+    get_data_g,
+    get_data_Rpv,
     get_last_subproblem_result,
+    get_radius_flag,
     solve!
-include("solvers/tangent_solvers/mads.jl")
+include("solvers/tangent_solvers/MADSTangentSolver.jl")
 export MADSTangentSolver
 
 include("solvers/DFROSolver.jl")
