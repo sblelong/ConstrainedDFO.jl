@@ -52,6 +52,7 @@ export AbstractInvertibilityBound,
     EqualityManifold
 include("types/invertibility.jl")
 export AbstractInvertibilityBound,
+    ExactInvertibility,
     NOverSqrtSpectral,
     NOverSpectral,
     OneOverSqrtSpectral,

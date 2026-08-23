@@ -65,14 +65,15 @@ with ``\\lambda(H_{h_i})`` the spectral radius of the Hessian matrix of the defi
 mutable struct NOverSqrtSpectral <: AbstractInvertibilityBound end
 
 """
-    default_invertibility_bound(M::AbstractManifold, p; m::AbstractRetractionMethod)
+    default_invertibility_bound(M::AbstractManifold; m::AbstractRetractionMethod)
 
-Return the default [`AbstractInvertibilityBound`](@ref) used to compute the [`invertibility_bound`](@ref) of ``M`` at `p` when endowed with the retraction method `m`. For an [`EqualityManifold`](@ref) endowed with the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction), defaults to [`NOverSpectral`](@ref).
+Return the default [`AbstractInvertibilityBound`](@ref) used to compute the [`invertibility_bound`](@ref) of ``M`` when endowed with the retraction method `m`. For an [`EqualityManifold`](@ref) endowed with the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction), defaults to [`NOverSpectral`](@ref).
 """
-function default_invertibility_bound(M::AbstractManifold, p; m::AbstractRetractionMethod)
-    return ExactInvertibility()
+function default_invertibility_bound(M::AbstractManifold; m::AbstractRetractionMethod = default_retraction_method(M))
+    return _default_invertibility_bound(M, m)
 end
-default_invertibility_bound(::EqualityManifold, p; m::ProjectionRetraction) = NOverSpectral()
+_default_invertibility_bound(M::AbstractManifold, m::AbstractRetractionMethod) = ExactInvertibility()
+_default_invertibility_bound(M::EqualityManifold, m::ProjectionRetraction) = NOverSpectral()
 
 """
     invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod, ρ::AbstractInvertibilityBound)
@@ -87,30 +88,33 @@ This function returns a **lower bound** on this quantity, computed according to 
 
 When `m` is the [`ExponentialRetraction`](@extref ManifoldsBase.ExponentialRetraction), this function falls back to the [`injectivity_radius`](@extref ManifoldsBase.injectivity_radius) of ``M`` at `p`.
 """
-function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), ρ::AbstractInvertibilityBound = default_invertibility_bound(M)) end
+function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), ρ::AbstractInvertibilityBound = default_invertibility_bound(M; m = default_retraction_method(M)))
+    return _invertibility_radius(M, p, m, ρ)
+end
 
-invertibility_radius(M::AbstractManifold, p; ::ExponentialRetraction, ::ExactInvertibility) = injectivity_radius(M, p)
+_invertibility_radius(M::AbstractManifold, p, m::ExponentialRetraction, ρ::ExactInvertibility) = injectivity_radius(M, p)
+_invertibility_radius(M::Sphere, p, m::StabilizedRetraction, ρ::ExactInvertibility) = injectivity_radius(M, p)
 
-function invertibility_radius(M::EqualityManifold, p; m::ProjectionRetraction, ρ::OneOverSpectral)
+function _invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::OneOverSpectral)
     Hhis = eval_defining_hessians(M, p)
     Λ = [maximum(abs, eigvals(Hhi)) for Hhi in Hhis]
     return 1 / maximum(Λ)
 end
 
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::NOverSpectral)
+function _invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::NOverSpectral)
     n = representation_size(M)[1]
     Hhis = eval_defining_hessians(M, p)
     Λ = [maximum(abs, eigvals(Hhi)) for Hhi in Hhis]
     return n / maximum(Λ)
 end
 
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::OneOverSqrtSpectral)
+function _invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::OneOverSqrtSpectral)
     Hhis = eval_defining_hessians(M, p)
     Λ = [maximum(abs, eigvals(Hhi)) for Hhi in Hhis]
     return 1 / sqrt(maximum(Λ))
 end
 
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::NOverSqrtSpectral)
+function _invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::NOverSqrtSpectral)
     n = representation_size(M)[1]
     Hhis = eval_defining_hessians(M, p)
     Λ = [maximum(abs, eigvals(Hhi)) for Hhi in Hhis]
