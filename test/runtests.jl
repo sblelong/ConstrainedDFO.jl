@@ -10,4 +10,5 @@ using Manopt:
     include("EqualityManifold.jl")
     include("StoppingCriteria.jl")
     include("TangentSolver.jl")
+    include("invertibility.jl")
 end
