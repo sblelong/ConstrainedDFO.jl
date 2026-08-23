@@ -50,10 +50,6 @@ function eval_defining_hessians(M::EqualityManifold, p)
     return hessians
 end
 
-####################################################################
-# Checks on an `EqualityManifold` and its tangent spaces.
-####################################################################
-
 """
     check_size(M::EqualityManifold, p)
 
@@ -122,10 +118,6 @@ function check_vector(M::EqualityManifold, p, X; kwargs...)
     return nothing
 end
 
-####################################################################
-# Tangent spaces bases computation.
-####################################################################
-
 default_basis(::EqualityManifold) = DefaultOrthonormalBasis()
 
 """
@@ -178,10 +170,6 @@ function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbe
     return c
 end
 
-####################################################################
-# Projection
-####################################################################
-
 """
     project(M::EqualityManifold, p)
 
@@ -203,10 +191,6 @@ function ManifoldsBase.project(M::EqualityManifold, p)
     return q
 end
 
-####################################################################
-# Retractions
-####################################################################
-
 default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 
 """
@@ -216,134 +200,12 @@ retract(M::EqualityManifold, p, X, ::ProjectionRetraction)
 
 function retract_project!(M::EqualityManifold, q, p, X)
     if !is_vector(M, p, X; atol = 1.0e-6)
-        # error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
+        error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
     end
     pX = p .+ X
     q = project(M, pX)
     return q
 end
-
-####################################################################
-# Injectivity radii
-# TODO. Change this hierarchy of definitions so that the injectivity_radius is called whenever the exponential map is defined, instead of relying on the Sphere only.
-####################################################################
-
-"""
-    AbstractInvertibilityBound
-
-A formula to compute a lower bound on the [`invertibility_radius`](@ref) of a manifold.
-"""
-abstract type AbstractInvertibilityBound end
-
-"""
-    ExactInvertibility <: AbstractInvertibilityBound
-
-When it exists, computes the exact value of the invertibility radius; i.e., the injectivity_radius of the exponential map in most cases.
-"""
-mutable struct ExactInvertibility <: AbstractInvertibilityBound end
-
-"""
-    OneOverSpectral <: AbstractInvertibilityBound
-
-Computes a lower bound on the [`invertibility_radius`](@ref) of the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction) as
-
-```math
-    \\frac{1}{\\max\\{\\lambda(H_{h_i}(x)) : i\\in\\{1,...,p\\}\\}}.
-```
-
-with ``\\lambda(H_{h_i})`` the spectral radius of the Hessian matrix of the defining subfunction ``h_i`` for `M`.
-"""
-mutable struct OneOverSpectral <: AbstractInvertibilityBound end
-
-"""
-    NOverSpectral <: AbstractInvertibilityBound
-
-Computes a lower bound on the [`invertibility_radius`](@ref) of the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction) as
-
-```math
-    \\frac{n}{\\max\\{\\lambda(H_{h_i}(x)) : i\\in\\{1,...,p\\}\\}}.
-```
-
-with ``\\lambda(H_{h_i})`` the spectral radius of the Hessian matrix of the defining subfunction ``h_i`` for `M`.
-"""
-mutable struct NOverSpectral <: AbstractInvertibilityBound end
-
-"""
-    OneOverSqrtSpectral <: AbstractInvertibilityBound
-
-Computes a lower bound on the [`invertibility_radius`](@ref) of the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction) as
-
-```math
-    \\frac{1}{\\sqrt{\\max\\{\\lambda(H_{h_i}(x)) : i\\in\\{1,...,p\\}\\}}}.
-```
-
-with ``\\lambda(H_{h_i})`` the spectral radius of the Hessian matrix of the defining subfunction ``h_i`` for `M`.
-"""
-mutable struct OneOverSqrtSpectral <: AbstractInvertibilityBound end
-
-"""
-    NOverSqrtSpectral <: AbstractInvertibilityBound
-
-Computes a lower bound on the [`invertibility_radius`](@ref) of the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction) as
-
-```math
-    \\frac{n}{\\sqrt{\\max\\{\\lambda(H_{h_i}(x)) : i\\in\\{1,...,p\\}\\}}}.
-```
-
-with ``\\lambda(H_{h_i})`` the spectral radius of the Hessian matrix of the defining subfunction ``h_i`` for `M`.
-"""
-mutable struct NOverSqrtSpectral <: AbstractInvertibilityBound end
-
-"""
-    invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod, b::AbstractInvertibilityBound)
-
-Return a lower bound on the [`invertibility_radius``](@ref) of `M` at `p` when endowed with the [`AbstractRetractionMethod`](@extref ManifoldsBase.AbstractRetractionMethod) `m`. The chosen bound is computed with the formula contained in `b`, and can be the exact value of the invertibility radius.
-"""
-function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod, b::AbstractInvertibilityBound) end
-
-invertibility_radius(M::Manifolds.Sphere, p, m::StabilizedRetraction, b::ExactInvertibility) = injectivity_radius(M, p, m)
-
-"""
-    invertibility_bound(M::EqualityManifold, p; m::AbstractRetractionMethod, b::AbstractInvertibilityBound)
-
-Return a lower bound on the [`invertibility_radius`](@ref) of the [`EqualityManifold`](@ref) `M` at `p`, endowed with [`AbstractRetractionMethod`](@extref ManifoldsBase.AbstractRetractionMethod) `m`. The bound is computed according to the formula given by the [`AbstractInvertibilityBound`](@ref) `b`.
-"""
-invertibility_radius(M::EqualityManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), b::AbstractInvertibilityBound = OneOverSpectral()) = invertibility_radius(M, p, m, b)
-
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSpectral)
-    hessians = eval_defining_hessians(M, p)
-    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
-    return 1 / maximum(spectral_radii)
-end
-
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::NOverSpectral)
-    n = representation_size(M)[1]
-    hessians = eval_defining_hessians(M, p)
-    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
-    return n / maximum(spectral_radii)
-end
-
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::OneOverSqrtSpectral)
-    hessians = eval_defining_hessians(M, p)
-    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
-    return 1 / sqrt(maximum(spectral_radii))
-end
-
-function invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, b::NOverSqrtSpectral)
-    n = representation_size(M)[1]
-    hessians = eval_defining_hessians(M, p)
-    spectral_radii = [maximum(abs, eigvals(hessian)) for hessian in hessians]
-    return n / sqrt(maximum(spectral_radii))
-end
-
-function default_invertibility_bound(M::AbstractManifold, m::AbstractRetractionMethod) end
-
-default_invertibility_bound(::EqualityManifold, ::ProjectionRetraction) = NOverSqrtSpectral()
-default_invertibility_bound(::Manifolds.Sphere, ::StabilizedRetraction) = ExactInvertibility()
-
-####################################################################
-# Random choice of points
-####################################################################
 
 function ManifoldsBase.rand(M::EqualityManifold)
     n = representation_size(M)[1]
