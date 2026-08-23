@@ -86,7 +86,7 @@ When the manifold ``M`` is endowed with retraction method `m` at `p`, its invert
 
 This function returns a **lower bound** on this quantity, computed according to `ρ`. If `ρ` is an [`ExactInvertibility`](@ref), the exact value is returned.
 
-When `m` is the [`ExponentialRetraction`](@extref ManifoldsBase.ExponentialRetraction), this function falls back to the [`injectivity_radius`](@extref `ManifoldsBase.injectivity_radius`) of ``M`` at `p`.
+When `m` is the [`ExponentialRetraction`](@extref ManifoldsBase.ExponentialRetraction), this function falls back to the `injectivity_radius` of ``M`` at `p`.
 """
 function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMethod = default_retraction_method(M), ρ::AbstractInvertibilityBound = default_invertibility_bound(M; m = default_retraction_method(M)))
     return _invertibility_radius(M, p, m, ρ)
