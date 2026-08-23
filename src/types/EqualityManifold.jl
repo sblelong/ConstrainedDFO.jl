@@ -27,14 +27,23 @@ function get_embedding(M::EqualityManifold)
     return Euclidean(representation_size(M)...)
 end
 
+"""
+    eval_defining_function(M::EqualityManifold, p)
+"""
 eval_defining_function(M::EqualityManifold, p) = M.defining_function(p)
 
+"""
+    eval_defining_jacobian(M::EqualityManifold, p)
+"""
 function eval_defining_jacobian(M::EqualityManifold, p)
     h(x) = eval_defining_function(M, x)
     Jhp = jacobian(h, p)
     return Jhp
 end
 
+"""
+    eval_defining_hessian(M::EqualityManifold, p, i::Int)
+"""
 function eval_defining_hessian(M::EqualityManifold, p, i::Int)
     hi(x) = eval_defining_function(M, x)[i]
     Hhip = hessian(hi, p)
@@ -71,9 +80,7 @@ end
 
 function check_point(M::EqualityManifold, p; kwargs...)
     s = check_size(M, p)
-    if !isnothing(s)
-        return s
-    end
+    isnothing(s) || return s
     h = eval_defining_function(M, p)
     if !all(isapprox.(h, 0.0; kwargs...))
         return DomainError(
@@ -86,16 +93,14 @@ end
 
 function check_vector(M::EqualityManifold, p, X; kwargs...)
     s = check_point(M, p)
-    if !isnothing(s)
-        return s
-    end
-    ∇hp = eval_defining_jacobian(M, p)
-    ∇hpX = ∇hp * X
-    if !all(isapprox.(∇hpX, 0.0; kwargs...))
-        println("!! ", ∇hp, X, ∇hpX)
+    isnothing(s) || return s
+    Jhp = eval_defining_jacobian(M, p)
+    JhpX = Jhp * X
+    if !all(isapprox.(JhpX, 0.0; kwargs...))
+        println("!! ", Jhp, X, JhpX)
         return DomainError(
-            ∇hp * X,
-            "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(∇hpX)."
+            Jhp * X,
+            "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(JhpX)."
         )
     end
     return nothing
@@ -107,11 +112,10 @@ get_basis(::EqualityManifold, p, ::DefaultOrthonormalBasis)
 
 function get_basis_orthonormal(M::EqualityManifold, p, N::AbstractNumbers; kwargs...)
     dim = manifold_dimension(M)
-    B = DefaultOrthogonalBasis(N)
     Jhp = eval_defining_jacobian(M, p)
     basis = nullspace(Jhp)
     r = rank(basis)
-    r ≠ dim && error("Jacobian of the defining function for $(M) with dimension $(dim) has rank $(r) at $(p).")
+    r ≠ dim && throw(NumericalError("Jacobian of the defining function for $(M) with dimension $(dim) has rank $(r) at $(p)."))
     return basis
 end
 
@@ -131,6 +135,9 @@ function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbe
     return c
 end
 
+"""
+    project(M::EqualityManifold, p)
+"""
 function project(M::EqualityManifold, p)
     n = representation_size(M)[1]
     h(y) = eval_defining_function(M, y)
@@ -150,8 +157,8 @@ end
 default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 
 function retract_project!(M::EqualityManifold, q, p, X)
-    if !is_vector(M, p, X; atol = 1.0e-6)
-        error("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted.")
+    if !is_vector(M, p, X)
+        throw(DomainError("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted."))
     end
     pX = p .+ X
     q = project(M, pX)
