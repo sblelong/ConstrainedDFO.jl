@@ -67,7 +67,7 @@ mutable struct NOverSqrtSpectral <: AbstractInvertibilityBound end
 """
     default_invertibility_bound(M::AbstractManifold; m::AbstractRetractionMethod)
 
-Return the default [`AbstractInvertibilityBound`](@ref) used to compute the [`invertibility_bound`](@ref) of ``M`` when endowed with the retraction method `m`. For an [`EqualityManifold`](@ref) endowed with the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction), defaults to [`NOverSpectral`](@ref).
+Return the default [`AbstractInvertibilityBound`](@ref) used to compute the [`invertibility_radius`](@ref) of ``M`` when endowed with the retraction method `m`. For an [`EqualityManifold`](@ref) endowed with the [`ProjectionRetraction`](@extref ManifoldsBase.ProjectionRetraction), defaults to [`NOverSpectral`](@ref).
 """
 function default_invertibility_bound(M::AbstractManifold; m::AbstractRetractionMethod = default_retraction_method(M))
     return _default_invertibility_bound(M, m)
