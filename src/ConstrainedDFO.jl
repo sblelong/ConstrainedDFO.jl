@@ -9,6 +9,8 @@ module ConstrainedDFO
 
 FAILURE_MAX = 1.0e20
 
+import Base:
+    showerror
 import ManifoldsBase:
     check_size,
     check_point,
@@ -45,6 +47,15 @@ using Manopt:
 using NOMAD
 using Random
 using ResumableFunctions
+
+include("utils/latin_hypercube_sampling.jl")
+include("utils/redirect.jl")
+include("utils/spherical_coordinates.jl")
+include("utils/exceptions.jl")
+export NumericalError
+export latin_hypercube_sampling,
+    redirect_to_files,
+    spherical_to_cartesian
 
 # Riemannian submanifolds of ℝ^n defined as feasible sets for equality constraints
 include("types/EqualityManifold.jl")
@@ -103,13 +114,5 @@ export MADSTangentSolver
 
 include("solvers/DFROSolver.jl")
 export DFROSolver
-
-include("utils/latin_hypercube_sampling.jl")
-include("utils/redirect.jl")
-include("utils/spherical_coordinates.jl")
-
-export latin_hypercube_sampling,
-    redirect_to_files,
-    spherical_to_cartesian
 
 end
