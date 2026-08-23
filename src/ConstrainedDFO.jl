@@ -49,14 +49,15 @@ using ResumableFunctions
 # Riemannian submanifolds of ℝ^n defined as feasible sets for equality constraints
 include("types/EqualityManifold.jl")
 export AbstractInvertibilityBound,
-    EqualityManifold,
-    ExactInvertibility,
+    EqualityManifold
+include("types/invertibility.jl")
+export AbstractInvertibilityBound,
     NOverSqrtSpectral,
     NOverSpectral,
     OneOverSqrtSpectral,
     OneOverSpectral
-export invertibility_radius
-
+export default_invertibility_bound,
+    invertibility_radius
 # Scaled sphere, this structure is useful for comparison against parametrization
 include("types/ScaledSphere.jl")
 export ScaledSphere
