@@ -68,7 +68,7 @@ function solve!(
         g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
-    radius = invertibility_radius(M, p, R, ρ)
+    radius = invertibility_radius(M, p; m = R, ρ = ρ)
 
     for budget in (10, max_evals)
         budget > max_evals && continue
