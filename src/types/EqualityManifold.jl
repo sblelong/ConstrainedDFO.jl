@@ -97,7 +97,6 @@ function check_vector(M::EqualityManifold, p, X; kwargs...)
     Jhp = eval_defining_jacobian(M, p)
     JhpX = Jhp * X
     if !all(isapprox.(JhpX, 0.0; kwargs...))
-        println("!! ", Jhp, X, JhpX)
         return DomainError(
             Jhp * X,
             "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(JhpX)."
@@ -108,8 +107,6 @@ end
 
 default_basis(::EqualityManifold) = DefaultOrthonormalBasis()
 
-get_basis(::EqualityManifold, p, ::DefaultOrthonormalBasis)
-
 function get_basis_orthonormal(M::EqualityManifold, p, N::AbstractNumbers; kwargs...)
     dim = manifold_dimension(M)
     Jhp = eval_defining_jacobian(M, p)
@@ -119,15 +116,11 @@ function get_basis_orthonormal(M::EqualityManifold, p, N::AbstractNumbers; kwarg
     return basis
 end
 
-get_vector(::EqualityManifold, p, c, ::DefaultOrthonormalBasis)
-
 function get_vector_orthonormal!(M::EqualityManifold, Y, p, c, N::AbstractNumbers)
     basis = get_basis(M, p, DefaultOrthonormalBasis(N))
     Y = basis * c
     return Y
 end
-
-get_coordinates(::EqualityManifold, p, X, ::DefaultOrthonormalBasis)
 
 function get_coordinates_orthonormal(M::EqualityManifold, p, X, N::AbstractNumbers)
     B = get_basis(M, p, DefaultOrthonormalBasis(N))
