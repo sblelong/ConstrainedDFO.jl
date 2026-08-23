@@ -130,6 +130,12 @@ end
 
 """
     project(M::EqualityManifold, p)
+
+Projects a point `p` from the ambient space to the manifold ``\\mahtcal{M}`` by solving the least-squares problem
+
+```math
+    \\min\\limits_{q\\in\\mathcal{M}}~\\lVert p-q\\rVert
+```
 """
 function project(M::EqualityManifold, p)
     n = representation_size(M)[1]

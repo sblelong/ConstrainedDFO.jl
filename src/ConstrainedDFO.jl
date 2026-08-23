@@ -25,7 +25,8 @@ import ManifoldsBase:
     get_embedding,
     manifold_dimension,
     representation_size,
-    retract_project!
+    retract_project!,
+    project
 import Manopt:
     get_reason,
     stop_solver!,
