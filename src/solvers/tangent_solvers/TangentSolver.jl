@@ -103,9 +103,9 @@ end
 Solve the subproblem
 
 ```math
-    \\begin{array}{r l l}
+    \\begin{array}{r l}
         \\min\\limits_{v\\in T_p\\mathcal{M}} & f\\circ R_p(v)            \\\\
-        \\mathrm{s.t.}                        & g\\circ R_p(v) & \\leq & 0
+        \\mathrm{s.t.}                        & g\\circ R_p(v) \\leq & 0
     \\end{array}
 ```
 
