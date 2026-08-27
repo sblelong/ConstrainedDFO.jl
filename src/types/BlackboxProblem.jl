@@ -3,12 +3,14 @@
 """
 mutable struct BlackboxProblem
     n::Int
-    m::Int
     p::Int
+    m::Int
     f::Function
-    g::Function
     h::Function
+    g::Function
 end
+
+BlackboxProblem(n, p, f, h) = BlackboxProblem(n, p, 0, f, h, x -> Float64[])
 
 get_dimension(BP::BlackboxProblem) = BP.n
 get_n_ineqs(BP::BlackboxProblem) = BP.m
