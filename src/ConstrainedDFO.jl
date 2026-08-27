@@ -49,11 +49,12 @@ using NOMAD
 using Random
 using ResumableFunctions
 
+void_constraint(::Any) = Float64[]
+
 include("utils/latin_hypercube_sampling.jl")
 include("utils/redirect.jl")
 include("utils/spherical_coordinates.jl")
 include("utils/exceptions.jl")
-include("utils/void_constraint.jl")
 export NumericalError
 export latin_hypercube_sampling,
     redirect_to_files,
