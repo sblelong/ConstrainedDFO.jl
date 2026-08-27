@@ -1,31 +1,16 @@
 """
-Retract the point ``v\\in T_p\\mathcal{M}`` and then evaluate the objective at this retracted point.
-"""
-retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::AbstractTangentSolver)
-
-function retract_eval(M::AbstractManifold, mco::AbstractManifoldCostObjective, p, v, retraction_method::AbstractRetractionMethod, solver::MADSTangentSolver; inequality_constraints::Union{Function, Nothing} = nothing, nb_inequalities::Int = 0, εeqs::Float64 = 1.0e-8)
-    return try
-        d = get_vector(M, p, v, DefaultOrthonormalBasis())
-        Pd = retract(M, p, d, retraction_method)
-        fd = is_point(M, Pd; atol = εeqs) ? [get_cost(M, mco, Pd)] : [1.0e20]
-        if isnothing(inequality_constraints)
-            return (true, true, fd)
-        else
-            gd = inequality_constraints(Pd)
-            return (true, true, [fd; gd])
-        end
-    catch e
-        println("FAAAILED: $(e)")
-        if isnothing(inequality_constraints)
-            return (true, true, [1.0e20])
-        else
-            return (true, true, [[1.0e20] ; [1.0e20 for _ in 1:nb_inequalities]])
-        end
-    end
-end
-
-"""
-    TODO.
+    DFROSolver(
+        M::AbstractManifold,
+        f::Function,
+        p0;
+        inequality_constraints::Union{Function, Nothing} = nothing,
+        solver::AbstractTangentSolver = MADSTangentSolver(),
+        max_evals::Int = 1000 * representation_size(M)[1],
+        stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
+        retraction_method::AbstractRetractionMethod = default_retraction_method(M),
+        invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M, retraction_method),
+        εeqs::Float64 = 1.0e-8
+    )
 """
 function DFROSolver(
         M::AbstractManifold,
@@ -226,6 +211,7 @@ function DFROSolver(
     return p, eval_data[1:n_evals], iterates_history, objective_history, v_history, d_history, main_iterates
 end
 
+# TODO. Those should go. All of this is within the tangent solver's storage attributes.
 function vs_to_ds(M::AbstractManifold, p, vs)
     n_evals = size(vs)[1]
     q = representation_size(M)[1]

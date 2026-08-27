@@ -7,6 +7,7 @@ using Manopt:
     ManifoldCostObjective
 
 @testset "ConstrainedDFO.jl" begin
+    include("BlackboxProblem.jl")
     include("EqualityManifold.jl")
     include("StoppingCriteria.jl")
     include("TangentSolver.jl")

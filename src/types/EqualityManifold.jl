@@ -170,3 +170,10 @@ function ManifoldsBase.rand(M::EqualityManifold)
     projp = project(M, p)
     return projp
 end
+
+function EqualityManifold(BP::BlackboxProblem)
+    defining_function(x) = eval_eqs(BP, x)
+    n = get_dimension(BP)
+    p = get_n_eqs(BP)
+    return EqualityManifold(defining_function, n - p, n)
+end
