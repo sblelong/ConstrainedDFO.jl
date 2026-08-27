@@ -67,7 +67,8 @@ export eval_eqs,
     eval_objective,
     get_dimension,
     get_n_eqs,
-    get_n_ineqs
+    get_n_ineqs,
+    get_x0
 # Riemannian submanifolds of ℝ^n defined as feasible sets for equality constraints
 include("types/EqualityManifold.jl")
 export AbstractInvertibilityBound,

@@ -35,3 +35,5 @@ get_n_eqs(BI::BlackboxInstance) = BI.core_problem.p
 eval_objective(BI::BlackboxInstance, x) = BI.core_problem.f(x)
 eval_ineqs(BI::BlackboxInstance, x) = BI.core_problem.g(x)
 eval_eqs(BI::BlackboxInstance, x) = BI.core_problem.h(x)
+
+get_x0(BI::BlackboxInstance) = BI.x0
