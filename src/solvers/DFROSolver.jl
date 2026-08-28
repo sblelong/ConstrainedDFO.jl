@@ -105,6 +105,7 @@ function DFROSolver!(
         # Update remaining evaluations
         remaining_eval_budget -= last_eval
         termination = true
+        # TODO: Think of changing attributes of the State object!
     end
 
     return dfros
