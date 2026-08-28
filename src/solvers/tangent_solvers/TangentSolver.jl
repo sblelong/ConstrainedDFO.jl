@@ -32,11 +32,12 @@ function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangent
     return TS
 end
 
-function clear_storage!(TS::AbstractTangentSolver)
+function clear_tangent_solver!(TS::AbstractTangentSolver)
     TS.data_d = Vector{Float64}[]
     TS.data_Rpv = Vector{Float64}[]
     TS.data_f = Float64[]
     TS.data_g = Vector{Float64}[]
+    set_radius_evaluation!(TS, 0)
     return TS
 end
 

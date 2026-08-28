@@ -28,7 +28,7 @@ Note: the implementation makes use of the interface to the NOMAD 3 software offe
 """
 mutable struct MADSTangentSolver <: AbstractTangentSolver
     log_path::String
-    radius_flag::Bool
+    radius_evaluation::Int
     barrier::AbstractNOMADBarrierType
     data_d::Vector{Vector{Float64}}
     data_Rpv::Vector{Vector{Float64}}
@@ -36,11 +36,11 @@ mutable struct MADSTangentSolver <: AbstractTangentSolver
     data_g::Vector{Vector{Float64}}
 end
 
-MADSTangentSolver() = MADSTangentSolver("./tmp.log", false, ExtremeBarrier(), Vector{Float64}[], Vector{Float64}[], Float64[], Vector{Float64}[])
-MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, false, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
+MADSTangentSolver() = MADSTangentSolver("./tmp.log", 0, ExtremeBarrier(), Vector{Float64}[], Vector{Float64}[], Float64[], Vector{Float64}[])
+MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, 0, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
 
 set_log_path!(MS::MADSTangentSolver, s::String) = MS.log_path = s
-set_flag!(MS::MADSTangentSolver, val::Bool) = MS.radius_flag = val
+set_radius_evaluation!(MS::MADSTangentSolver, val::Int) = MS.radius_flag = val
 
 function _build_nomad_problem(B::ExtremeBarrier, q::Int, n_ineqs::Int, bb, nomad_options::NOMAD.NomadOptions)
     problem = NOMAD.NomadProblem(q, 1 + n_ineqs, [["OBJ"] ; ["EB" for _ in 1:n_ineqs]], bb; options = nomad_options)
@@ -62,17 +62,16 @@ function solve!(
         M::AbstractManifold,
         p,
         R::AbstractRetractionMethod,
-        ρ::AbstractInvertibilityBound,
+        radius::Float64,
         n_ineqs::Int;
         g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
-    radius = invertibility_radius(M, p; m = R, ρ = ρ)
 
     for budget in (10, max_evals)
         budget > max_evals && continue
 
-        clear_storage!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
+        clear_tangent_solver!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
 
         # Set display format in the NOMAD history file
         if n_ineqs > 0
@@ -92,15 +91,13 @@ function solve!(
 
         # Check if an improving solution was found outside of the invertibility radius. If so, break and discard the remainder from the storage: these evaluations should not exist.
 
-        n_evals = length(MTS.data_d)
-        improving_outside_radius::Bool = false
         best_feasible_f = MTS.data_f[1]
         if n_ineqs > 0
             for id_eval in eachindex(MTS.data_d)
                 if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ 0.0)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
                     best_feasible_f = MTS.data_f[id_eval]
                     if norm(MTS.data_d[id_eval]) ≥ radius
-                        improving_outside_radius = true
+                        set_radius_evaluation!(MTS, id_eval)
                         break
                     end
                 end
@@ -110,15 +107,14 @@ function solve!(
                 if MTS.data_f[id_eval] < best_feasible_f
                     best_feasible_f = MTS.data_f[id_eval]
                     if norm(MTS.data_d[id_eval]) ≥ radius
-                        improving_outside_radius = true
+                        set_radius_evaluation!(MTS, id_eval)
                         break
                     end
                 end
             end
         end
 
-        MTS.radius_flag = improving_outside_radius
-        improving_outside_radius && break
+        MT.radius_evaluation > 0 && break
     end
     return MTS
 end
