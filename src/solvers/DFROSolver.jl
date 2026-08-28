@@ -29,11 +29,85 @@ function DFROSolver(
 end
 
 """
-This one will take a `BlackboxProblem` as an input. Highest level in the hierarchy.
+In the top-level function
+- build the DFROState object
+- manage whether to return the DFROState object
+- possibly, redirect stdout to a stat file (that does not necessarily meet the format of the RunnerPost: a converter should be implemented later).
+- project p0 to M if it is not feasible from the beginning.
 """
-function DFROSolver(
-
+function DFROSolver!(
+        M::AbstractManifold,
+        mco::AbstractManifoldCostObjective,
+        g,
+        p0,
+        m::Int,
+        dfros::DFROState,
+        tangent_solver::AbstractTangentSolver,
+        max_evals::Int,
+        stopping_criterion::DFStoppingCriterion,
+        R::AbstractRetractionMethod,
+        ρ::AbstractInvertibilityBound,
+        εeqs::Float64,
+        εineqs::Float64,
     )
+    header = @sprintf(
+        " %-5s%-7s%-5s%-12s%-5s",
+        "ℓ", "ρ", "k", "f", "‖v‖≥ρ"
+    )
+    separator = @sprintf(
+        "+%s+%s+%s+%s+%s+",
+        "-"^4, "-"^6, "-"^4, "-"^11, "-"^5
+    )
+
+    @printf header * EOL
+    @printf separator * EOL
+
+    ℓ = 0
+    remaining_eval_budget = max_evals
+    termination::Bool = false
+    while !termination
+        ℓ += 1
+
+        # Compute a lower bound to the invertibility radius at p
+        radius = invertibility_radius(M, p, R, ρ)
+
+        # Solve the subproblem in the current tangent space
+        solve!(tangent_solver, mco, M, p, R, radius, n_ineqs; max_evals = remaining_eval_budget, εeqs = εeqs)
+
+        # Retrieve data from the tangent solver
+        data_f = get_data_f(tangent_solver)
+        n_evals = length(data_f)
+        radius_evaluation = tangent_solver.radius_evaluation
+        solved_outside_radius = radius_evaluation > 0
+
+        # Print data from the tangent solver
+        # First line: display ℓ and ρ
+        first_line_log = @sprintf(
+            " %5d%7.3f%5d%12.3f%5s",
+            ℓ, radius, 1, data_f[1], ""
+        )
+        @printf first_line_log * EOL
+        # Then, display the rest
+        last_eval = solved_outside_radius ? radius_evaluation : n_evals
+        for eval in 2:(last_eval - 1)
+            line_log = @sprintf(
+                " %5d%7.3f%5d%12.3f%5s",
+                "", "", eval, data_f[eval], ""
+            )
+            @printf line_log * EOL
+        end
+        last_line_log = @sprintf(
+            " %5d%7.3f%5d%12.3f%5s",
+            "", "", last_eval, data_f[last_eval], solved_outside_radius ? "✓" : "✗"
+        )
+        @print last_line_log * EOL
+
+        # Update remaining evaluations
+        remaining_eval_budget -= last_eval
+        termination = true
+    end
+
+    return dfros
 end
 
 function DFROSolver(
