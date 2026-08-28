@@ -7,7 +7,7 @@
 * `p` is the current iterate on the manifold.
 * `d` is the current best tangent vector found at ``T_p\\mathcal{M}``.
 """
-mutable struct DFROState{P, SC <: StoppingCriterion} <: AbstractManoptSolverState
+mutable struct DFROState{P, SC <: DFStoppingCriterion} <: AbstractManoptSolverState
     p::P
     d::P
     stop::SC
