@@ -28,11 +28,19 @@ function DFROSolver(
     return DFRO(M, mco, p0; inequality_constraints = inequality_constraints, solver = solver, max_evals = max_evals, stopping_criterion = stopping_criterion, retraction_method = retraction_method, invertibility_bound = invertibility_bound, εeqs = εeqs)
 end
 
+"""
+This one will take a `BlackboxProblem` as an input. Highest level in the hierarchy.
+"""
+function DFROSolver(
+
+    )
+end
+
 function DFROSolver(
         M::AbstractManifold,
-        mco::AbstractManifoldCostObjective,
+        f,
         p0;
-        inequality_constraints::Union{Function, Nothing} = nothing,
+        inequality_constraints = void_constraint,
         solver::AbstractTangentSolver = MADSTangentSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         stopping_criterion::DFStoppingCriterion = StopRadiusAndBudget(max_evals),
