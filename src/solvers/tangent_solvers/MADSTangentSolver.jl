@@ -40,8 +40,7 @@ MADSTangentSolver() = MADSTangentSolver("./tmp.log", false, ExtremeBarrier(), Ve
 MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, false, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
 
 set_log_path!(MS::MADSTangentSolver, s::String) = MS.log_path = s
-set_last_eval!(MS::MADSTangentSolver, eval::Int) = MS.last_eval = eval
-set_flag!(MS::MADSTangentSolver, val::Bool) = MS.flag = val
+set_flag!(MS::MADSTangentSolver, val::Bool) = MS.radius_flag = val
 
 function _build_nomad_problem(B::ExtremeBarrier, q::Int, n_ineqs::Int, bb, nomad_options::NOMAD.NomadOptions)
     problem = NOMAD.NomadProblem(q, 1 + n_ineqs, [["OBJ"] ; ["EB" for _ in 1:n_ineqs]], bb; options = nomad_options)
