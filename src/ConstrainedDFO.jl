@@ -48,7 +48,9 @@ using Manopt:
 using NOMAD
 using Random
 using ResumableFunctions
+using Printf
 
+EOL::String = "\n"
 void_constraint(::Any) = Float64[]
 
 include("utils/latin_hypercube_sampling.jl")
