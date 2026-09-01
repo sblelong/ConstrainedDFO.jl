@@ -78,11 +78,11 @@ function check_size(M::EqualityManifold, p, X)
     end
 end
 
-function check_point(M::EqualityManifold, p; kwargs...)
+function check_point(M::EqualityManifold, p; tol_eqs::Float64 = 1.0e-8)
     s = check_size(M, p)
     isnothing(s) || return s
     h = eval_defining_function(M, p)
-    if !all(isapprox.(h, 0.0; kwargs...))
+    if !all(isapprox.(h, 0.0; atol = tol_eqs))
         return DomainError(
             h,
             "The point $(p) does not lie on the $(M): h(p)=$(h)."
@@ -91,12 +91,12 @@ function check_point(M::EqualityManifold, p; kwargs...)
     return nothing
 end
 
-function check_vector(M::EqualityManifold, p, X; kwargs...)
-    s = check_point(M, p)
+function check_vector(M::EqualityManifold, p, X; tol_tangent::Float64 = 1.0e-12, kwargs...)
+    s = check_point(M, p; kwargs...)
     isnothing(s) || return s
     Jhp = eval_defining_jacobian(M, p)
     JhpX = Jhp * X
-    if !all(isapprox.(JhpX, 0.0; kwargs...))
+    if !all(isapprox.(JhpX, 0.0; atol = tol_tangent))
         return DomainError(
             Jhp * X,
             "The vector $(X) is not tangent to $(M) at $(p) since its product with the Jacobian has value $(JhpX)."
@@ -155,8 +155,8 @@ end
 
 default_retraction_method(::EqualityManifold) = ProjectionRetraction()
 
-function retract_project!(M::EqualityManifold, q, p, X)
-    if !is_vector(M, p, X)
+function retract_project!(M::EqualityManifold, q, p, X; kwargs...)
+    if !is_vector(M, p, X; kwargs...)
         throw(DomainError("Vector $(X) is not a tangent vector to $(M) at $(p). It can not be retracted."))
     end
     pX = p .+ X
