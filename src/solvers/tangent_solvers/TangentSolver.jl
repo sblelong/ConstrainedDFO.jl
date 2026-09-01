@@ -21,7 +21,7 @@ get_data_d(TS::AbstractTangentSolver) = TS.data_d
 get_data_Rpv(TS::AbstractTangentSolver) = TS.data_Rpv
 get_data_f(TS::AbstractTangentSolver) = TS.data_f
 get_data_g(TS::AbstractTangentSolver) = TS.data_g
-get_radius_flag(TS::AbstractTangentSolver) = TS.radius_flag
+get_radius_evaluation(TS::AbstractTangentSolver) = TS.radius_evaluation
 
 function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangentData)
     println(length(TS.data_d))
@@ -55,7 +55,7 @@ function retract_eval_store!(
     d = get_vector(M, p, v, DefaultOrthonormalBasis())
     Rpv = retract(M, p, d, R)
 
-    fRpv = is_point(M, Rpv; atol = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
+    fRpv = is_point(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
 
     if n_ineqs > 0
         gRpv = g(Rpv)
@@ -120,7 +120,7 @@ function solve!(
         M::AbstractManifold,
         p,
         R::AbstractRetractionMethod,
-        ρ::AbstractInvertibilityBound,
+        invertibility_radius::Float64,
         n_ineqs::Int;
         g, max_evals::Int, εeqs::Float64 = 1.0e-8
     )

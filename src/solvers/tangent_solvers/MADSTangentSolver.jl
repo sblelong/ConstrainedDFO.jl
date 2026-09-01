@@ -40,7 +40,7 @@ MADSTangentSolver() = MADSTangentSolver("./tmp.log", 0, ExtremeBarrier(), Vector
 MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, 0, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
 
 set_log_path!(MS::MADSTangentSolver, s::String) = MS.log_path = s
-set_radius_evaluation!(MS::MADSTangentSolver, val::Int) = MS.radius_flag = val
+set_radius_evaluation!(MS::MADSTangentSolver, val::Int) = MS.radius_evaluation = val
 
 function _build_nomad_problem(B::ExtremeBarrier, q::Int, n_ineqs::Int, bb, nomad_options::NOMAD.NomadOptions)
     problem = NOMAD.NomadProblem(q, 1 + n_ineqs, [["OBJ"] ; ["EB" for _ in 1:n_ineqs]], bb; options = nomad_options)
@@ -62,7 +62,7 @@ function solve!(
         M::AbstractManifold,
         p,
         R::AbstractRetractionMethod,
-        radius::Float64,
+        invertibility_radius::Float64,
         n_ineqs::Int;
         g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
     )
@@ -96,7 +96,7 @@ function solve!(
             for id_eval in eachindex(MTS.data_d)
                 if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ 0.0)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
                     best_feasible_f = MTS.data_f[id_eval]
-                    if norm(MTS.data_d[id_eval]) ≥ radius
+                    if norm(MTS.data_d[id_eval]) ≥ invertibility_radius
                         set_radius_evaluation!(MTS, id_eval)
                         break
                     end
@@ -106,7 +106,7 @@ function solve!(
             for id_eval in eachindex(MTS.data_d)
                 if MTS.data_f[id_eval] < best_feasible_f
                     best_feasible_f = MTS.data_f[id_eval]
-                    if norm(MTS.data_d[id_eval]) ≥ radius
+                    if norm(MTS.data_d[id_eval]) ≥ invertibility_radius
                         set_radius_evaluation!(MTS, id_eval)
                         break
                     end
@@ -114,7 +114,7 @@ function solve!(
             end
         end
 
-        MT.radius_evaluation > 0 && break
+        MTS.radius_evaluation > 0 && break
     end
     return MTS
 end
