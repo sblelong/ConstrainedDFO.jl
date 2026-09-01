@@ -44,6 +44,7 @@ using Manopt:
     AbstractManifoldCostObjective,
     AbstractManoptProblem,
     AbstractManoptSolverState,
+    ManifoldCostObjective,
     get_cost
 using NOMAD
 using Random
