@@ -93,7 +93,7 @@ function invertibility_radius(M::AbstractManifold, p; m::AbstractRetractionMetho
 end
 
 _invertibility_radius(M::AbstractManifold, p, m::ExponentialRetraction, ρ::ExactInvertibility) = injectivity_radius(M, p)
-_invertibility_radius(M::Sphere, p, m::StabilizedRetraction, ρ::ExactInvertibility) = injectivity_radius(M, p)
+_invertibility_radius(M::Sphere, p, m::StabilizedRetraction, ρ::ExactInvertibility) = Float64(injectivity_radius(M, p))
 
 function _invertibility_radius(M::EqualityManifold, p, m::ProjectionRetraction, ρ::OneOverSpectral)
     Hhis = eval_defining_hessians(M, p)
