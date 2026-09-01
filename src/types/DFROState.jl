@@ -25,6 +25,10 @@ function DFROState(
     return DFROState{P, SC}(p, zeros(representation_size(M)), stopping_criterion)
 end
 
+function DFROState(M::AbstractManifold, p::P) where {P}
+    return DFROState(p, zeros(representation_size(M)[1]), StopRadiusAndBudget(1000 * representation_size(M)[1]))
+end
+
 set_iterate!(s::DFROState, p) = s.p = p
 set_tangent_iterate!(s::DFROState, d) = s.d = d
 
