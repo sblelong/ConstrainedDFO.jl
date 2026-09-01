@@ -1,16 +1,28 @@
+"""
+    DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
+
+# Arguments
+- `M` is the Riemannian submanifold of ``\\mathbb{R}^n`` where the optimization problem is solved.
+- `f` is the cost function.
+- `g` gives the inequality constraints.
+- `p0` is the starting point used by the solver. If ``p_0\\notin\\mathcal{M}``, then the actual starting point used is ``\\mathrm{proj}_{\\mathcal{M}}(p_0)``.
+- `n_ineqs` is the number of inequality constraints.
+
+# Keyword arguments
+Keyword arguments can include:
+- `tangent_solver::AbstractTangentSolver` is the tangent solver used. Defaults to [`MADSTangentSolver`](@ref).
+- `max_evals::Int` is the budget of evaluations to solve the problem. Defaults to ``1000\\times n`` where ``n`` is the dimension of the problem.
+- `retraction_method::AbstractRetractionMethod` is the method used to retract tangent vectors to the manifold while solving subproblems. Defaults to `default_retraction_method(M)` (see [`default_retraction_method`](@extref ManifoldsBase.default_retraction_method)).
+- `invertibility_bound::AbstractInvertibilityBound` is the formula used to compute a lower bound on the invertibility radius of ``\\mathcal{M}``. Defaults to `default_invertibility_bound(M)` (see [`invertibility_radius`](@ref) and [`default_invertibility_bound`](@ref)).
+- `tol_eqs::Float64` is the numerical tolerance below which a point is considered feasible for equality constraints. Defaults to ``1.0\\times 10^{-8}``.
+- `tol_ineqs::Float64` is the numerical tolerance below which a point is considered feasible for inequality constraints. Defaults to ``1.0\\times 10^{-8}``.
+"""
 function DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
     cost(M, p) = f(p)
     mco = ManifoldCostObjective(cost)
     return DFROSolver(M, mco, g, p0, n_ineqs; kwargs...)
 end
 
-"""
-In the top-level function
-- build the DFROState object
-- manage whether to return the DFROState object
-- possibly, redirect stdout to a stat file (that does not necessarily meet the format of the RunnerPost: a converter should be implemented later).
-- project p0 to M if it is not feasible from the beginning.
-"""
 function DFROSolver(
         M::AbstractManifold,
         mco::AbstractManifoldCostObjective,
