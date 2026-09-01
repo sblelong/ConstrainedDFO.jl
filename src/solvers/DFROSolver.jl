@@ -27,13 +27,14 @@ function DFROSolver(
 
     separator = @sprintf(
         "%s%s%s%s%s",
-        "-"^4, "-"^6, "-"^4, "-"^11, "-"^5
+        "-"^11, "-"^12, "-"^10, "-"^15, "-"^11
     )
     header = @sprintf(
-        " %-5s%-7s%-5s%-12s%-5s",
-        "ℓ", "ρ", "k", "f", "‖v‖≥ρ"
+        " %-10s%-12s%-10s%-15s%-10s",
+        "Outer", "Radius", "Inner", "Objective", "‖v‖≥ρ"
     )
 
+    println(separator)
     println(header)
     println(separator)
 
@@ -60,7 +61,7 @@ function DFROSolver(
         # Print data from the tangent solver
         # First line: display ℓ and ρ
         first_line_log = @sprintf(
-            " %5d%7.3f%5d%12.6f%5s",
+            " %-10d%-12.6f%-10d%-15.6f%-10s",
             ℓ, radius, 1, data_f[1], ""
         )
         println(first_line_log)
@@ -68,13 +69,13 @@ function DFROSolver(
         last_eval = solved_outside_radius ? radius_evaluation : n_evals
         for eval in 2:(last_eval - 1)
             line_log = @sprintf(
-                " %5s%7s%5d%12.6f%5s",
+                " %-10s%-12s%-10d%-15.6f%-10s",
                 "", "", eval, data_f[eval], ""
             )
             println(line_log)
         end
         last_line_log = @sprintf(
-            " %5s%7s%5d%12.6f%5s",
+            " %-10s%-12s%-10d%-15.6f%-10s",
             "", "", last_eval, data_f[last_eval], solved_outside_radius ? "✓" : "✗"
         )
         println(last_line_log)
