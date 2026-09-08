@@ -55,7 +55,7 @@ function retract_eval_store!(
     d = get_vector(M, p, v, DefaultOrthonormalBasis())
     Rpv = retract(M, p, d, R)
 
-    fRpv = is_point(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
+    fRpv = is_point_dispatcher(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
 
     if n_ineqs > 0
         gRpv = g(Rpv)
@@ -99,7 +99,7 @@ function blackbox_wrapper_store!(
 end
 
 """
-    solve!(TS::AbstractTangentSolver, f, M::AbstractManifold, p, R::AbstractRetractionMethod, ρ::AbstractInvertibilityBound; g)
+    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, ρ::AbstractInvertibilityBound; g)
 
 Solve the subproblem
 
@@ -116,7 +116,7 @@ A history of all tangent iterates, associated retractions and (`f`,`g`) values i
 """
 function solve!(
         TS::AbstractTangentSolver,
-        f,
+        mco::AbstractManifoldCostObjective,
         M::AbstractManifold,
         p,
         R::AbstractRetractionMethod,
