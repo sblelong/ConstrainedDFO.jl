@@ -13,18 +13,6 @@ mutable struct DFROState{P, SC <: DFStoppingCriterion} <: AbstractManoptSolverSt
     stop::SC
 end
 
-function DFROState(
-        M::AbstractManifold,
-        p::P,
-        stopping_criterion::SC = StopWhenWithinRadius(),
-        retraction_method::AbstractRetractionMethod = default_retraction_method(M)
-    ) where {
-        P,
-        SC <: DFStoppingCriterion,
-    }
-    return DFROState{P, SC}(p, zeros(representation_size(M)), stopping_criterion)
-end
-
 function DFROState(M::AbstractManifold, p::P) where {P}
     return DFROState(p, zeros(representation_size(M)[1]), StopRadiusAndBudget(1000 * representation_size(M)[1]))
 end

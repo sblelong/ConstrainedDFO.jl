@@ -15,7 +15,7 @@ using Manopt:
     sc1 = StopAfterEvaluation(10000)
     em = FractionEvalManager(10000, 0.1)
     @test get_reason(sc1) == ""
-    s = DFROState(M, p, sc1, ProjectionRetraction())
+    s = DFROState(M, p)
     @test !sc1(pb, s, 0, 0)
     @test sc1(pb, s, 0, 10000)
 
