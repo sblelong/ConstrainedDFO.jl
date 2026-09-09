@@ -28,7 +28,7 @@ function DFROSolver(
         mco::AbstractManifoldCostObjective,
         g,
         p0,
-        m::Int,
+        m::Int;
         tangent_solver::AbstractTangentSolver = MADSTangentSolver(),
         max_evals::Int = 1000 * representation_size(M)[1],
         retraction_method::AbstractRetractionMethod = default_retraction_method(M),
@@ -50,12 +50,12 @@ function DFROSolver(
     println(header)
     println(separator)
 
-    ℓ = 0
+    outer_counter = 0
     p = p0
     remaining_eval_budget = max_evals
     termination::Bool = false
     while !termination
-        ℓ += 1
+        outer_counter += 1
 
         # Compute a lower bound to the invertibility radius at p
         radius = invertibility_radius(M, p; m = retraction_method, ρ = invertibility_bound)
@@ -67,33 +67,34 @@ function DFROSolver(
         data_f = get_data_f(tangent_solver)
         data_Rpv = get_data_Rpv(tangent_solver)
         n_evals = length(data_f)
-        radius_evaluation = tangent_solver.radius_evaluation
-        solved_outside_radius = radius_evaluation > 0
+        radius_evaluation = get_radius_evaluation(tangent_solver)
+        improvement_outside_radius = radius_evaluation > 0
 
         # Print data from the tangent solver
-        # First line: display ℓ and ρ
+        # First line: display outer_counter and ρ
         first_line_log = @sprintf(
             " %-10d%-12.6f%-10d%-15.6f%-10s",
-            ℓ, radius, 1, data_f[1], ""
+            outer_counter, radius, 1, data_f[1], ""
         )
         println(first_line_log)
         # Then, display the rest
-        last_eval = solved_outside_radius ? radius_evaluation : n_evals
+        last_eval = improvement_outside_radius ? radius_evaluation : n_evals
         for eval in 2:(last_eval - 1)
             line_log = @sprintf(
                 " %-10s%-12s%-10d%-15.6f%-10s",
-                "", "", eval, data_f[eval], ""
+                "", "", eval, data_f[eval], "",
             )
             println(line_log)
         end
         last_line_log = @sprintf(
             " %-10s%-12s%-10d%-15.6f%-10s",
-            "", "", last_eval, data_f[last_eval], solved_outside_radius ? "✓" : "✗"
+            "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
         )
         println(last_line_log)
 
         # Find the solution of the subproblem in the logs and make it the new iterate
-        best_evaluation = argmin(data_f)
+        # Be careful: do not look for the best value of f amongst the points that were only virtually evaluated.
+        best_evaluation = argmin(data_f[1:last_eval])
         p = data_Rpv[best_evaluation]
 
         # Update remaining evaluations
