@@ -24,7 +24,6 @@ get_data_g(TS::AbstractTangentSolver) = TS.data_g
 get_radius_evaluation(TS::AbstractTangentSolver) = TS.radius_evaluation
 
 function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangentData)
-    println(length(TS.data_d))
     push!(TS.data_d, eval_data.d)
     push!(TS.data_Rpv, eval_data.p)
     push!(TS.data_f, eval_data.f)
