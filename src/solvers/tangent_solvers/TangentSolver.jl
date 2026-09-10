@@ -67,6 +67,7 @@ function retract_eval_store!(
 
         return eval_data
     catch e
+        throw(e)
         Rpv = p
         fRpv = FAILURE_MAX
         if n_ineqs > 0
