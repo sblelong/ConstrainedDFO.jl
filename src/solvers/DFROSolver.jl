@@ -35,20 +35,23 @@ function DFROSolver(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M),
         tol_eqs::Float64 = 1.0e-8,
         tol_ineqs::Float64 = 1.0e-8,
+        print_level::Int = 1
     )
 
-    separator = @sprintf(
-        "%s%s%s%s%s",
-        "-"^11, "-"^12, "-"^10, "-"^15, "-"^11
-    )
-    header = @sprintf(
-        " %-10s%-12s%-10s%-15s%-10s",
-        "Outer", "Radius", "Inner", "Objective", "‖v‖≥ρ"
-    )
+    if print_level == 1
+        separator = @sprintf(
+            "%s%s%s%s%s",
+            "-"^11, "-"^12, "-"^10, "-"^15, "-"^11
+        )
+        header = @sprintf(
+            " %-10s%-12s%-10s%-15s%-10s",
+            "Outer", "Radius", "Inner", "Objective", "‖v‖≥ρ"
+        )
 
-    println(separator)
-    println(header)
-    println(separator)
+        println(separator)
+        println(header)
+        println(separator)
+    end
 
     outer_counter = 0
     p = p0
@@ -72,25 +75,29 @@ function DFROSolver(
 
         # Print data from the tangent solver
         # First line: display outer_counter and ρ
-        first_line_log = @sprintf(
-            " %-10d%-12.6f%-10d%-15.6f%-10s",
-            outer_counter, radius, 1, data_f[1], ""
-        )
-        println(first_line_log)
+        if print_level == 1
+            first_line_log = @sprintf(
+                " %-10d%-12.6f%-10d%-15.6f%-10s",
+                outer_counter, radius, 1, data_f[1], ""
+            )
+            println(first_line_log)
+        end
         # Then, display the rest
         last_eval = improvement_outside_radius ? radius_evaluation : n_evals
-        for eval in 2:(last_eval - 1)
-            line_log = @sprintf(
+        if print_level == 1
+            for eval in 2:(last_eval - 1)
+                line_log = @sprintf(
+                    " %-10s%-12s%-10d%-15.6f%-10s",
+                    "", "", eval, data_f[eval], "",
+                )
+                println(line_log)
+            end
+            last_line_log = @sprintf(
                 " %-10s%-12s%-10d%-15.6f%-10s",
-                "", "", eval, data_f[eval], "",
+                "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
             )
-            println(line_log)
+            println(last_line_log)
         end
-        last_line_log = @sprintf(
-            " %-10s%-12s%-10d%-15.6f%-10s",
-            "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
-        )
-        println(last_line_log)
 
         # Find the solution of the subproblem in the logs and make it the new iterate
         # Be careful: do not look for the best value of f amongst the points that were only virtually evaluated.
