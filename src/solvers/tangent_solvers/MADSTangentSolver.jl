@@ -85,9 +85,9 @@ function solve!(
 
         problem = _build_nomad_problem(MTS.barrier, q, n_ineqs, bb, nomad_options)
 
-        redirect_to_files(MTS.log_path) do # TODO. Is it even useful to redirect to external files if the tangent solver object stores everything?
-            result = solve(problem, zeros(q))
-        end
+        # redirect_to_files(MTS.log_path) do # TODO. Is it even useful to redirect to external files if the tangent solver object stores everything?
+        result = solve(problem, zeros(q))
+        # end
 
         # Check if an improving solution was found outside of the invertibility radius. If so, break and discard the remainder from the storage: these evaluations should not exist.
 
