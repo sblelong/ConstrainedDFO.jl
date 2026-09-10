@@ -15,7 +15,7 @@
 
     h2(p) = [sum(p .^ 2) - 1] # Don't use norm(p)^2 because the operator is not supported by MathOptInterface
     M2 = EqualityManifold(h2, 2, 3)
-    res3 = DFROSolver(M2, f1, g1, p1, 0; print_level = 1)
+    res3 = DFROSolver(M2, f1, g1, p1, 0)
 
     @test is_point(M2, res3)
     @test isapprox(f1(res3), -1.0)
