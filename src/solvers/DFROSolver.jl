@@ -86,13 +86,13 @@ function DFROSolver(
         # Then, display the rest
         last_eval = improvement_outside_radius ? radius_evaluation : n_evals
         if print_level == 1
-            # for eval in 2:(last_eval - 1)
-            #     line_log = @sprintf(
-            #         " %-10s%-12s%-10d%-15.6f%-10s%-20s%-10s",
-            #         "", "", eval, data_f[eval], "", data_Rpv[eval], is_point(M, data_Rpv[eval])
-            #     )
-            #     println(line_log)
-            # end
+            for eval in 2:(last_eval - 1)
+                line_log = @sprintf(
+                    " %-10s%-12s%-10d%-15.6f%-10s%-20s%-10s",
+                    "", "", eval, data_f[eval], "", data_Rpv[eval], is_point(M, data_Rpv[eval])
+                )
+                println(line_log)
+            end
             last_line_log = @sprintf(
                 " %-10s%-12s%-10d%-15.6f%-10s%-20s%-10s",
                 "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗", data_Rpv[last_eval], is_point(M, data_Rpv[last_eval])
