@@ -69,7 +69,6 @@ function solve!(
     q = manifold_dimension(M)
 
     for budget in (10, max_evals)
-        println("Solving objective $(mco) on manifold $(M)")
         budget > max_evals && continue
 
         clear_tangent_solver!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.

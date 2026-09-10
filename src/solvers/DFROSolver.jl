@@ -78,8 +78,8 @@ function DFROSolver(
         # First line: display outer_counter and ρ
         if print_level == 1
             first_line_log = @sprintf(
-                " %-10d%-12.6f%-10d%-15.6f%-10s%-20s%-10s",
-                outer_counter, radius, 1, data_f[1], "", data_Rpv[1], is_point(M, data_Rpv[1])
+                " %-10d%-12.6f%-10d%-15.6f%-10s%",
+                outer_counter, radius, 1, data_f[1], ""
             )
             println(first_line_log)
         end
@@ -88,14 +88,14 @@ function DFROSolver(
         if print_level == 1
             for eval in 2:(last_eval - 1)
                 line_log = @sprintf(
-                    " %-10s%-12s%-10d%-15.6f%-10s%-20s%-10s",
-                    "", "", eval, data_f[eval], "", data_Rpv[eval], is_point(M, data_Rpv[eval])
+                    " %-10s%-12s%-10d%-15.6f%-10s",
+                    "", "", eval, data_f[eval], ""
                 )
                 println(line_log)
             end
             last_line_log = @sprintf(
-                " %-10s%-12s%-10d%-15.6f%-10s%-20s%-10s",
-                "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗", data_Rpv[last_eval], is_point(M, data_Rpv[last_eval])
+                " %-10s%-12s%-10d%-15.6f%-10s",
+                "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
             )
             println(last_line_log)
         end
