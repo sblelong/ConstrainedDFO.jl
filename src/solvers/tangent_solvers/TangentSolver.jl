@@ -52,9 +52,13 @@ function retract_eval_store!(
         εeqs::Float64 = 1.0e-8
     )
     d = get_vector(M, p, v, DefaultOrthonormalBasis())
-    Rpv = retract(M, p, d, R)
 
-    fRpv = is_point_dispatcher(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
+    try
+        Rpv = retract(M, p, d, R)
+        fRpv = is_point_dispatcher(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
+    catch e
+        fRpv = FAILURE_MAX
+    end
 
     if n_ineqs > 0
         gRpv = g(Rpv)
