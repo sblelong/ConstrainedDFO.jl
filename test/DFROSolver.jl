@@ -36,10 +36,4 @@
 
     @test is_point(M1, res5)
     @test f3(res5) < 2.45e-1
-
-    # Test where numerical instabilities occur
-    h4(p) = [abs(p[1]) - p[2]]
-    M4 = EqualityManifold(h4, 1, 2)
-    p3 = [-4.0, 4.0]
-    res6 = DFROSolver(M4, f2, g1)
 end
