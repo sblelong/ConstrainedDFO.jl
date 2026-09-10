@@ -12,4 +12,5 @@ using Manopt:
     include("StoppingCriteria.jl")
     include("TangentSolver.jl")
     include("invertibility.jl")
+    include("DFROSolver.jl")
 end

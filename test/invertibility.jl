@@ -1,7 +1,7 @@
 @testset "Invertibility radii" begin
     M1 = Sphere(2)
     p1 = [0.0, 1.0, 0.0]
-    @test invertibility_radius(M1, p1) == π
+    @test isapprox(invertibility_radius(M1, p1), π)
 
     h(p) = norm(p)^2 - 1
     M2 = EqualityManifold(h, 1, 2)

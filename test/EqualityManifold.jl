@@ -9,9 +9,9 @@
     p2 = [2.1, 0.0, 0.0]
     p3 = [2.0, 2.0]
 
-    @test is_point(M1, p1)
-    @test !is_point(M1, p2)
-    @test !is_point(M1, p3)
+    @test is_point_dispatcher(M1, p1)
+    @test !is_point_dispatcher(M1, p2)
+    @test !is_point_dispatcher(M1, p3)
 
     X1 = [0.0, 1.0, 1.0]
     X2 = [0.0, 0.0]
@@ -39,16 +39,15 @@
     X6 = [3.0, 2.0]
     X7 = [3.001, 2.0]
     X8 = [3 * (0.01)^(2 / 3), 0.2]
-    @test is_point(M2, p4; atol = 1.0e-12)
-    @test is_point(M2, p5; atol = 1.0e-12)
-    @test is_vector(M2, p4, X6; atol = 1.0e-12)
-    @test !is_vector(M2, p4, X7; atol = 1.0e-12)
-    @test is_vector(M2, p5, X8; atol = 1.0e-12)
+    @test is_point_dispatcher(M2, p4; tol_eqs = 1.0e-12)
+    @test is_point_dispatcher(M2, p5; tol_eqs = 1.0e-12)
+    @test is_vector(M2, p4, X6; tol_eqs = 1.0e-12)
+    @test !is_vector(M2, p4, X7; tol_eqs = 1.0e-12)
+    @test is_vector(M2, p5, X8; tol_eqs = 1.0e-12)
 
     @test_throws Any get_basis(M2, p6, DefaultOrthonormalBasis())
 
     # Random point generation
     p4 = rand(M1)
-    @test is_point(M1, p4; atol = 1.0e-12)
-
+    @test is_point_dispatcher(M1, p4; tol_eqs = 1.0e-12)
 end

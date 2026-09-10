@@ -44,10 +44,15 @@ using Manopt:
     AbstractManifoldCostObjective,
     AbstractManoptProblem,
     AbstractManoptSolverState,
+    ManifoldCostObjective,
     get_cost
 using NOMAD
 using Random
 using ResumableFunctions
+using Printf
+
+EOL::String = "\n"
+void_constraint(::Any) = Float64[]
 
 include("utils/latin_hypercube_sampling.jl")
 include("utils/redirect.jl")
@@ -73,6 +78,9 @@ export eval_eqs,
 include("types/EqualityManifold.jl")
 export AbstractInvertibilityBound,
     EqualityManifold
+# Dispatchers for the numerical check methods on Manifolds
+include("types/checks_dispatchers.jl")
+export is_point_dispatcher
 include("types/invertibility.jl")
 export AbstractInvertibilityBound,
     ExactInvertibility,
@@ -119,7 +127,7 @@ export blackbox_wrapper_store!,
     get_data_g,
     get_data_Rpv,
     get_last_subproblem_result,
-    get_radius_flag,
+    get_radius_evaluation,
     solve!
 include("solvers/tangent_solvers/MADSTangentSolver.jl")
 export MADSTangentSolver

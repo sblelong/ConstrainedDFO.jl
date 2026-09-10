@@ -70,7 +70,6 @@ end
 default_invertibility_bound(M::ScaledSphere, m::ExponentialRetraction) = ExactInvertibility()
 ManifoldsBase.injectivity_radius(M::ScaledSphere) = π * get_radius(M)
 ManifoldsBase.injectivity_radius(M::ScaledSphere, p, m::ExponentialRetraction) = π * get_radius(M)
-invertibility_radius(M::ScaledSphere, p, m::ExponentialRetraction, b::ExactInvertibility) = injectivity_radius(M, p, m)
 
 # Logarithmic map
 function ManifoldsBase.log!(M::ScaledSphere, X, p, q)
