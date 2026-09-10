@@ -78,7 +78,7 @@ function DFROSolver(
         # First line: display outer_counter and ρ
         if print_level == 1
             first_line_log = @sprintf(
-                " %-10d%-12.6f%-10d%-15.6f%-10s%",
+                " %-10d%-12.6f%-10d%-15.6f%-10s",
                 outer_counter, radius, 1, data_f[1], ""
             )
             println(first_line_log)
