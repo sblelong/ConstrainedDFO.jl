@@ -69,6 +69,7 @@ function DFROSolver(
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)
         data_Rpv = get_data_Rpv(tangent_solver)
+        data_d = get_data_d(tangent_solver)
         n_evals = length(data_f)
         radius_evaluation = get_radius_evaluation(tangent_solver)
         improvement_outside_radius = radius_evaluation > 0
@@ -87,8 +88,8 @@ function DFROSolver(
         if print_level == 1
             for eval in 2:(last_eval - 1)
                 line_log = @sprintf(
-                    " %-10s%-12s%-10d%-15.6f%-10s",
-                    "", "", eval, data_f[eval], "",
+                    " %-10s%-12s%-10d%-15.6f%-10s%-20s",
+                    "", "", eval, data_f[eval], "", data_d[eval]
                 )
                 println(line_log)
             end
