@@ -56,21 +56,30 @@ function retract_eval_store!(
     try
         Rpv = retract(M, p, d, R)
         fRpv = is_point_dispatcher(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
+        if n_ineqs > 0
+            gRpv = g(Rpv)
+        else
+            gRpv = Float64[]
+        end
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
+
+        _store_eval_data!(TS, eval_data)
+
+        return eval_data
     catch e
+        Rpv = p
         fRpv = FAILURE_MAX
+        if n_ineqs > 0
+            gRpv = fill(FAILURE_MAX, n_ineqs)
+        else
+            gRpv = Float64[]
+        end
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
+
+        _store_eval_data!(TS, eval_data)
+
+        return eval_data
     end
-
-    if n_ineqs > 0
-        gRpv = g(Rpv)
-    else
-        gRpv = Float64[]
-    end
-
-    eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
-
-    _store_eval_data!(TS, eval_data)
-
-    return eval_data
 end
 
 """
