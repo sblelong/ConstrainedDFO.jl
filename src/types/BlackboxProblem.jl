@@ -24,16 +24,16 @@ eval_eqs(BP::BlackboxProblem, x) = BP.h(x)
     BlackboxInstance
 """
 mutable struct BlackboxInstance
-    core_problem::BlackboxProblem
+    problem::BlackboxProblem
     x0::Vector{Float64}
 end
 
-get_dimension(BI::BlackboxInstance) = get_dimension(BI.core_problem)
-get_n_ineqs(BI::BlackboxInstance) = BI.core_problem.m
-get_n_eqs(BI::BlackboxInstance) = BI.core_problem.p
+get_dimension(BI::BlackboxInstance) = get_dimension(BI.problem)
+get_n_ineqs(BI::BlackboxInstance) = get_n_ineqs(BI.problem)
+get_n_eqs(BI::BlackboxInstance) = get_n_eqs(BI.problem)
 
-eval_objective(BI::BlackboxInstance, x) = BI.core_problem.f(x)
-eval_ineqs(BI::BlackboxInstance, x) = BI.core_problem.g(x)
-eval_eqs(BI::BlackboxInstance, x) = BI.core_problem.h(x)
+eval_objective(BI::BlackboxInstance, x) = eval_objective(BI.problem, x)
+eval_ineqs(BI::BlackboxInstance, x) = eval_ineqs(BI.problem, x)
+eval_eqs(BI::BlackboxInstance, x) = eval_eqs(BI.problem, x)
 
 get_x0(BI::BlackboxInstance) = BI.x0

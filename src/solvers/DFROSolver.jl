@@ -1,5 +1,14 @@
+function DFROSolver(BI::BlackboxInstance; kwargs...)
+    M = problem_to_manifold(BI)
+    f(p) = eval_objective(BI, p)
+    g(p) = eval_ineqs(BI, p)
+
+    return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
+end
+
 """
     DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
+    DFROSolver(BI::BlackboxInstance; kwargs...)
 
 # Arguments
 - `M` is the Riemannian submanifold of ``\\mathbb{R}^n`` where the optimization problem is solved.
@@ -7,6 +16,8 @@
 - `g` gives the inequality constraints.
 - `p0` is the starting point used by the solver. If ``p_0\\notin\\mathcal{M}``, then the actual starting point used is ``\\mathrm{proj}_{\\mathcal{M}}(p_0)``.
 - `n_ineqs` is the number of inequality constraints.
+
+A sole argument can also be given as a [`BlackboxInstance`](@ref).
 
 # Keyword arguments
 Keyword arguments can include:
