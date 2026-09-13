@@ -1,5 +1,5 @@
 function DFROSolver(BI::BlackboxInstance; kwargs...)
-    M = EqualityManifold(BI)
+    M = EqualityManifold(BI.problem)
     f(p) = eval_objective(BI, p)
     g(p) = eval_ineqs(BI, p)
 
