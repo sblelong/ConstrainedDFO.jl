@@ -5,9 +5,9 @@ mutable struct BlackboxProblem
     n::Int
     p::Int
     m::Int
-    f::Function
-    h::Function
-    g::Function
+    f
+    h
+    g
 end
 
 BlackboxProblem(n, p, f, h) = BlackboxProblem(n, p, 0, f, h, x -> Float64[])

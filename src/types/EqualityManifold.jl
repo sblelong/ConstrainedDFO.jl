@@ -14,7 +14,7 @@ for some smooth function ``h: \\mathbb{R}^n\\to\\mathbb{R}`` such that ``\\nabla
 * `dimension`: the dimension of the manifold, defined as the common dimension of its tangent spaces.
 """
 struct EqualityManifold <: AbstractManifold{ℝ}
-    defining_function::Function
+    defining_function
     dimension::Int
     embedding_dimension::Int
 end
@@ -172,7 +172,7 @@ function ManifoldsBase.rand(M::EqualityManifold)
 end
 
 function EqualityManifold(BP::BlackboxProblem)
-    defining_function(x) = eval_eqs(BP, x)
+    defining_function = getfield(BP, :h) # For the benchmark part, in case this is instantiated with a NLPModelEqualityFunction
     n = get_dimension(BP)
     p = get_n_eqs(BP)
     return EqualityManifold(defining_function, n - p, n)
