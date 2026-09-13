@@ -1,6 +1,7 @@
 using NLPModels
 using ConstrainedDFO
 using ForwardDiff
+using JuMP
 
 """Defining function carrying the NLPModel needed to differentiate it."""
 struct NLPModelEqualityFunction{N, I}
@@ -10,6 +11,35 @@ end
 
 function (h::NLPModelEqualityFunction)(x)
     return cons(h.nlp, x)[h.indices] .- h.nlp.meta.ucon[h.indices]
+end
+
+function (h::NLPModelEqualityFunction)(
+        x::AbstractVector{<:JuMP.VariableRef},
+    )
+    model = JuMP.owner_model(x[1])
+    n = length(x)
+    expressions = JuMP.NonlinearExpr[]
+
+    for index in h.indices
+        name = gensym(:nlp_equality)
+
+        value(args...) = begin
+            xx = Float64[args...]
+            cons(h.nlp, xx)[index] - h.nlp.meta.ucon[index]
+        end
+
+        gradient(g, args...) = begin
+            xx = Float64[args...]
+            g .= vec(jac(h.nlp, xx)[index, :])
+            return
+        end
+
+        JuMP.register(model, name, n, value, gradient)
+
+        push!(expressions, JuMP.NonlinearExpr(name, x...))
+    end
+
+    return expressions
 end
 
 # This method is intentionally defined in the benchmark code: NLPModels
