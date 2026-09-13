@@ -1,6 +1,26 @@
 using NLPModels
-using CUTEst
 using ConstrainedDFO
+using ForwardDiff
+
+"""Defining function carrying the NLPModel needed to differentiate it."""
+struct NLPModelEqualityFunction{N, I}
+    nlp::N
+    indices::I
+end
+
+function (h::NLPModelEqualityFunction)(x)
+    return cons(h.nlp, x)[h.indices] .- h.nlp.meta.ucon[h.indices]
+end
+
+# This method is intentionally defined in the benchmark code: NLPModels
+# callbacks are differentiated through NLPModels.jac rather than ForwardDiff.
+function ConstrainedDFO.eval_defining_jacobian(M::ConstrainedDFO.EqualityManifold, p)
+    h = getfield(M, :defining_function)
+    if h isa NLPModelEqualityFunction
+        return Matrix(jac(h.nlp, p)[h.indices, :])
+    end
+    return ForwardDiff.jacobian(h, p)
+end
 
 function nlp_to_bb(nlp::AbstractNLPModel)
     dimension = nlp.meta.nvar
@@ -13,7 +33,7 @@ function nlp_to_bb(nlp::AbstractNLPModel)
     # Equalities
     idcs_eqs = nlp.meta.jfix
     n_eqs = length(idcs_eqs)
-    h(x) = cons(nlp, x)[idcs_eqs] .- nlp.meta.ucon[idcs_eqs]
+    h = NLPModelEqualityFunction(nlp, idcs_eqs)
 
     # Inequalities and bounds altogether
     idcs_ineqs = setdiff(1:n_cons, idcs_eqs)
