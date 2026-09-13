@@ -65,7 +65,7 @@ function DFROSolver(
     end
 
     outer_counter = 0
-    p = p0
+    p = is_point(M, p0; tol_eqs = tol_eqs) ? p0 : project(M, p0)
     remaining_eval_budget = max_evals
     termination::Bool = false
     while !termination
