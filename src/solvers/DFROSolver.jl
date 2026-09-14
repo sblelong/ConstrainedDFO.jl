@@ -49,13 +49,15 @@ function DFROSolver(
         print_level::Int = 1
     )
 
+    manifold_dimension(M) == 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a 0-dimensional manifold."))
+
     if print_level == 1
         separator = @sprintf(
             "%s%s%s%s%s",
-            "-"^11, "-"^12, "-"^10, "-"^15, "-"^11
+            "-"^11, "-"^12, "-"^10, "-"^20, "-"^11
         )
         header = @sprintf(
-            " %-10s%-12s%-10s%-15s%-10s",
+            " %-10s%-15s%-10s%-20s%-10s",
             "Outer", "Radius", "Inner", "Objective", "‖v‖≥ρ"
         )
 
@@ -88,7 +90,7 @@ function DFROSolver(
         # First line: display outer_counter and ρ
         if print_level == 1
             first_line_log = @sprintf(
-                " %-10d%-12.6f%-10d%-15.6f%-10s",
+                " %-10d%-15.6f%-10d%-20.6f%-10s",
                 outer_counter, radius, 1, data_f[1], ""
             )
             println(first_line_log)
@@ -98,13 +100,13 @@ function DFROSolver(
         if print_level == 1
             for eval in 2:(last_eval - 1)
                 line_log = @sprintf(
-                    " %-10s%-12s%-10d%-15.6f%-10s",
+                    " %-10s%-15s%-10d%-20.6f%-10s",
                     "", "", eval, data_f[eval], ""
                 )
                 println(line_log)
             end
             last_line_log = @sprintf(
-                " %-10s%-12s%-10d%-15.6f%-10s",
+                " %-10s%-15s%-10d%-20.6f%-10s",
                 "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
             )
             println(last_line_log)
