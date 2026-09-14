@@ -65,7 +65,7 @@ function DFROSolver(
     end
 
     outer_counter = 0
-    p = p0
+    p = is_point_dispatcher(M, p0; tol_eqs = tol_eqs) ? p0 : project(M, p0)
     remaining_eval_budget = max_evals
     termination::Bool = false
     while !termination
@@ -80,7 +80,6 @@ function DFROSolver(
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)
         data_Rpv = get_data_Rpv(tangent_solver)
-        data_d = get_data_d(tangent_solver)
         n_evals = length(data_f)
         radius_evaluation = get_radius_evaluation(tangent_solver)
         improvement_outside_radius = radius_evaluation > 0
