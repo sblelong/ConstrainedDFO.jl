@@ -49,7 +49,7 @@ function DFROSolver(
         print_level::Int = 1
     )
 
-    manifold_dimension(M) == 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a 0-dimensional manifold."))
+    manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
 
     if print_level == 1
         separator = @sprintf(
