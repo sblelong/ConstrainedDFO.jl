@@ -33,11 +33,12 @@ mutable struct MADSTangentSolver <: AbstractTangentSolver
     data_d::Vector{Vector{Float64}}
     data_Rpv::Vector{Vector{Float64}}
     data_f::Vector{Float64}
+    data_h::Vector{Vector{Float64}}
     data_g::Vector{Vector{Float64}}
 end
 
-MADSTangentSolver() = MADSTangentSolver("./tmp.log", 0, ExtremeBarrier(), Vector{Float64}[], Vector{Float64}[], Float64[], Vector{Float64}[])
-MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, 0, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[])
+MADSTangentSolver() = MADSTangentSolver("./tmp.log", 0, ExtremeBarrier(), Vector{Float64}[], Vector{Float64}[], Float64[], Vector{Float64}[], Vector{Float64}[])
+MADSTangentSolver(log_path::String) = MADSTangentSolver(log_path, 0, ExtremeBarrier(), Vector{Float64}[], Float64[], Vector{Float64}[], Vector{Float64}[])
 
 set_log_path!(MS::MADSTangentSolver, s::String) = MS.log_path = s
 set_radius_evaluation!(MS::MADSTangentSolver, val::Int) = MS.radius_evaluation = val
