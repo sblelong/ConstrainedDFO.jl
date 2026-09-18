@@ -51,6 +51,8 @@ function DFROSolver(
 
     manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
 
+    n_eqs = representation_size(M)[1] - manifold_dimension(M) # Basic assumption: M is a (n-p)-dimensional manifold.
+
     if print_level == 1
         header = @sprintf(
             "Solving with DFRO solver.\n Problem size: %i\n Size of tangent spaces: %i",
@@ -78,7 +80,7 @@ function DFROSolver(
             header_log = @sprintf(
                 "%-10s%-20s",
                 "eval", "objective"
-            ) * join((@sprintf("%-20s", "ineq_cons") for _ in 1:m))
+            ) * join((@sprintf("%-20s", "h") for _ in 1:n_eqs)) * join((@sprintf("%-20s", "g") for _ in 1:m))
             println(header_log)
         end
 
@@ -89,6 +91,7 @@ function DFROSolver(
         data_f = get_data_f(tangent_solver)
         data_Rpv = get_data_Rpv(tangent_solver)
         data_g = get_data_g(tangent_solver)
+        data_h = get_data_h(tangent_solver)
         n_evals = length(data_f)
         radius_evaluation = get_radius_evaluation(tangent_solver)
         improvement_outside_radius = radius_evaluation > 0
@@ -101,7 +104,7 @@ function DFROSolver(
                 line_log = @sprintf(
                     "%-10s%-20.6f",
                     number, data_f[eval]
-                ) * join((@sprintf("%-20.6f", data_g[eval][i]) for i in 1:m))
+                ) * join((@sprintf("%-20.6f", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", data_g[eval][i]) for i in 1:m))
                 println(line_log)
             end
         end
