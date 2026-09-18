@@ -1,6 +1,14 @@
 using CUTEst
 using Printf
 
+"""
+Note to myself: do we actually need to split equality and inequality constraints when reading logs from MADS or DFRO?
+Just look at how RunnerPost works. If we can just say that the P first entries of each line are the equality constraints,
+and the M after are the inequality constraints, then we just need to make sure the solver logs are already formatted this way,
+read them directly and keep this order in the formatted .txt files for RunnerPost.
+There may be no need to distinguish equalities and inequalities while reading the log files.
+"""
+
 function problem_selection_from_nlp!(problems_names::Vector{String}, benchmark_name::String)
     output_directory = joinpath(@__DIR__, "..", "runnerpost", benchmark_name)
     return problem_selection_from_nlp!(problems_names; output_directory = output_directory)
@@ -13,9 +21,10 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
         for problem_name in problems_names
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
+            P = length(nlp.meta.jfix)
             M = 1 + nlp.meta.ncon
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             println(io, line)
         end
     end
@@ -47,6 +56,29 @@ function read_log(input_path::String, solver::Symbol)
     solver == :Manopt && return read_log_manopt(input_path)
     solver == :COBYLA && return read_log_cobyla(input_path)
     return nothing
+end
+
+"""
+Each line inside the log file should be formatted as
+BBE (within outer iteration) OBJ CONS
+"""
+function read_log_dfro(input_path::String)
+    obj_values = Float64[]
+    cons_values = Vector{Float64}[]
+
+    open(input_path, "r") do logf
+        for line in eachline(logf)
+            if occursin(r"^\d+", line)
+                parts = split(line)
+                f = parse(Float64, parts[2])
+                push!(obj_values, f)
+                cons = parse.(Float64, parts[3:end])
+                push!(cons_values, cons)
+            end
+        end
+    end
+
+    return obj_values, cons_values
 end
 
 """"
