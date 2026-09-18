@@ -7,3 +7,5 @@ docs/Manifest.toml
 docs/build
 benchmark/**/*.json
 benchmark/Manifest.toml
+benchmark/logs/*
+benchmark/runnerpost/*
