@@ -1,2 +1,0 @@
-mads_eb (Extreme Barrier) [DISPLAY_ALL_EVAL yes] [STATS_FILE_NAME stats.txt][STATS_FILE_OUTPUT OBJ CST]
-mads_pb (Progressive Barrier) [DISPLAY_ALL_EVAL yes] [STATS_FILE_NAME stats.txt][STATS_FILE_OUTPUT OBJ CST]
