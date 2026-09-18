@@ -8,4 +8,5 @@ docs/build
 benchmark/**/*.json
 benchmark/**/*.txt
 benchmark/Manifest.toml
-benchmark/data/*
+benchmark/logs/*
+benchmark/runnerpost

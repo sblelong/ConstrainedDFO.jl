@@ -21,7 +21,7 @@ function solve_nomad(BI::BlackboxInstance; barrier::Symbol = :PB, max_evals::Int
         return (true, true, [[f] ; c])
     end
 
-    options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_stats = ["BBE", "SOL", "BBO"], display_all_eval = true)
+    options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_stats = ["BBE", "BBO"], display_all_eval = true)
     pb = NomadProblem(dimension, 1 + n_constraints, output_types, blackbox; options = options)
     return result = solve(pb, x0)
 end

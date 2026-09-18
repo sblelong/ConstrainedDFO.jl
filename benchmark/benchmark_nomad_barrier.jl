@@ -5,7 +5,7 @@ using NOMAD
 include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
 include(joinpath(@__DIR__, "utils", "solve_nomad.jl"))
 
-log_path_base = joinpath(@__DIR__, "data", "nomad_barrier")
+log_path_base = joinpath(@__DIR__, "logs", "nomad_barrier")
 
 # Small problems, only equality constraints and no bounds
 problems_names = CUTEst.select_sif_problems(
@@ -21,56 +21,59 @@ exclude_from_dfro = [
     "LSNNODOC", # the first guess has a Jacobian with wrong rank (doesn't mean the dim(M)=n-p requirement)
     "S316-322", # also a Jacobian rank problem
     "HS61", # Jacobian rank problem
+    "BT13", # TODO put this one back, it's just too long to solve but it works
 ]
-problems_names_dfro = setdiff(Set(problems_names), Set(exclude_from_dfro))
+filter!(e -> e ∉ exclude_from_dfro, problems_names)
 
-# println("Solving with DFRO...")
-# for problem_name in problems_names_dfro
-#     print("$(problem_name)... ")
-#     nlp = CUTEstModel(problem_name)
-#     BI = nlp_to_bb(nlp)
+problems_names = problems_names[1:20]
 
-#     dimension = get_dimension(BI)
-
-#     redirect_to_files(joinpath(log_path_base, "dfro", "$(problem_name).log")) do
-#         try
-#             res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1))
-#         catch e
-#             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
-#         end
-#     end
-#     finalize(nlp)
-#     println("✓")
-# end
-
-# println()
-
-# println("Solving with NOMAD-EB...")
-# for problem_name in problems_names_dfro
-#     print("$(problem_name)... ")
-#     nlp = CUTEstModel(problem_name)
-#     BI = nlp_to_bb(nlp)
-
-#     dimension = get_dimension(BI)
-
-#     redirect_to_files(joinpath(log_path_base, "nomad-eb", "$(problem_name).log")) do
-#         res_nomad_eb = solve_nomad(BI; barrier = :EB, max_evals = 1000 * (dimension + 1))
-#     end
-#     finalize(nlp)
-#     println("✓")
-# end
-
-println()
-
-println("Solving with NOMAD-PB...")
-for problem_name in problems_names_dfro
+println("Solving with DFRO...")
+for problem_name in problems_names
     print("$(problem_name)... ")
     nlp = CUTEstModel(problem_name)
     BI = nlp_to_bb(nlp)
 
     dimension = get_dimension(BI)
 
-    redirect_to_files(joinpath(log_path_base, "nomad-pb", "$(problem_name).log")) do
+    redirect_to_files(joinpath(log_path_base, "dfro", "$(problem_name).log")) do
+        try
+            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1))
+        catch e
+            println("DFROSolver was unable to solve this problem. See the exception: $(e)")
+        end
+    end
+    finalize(nlp)
+    println("✓")
+end
+
+println()
+
+println("Solving with NOMAD-EB...")
+for problem_name in problems_names
+    print("$(problem_name)... ")
+    nlp = CUTEstModel(problem_name)
+    BI = nlp_to_bb(nlp)
+
+    dimension = get_dimension(BI)
+
+    redirect_to_files(joinpath(log_path_base, "mads_eb", "$(problem_name).log")) do
+        res_nomad_eb = solve_nomad(BI; barrier = :EB, max_evals = 1000 * (dimension + 1))
+    end
+    finalize(nlp)
+    println("✓")
+end
+
+println()
+
+println("Solving with NOMAD-PB...")
+for problem_name in problems_names
+    print("$(problem_name)... ")
+    nlp = CUTEstModel(problem_name)
+    BI = nlp_to_bb(nlp)
+
+    dimension = get_dimension(BI)
+
+    redirect_to_files(joinpath(log_path_base, "mads_pb", "$(problem_name).log")) do
         res_nomad_eb = solve_nomad(BI; barrier = :PB, max_evals = 1000 * (dimension + 1))
     end
     finalize(nlp)
