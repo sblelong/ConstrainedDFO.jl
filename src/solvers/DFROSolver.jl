@@ -46,7 +46,8 @@ function DFROSolver(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M),
         tol_eqs::Float64 = 1.0e-8,
         tol_ineqs::Float64 = 1.0e-8,
-        print_level::Int = 1
+        print_level::Int = 1,
+        display_first_infeasible::Bool = true
     )
 
     manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
@@ -59,6 +60,21 @@ function DFROSolver(
             representation_size(M)[1], manifold_dimension(M)
         )
         println(header)
+    end
+
+    if is_point_dispatcher(M, p0; tol_eqs = tol_eqs)
+        p = p0
+    else
+        fp0 = get_cost(M, mco, p0)
+        hp0 = abs.(eval_defining_function(M, p0))
+        gp0 = g(p0)
+        extra_line = @sprintf(
+            "%-10s%-20.6f",
+            0, fp0
+        ) * join((@sprintf("%-20.6f", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", gp0[i]) for i in 1:m))
+        println(extra_line)
+
+        p = project(M, p0)
     end
 
     outer_counter = 0

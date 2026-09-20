@@ -24,7 +24,7 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             P = length(nlp.meta.jfix)
             M = 1 + nlp.meta.ncon
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
             println(io, line)
         end
     end
