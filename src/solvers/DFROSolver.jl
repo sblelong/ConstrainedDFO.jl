@@ -65,14 +65,16 @@ function DFROSolver(
     if is_point_dispatcher(M, p0; tol_eqs = tol_eqs)
         p = p0
     else
-        fp0 = get_cost(M, mco, p0)
-        hp0 = abs.(eval_defining_function(M, p0))
-        gp0 = g(p0)
-        extra_line = @sprintf(
-            "%-10s%-20.6f",
-            0, fp0
-        ) * join((@sprintf("%-20.6f", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", gp0[i]) for i in 1:m))
-        println(extra_line)
+        if display_first_infeasible
+            fp0 = get_cost(M, mco, p0)
+            hp0 = abs.(eval_defining_function(M, p0))
+            gp0 = g(p0)
+            extra_line = @sprintf(
+                "%-10s%-20.6f",
+                0, fp0
+            ) * join((@sprintf("%-20.6f", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", gp0[i]) for i in 1:m))
+            println(extra_line)
+        end
 
         p = project(M, p0)
     end
