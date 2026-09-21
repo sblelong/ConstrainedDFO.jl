@@ -46,24 +46,35 @@ function DFROSolver(
         invertibility_bound::AbstractInvertibilityBound = default_invertibility_bound(M),
         tol_eqs::Float64 = 1.0e-8,
         tol_ineqs::Float64 = 1.0e-8,
-        print_level::Int = 1
+        print_level::Int = 1,
+        display_first_infeasible::Bool = true
     )
 
-    manifold_dimension(M) == 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a 0-dimensional manifold."))
+    manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
+
+    n_eqs = representation_size(M)[1] - manifold_dimension(M) # Basic assumption: M is a (n-p)-dimensional manifold.
 
     if print_level == 1
-        separator = @sprintf(
-            "%s%s%s%s%s",
-            "-"^11, "-"^12, "-"^10, "-"^20, "-"^11
-        )
         header = @sprintf(
-            " %-10s%-15s%-10s%-20s%-10s",
-            "Outer", "Radius", "Inner", "Objective", "‖v‖≥ρ"
+            "Solving with DFRO solver.\n Problem size: %i\n Size of tangent spaces: %i",
+            representation_size(M)[1], manifold_dimension(M)
         )
-
-        println(separator)
         println(header)
-        println(separator)
+    end
+
+    if is_point_dispatcher(M, p0; tol_eqs = tol_eqs)
+        p = p0
+    else
+        fp0 = get_cost(M, mco, p0)
+        hp0 = abs.(eval_defining_function(M, p0))
+        gp0 = g(p0)
+        extra_line = @sprintf(
+            "%-10s%-20.6f",
+            0, fp0
+        ) * join((@sprintf("%-20.6f", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", gp0[i]) for i in 1:m))
+        println(extra_line)
+
+        p = project(M, p0)
     end
 
     outer_counter = 0
@@ -76,40 +87,42 @@ function DFROSolver(
         # Compute a lower bound to the invertibility radius at p
         radius = invertibility_radius(M, p; m = retraction_method, ρ = invertibility_bound)
 
+        if print_level == 1
+            first_line_log = @sprintf(
+                "Starting outer iteration #%s. Invertibility radius used at current solution: %.6f",
+                outer_counter, radius
+            )
+            println(first_line_log)
+            header_log = @sprintf(
+                "%-10s%-20s",
+                "eval", "objective"
+            ) * join((@sprintf("%-20s", "h") for _ in 1:n_eqs)) * join((@sprintf("%-20s", "g") for _ in 1:m))
+            println(header_log)
+        end
+
         # Solve the subproblem in the current tangent space
         solve!(tangent_solver, mco, M, p, retraction_method, radius, m; max_evals = remaining_eval_budget, εeqs = tol_eqs)
 
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)
         data_Rpv = get_data_Rpv(tangent_solver)
+        data_g = get_data_g(tangent_solver)
+        data_h = get_data_h(tangent_solver)
         n_evals = length(data_f)
         radius_evaluation = get_radius_evaluation(tangent_solver)
         improvement_outside_radius = radius_evaluation > 0
+        last_eval = improvement_outside_radius ? radius_evaluation : n_evals
 
         # Print data from the tangent solver
-        # First line: display outer_counter and ρ
         if print_level == 1
-            first_line_log = @sprintf(
-                " %-10d%-15.6f%-10d%-20.6f%-10s",
-                outer_counter, radius, 1, data_f[1], ""
-            )
-            println(first_line_log)
-        end
-        # Then, display the rest
-        last_eval = improvement_outside_radius ? radius_evaluation : n_evals
-        if print_level == 1
-            for eval in 2:(last_eval - 1)
+            first_eval = outer_counter == 1 ? 1 : 2 # Since x_{ℓ-1}^last and x_ℓ^1 are the same, we don't count the evaluation twice.
+            for (number, eval) in enumerate(first_eval:last_eval)
                 line_log = @sprintf(
-                    " %-10s%-15s%-10d%-20.6f%-10s",
-                    "", "", eval, data_f[eval], ""
-                )
+                    "%-10s%-20.6f",
+                    number, data_f[eval]
+                ) * join((@sprintf("%-20.6f", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", data_g[eval][i]) for i in 1:m))
                 println(line_log)
             end
-            last_line_log = @sprintf(
-                " %-10s%-15s%-10d%-20.6f%-10s",
-                "", "", last_eval, data_f[last_eval], improvement_outside_radius ? "✓" : "✗"
-            )
-            println(last_line_log)
         end
 
         # Find the solution of the subproblem in the logs and make it the new iterate
@@ -121,6 +134,12 @@ function DFROSolver(
         remaining_eval_budget -= last_eval
 
         termination = get_radius_evaluation(tangent_solver) == 0 || remaining_eval_budget == 0
+
+        (print_level == 1 && get_radius_evaluation(tangent_solver) > 0) && println("Improvement was found outside the invertibility region. Switching to a new subproblem.\n")
     end
+
+    end_message = remaining_eval_budget == 0 ? "EXIT: Maximum amount of blackbox evaluations used." : "EXIT: Subproblem solved within invertibility region."
+    print_level == 1 && println(end_message)
+
     return p
 end

@@ -4,7 +4,6 @@ struct ScaledSphere <: AbstractManifold{ℝ}
 end
 
 # Basic setup
-
 manifold_dimension(M::ScaledSphere) = M.dimension
 
 representation_size(M::ScaledSphere) = (M.dimension + 1,)
@@ -13,6 +12,9 @@ get_embedding(M::ScaledSphere) = Euclidean(representation_size(M)...)
 
 get_radius(M::ScaledSphere) = M.radius
 get_radius(M::Manifolds.Sphere) = 1.0
+
+eval_defining_function(M::Manifolds.Sphere, p) = [norm(p)^2 - 1.0]
+eval_defining_function(M::ScaledSphere, p) = [norm(p)^2 - get_radius(M)]
 
 function check_point(M::ScaledSphere, p; kwargs...)
     if !isapprox(norm(p), M.radius; kwargs...)

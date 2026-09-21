@@ -14,12 +14,14 @@ mutable struct BlackboxTangentData
     d::Vector{Float64}
     p::Vector{Float64}
     f::Float64
+    h::Vector{Float64}
     g::Vector{Float64}
 end
 
 get_data_d(TS::AbstractTangentSolver) = TS.data_d
 get_data_Rpv(TS::AbstractTangentSolver) = TS.data_Rpv
 get_data_f(TS::AbstractTangentSolver) = TS.data_f
+get_data_h(TS::AbstractTangentSolver) = TS.data_h
 get_data_g(TS::AbstractTangentSolver) = TS.data_g
 get_radius_evaluation(TS::AbstractTangentSolver) = TS.radius_evaluation
 
@@ -28,6 +30,7 @@ function _store_eval_data!(TS::AbstractTangentSolver, eval_data::BlackboxTangent
     push!(TS.data_Rpv, eval_data.p)
     push!(TS.data_f, eval_data.f)
     length(eval_data.g) > 0 && push!(TS.data_g, eval_data.g)
+    push!(TS.data_h, eval_data.h)
     return TS
 end
 
@@ -36,6 +39,7 @@ function clear_tangent_solver!(TS::AbstractTangentSolver)
     TS.data_Rpv = Vector{Float64}[]
     TS.data_f = Float64[]
     TS.data_g = Vector{Float64}[]
+    TS.data_h = Vector{Float64}[]
     set_radius_evaluation!(TS, 0)
     return TS
 end
@@ -60,7 +64,8 @@ function retract_eval_store!(
         else
             gRpv = Float64[]
         end
-        eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
+        hRpv = eval_defining_function(M, Rpv)
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
 
         _store_eval_data!(TS, eval_data)
 
@@ -73,7 +78,8 @@ function retract_eval_store!(
         else
             gRpv = Float64[]
         end
-        eval_data = BlackboxTangentData(d, Rpv, fRpv, gRpv)
+        hRpv = eval_defining_function(M, Rpv)
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
 
         _store_eval_data!(TS, eval_data)
 
