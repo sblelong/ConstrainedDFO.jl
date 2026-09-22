@@ -6,8 +6,13 @@ function DFROSolver(BI::BlackboxInstance; kwargs...)
     return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
 end
 
+function DFROSolver(M::AbstractManifold, f, p0; kwargs...)
+    return DFROSolver(M, f, p -> Float64[], p0, 0; kwargs...)
+end
+
 """
     DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
+    DFROSolver(M::AbstractManifold, f, p0; kwargs...)
     DFROSolver(BI::BlackboxInstance; kwargs...)
 
 # Arguments
