@@ -24,37 +24,37 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             P = length(nlp.meta.jfix)
             M = 1 + nlp.meta.ncon
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
             println(io, line)
         end
     end
     return output_file
 end
 
-function logs_to_runnerpost!(benchmark_name::String, solver::Symbol)
-    logs_directory = joinpath(@__DIR__, "..", "logs", benchmark_name, String(solver))
+function logs_to_runnerpost!(benchmark_name::String, solver_type::Symbol; solver_name::String = String(solver_type))
+    logs_directory = joinpath(@__DIR__, "..", "logs", benchmark_name, solver_name)
     outputs_directory = joinpath(@__DIR__, "..", "runnerpost", benchmark_name)
-    return logs_to_runnerpost!(logs_directory, solver, outputs_directory)
+    return logs_to_runnerpost!(logs_directory, solver_type, solver_name, outputs_directory)
 end
 
-function logs_to_runnerpost!(logs_directory::String, solver::Symbol, outputs_directory::String)
+function logs_to_runnerpost!(logs_directory::String, solver_type::Symbol, solver_name::String, outputs_directory::String)
     for filename in readdir(logs_directory)
         input_file = joinpath(logs_directory, filename)
         problem_name = split(filename, ".")[1]
         println(problem_name)
-        obj_values, cons_values = read_log(input_file, solver)
-        output_path = joinpath(outputs_directory, String(solver), "$(problem_name)", "stats.txt")
+        obj_values, cons_values = read_log(input_file, solver_type)
+        output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
         write_runnerpost!(obj_values, cons_values, output_path)
     end
     return outputs_directory
 end
 
-function read_log(input_path::String, solver::Symbol)
-    solver == :dfro && return read_log_dfro(input_path)
-    solver ∈ [:mads_eb, :mads_pb] && return read_log_mads(input_path)
-    solver == :RDS && return read_log_rds(input_path)
-    solver == :Manopt && return read_log_manopt(input_path)
-    solver == :COBYLA && return read_log_cobyla(input_path)
+function read_log(input_path::String, solver_type::Symbol)
+    solver_type == :dfro && return read_log_dfro(input_path)
+    solver_type == :mads && return read_log_mads(input_path)
+    solver_type == :RDS && return read_log_rds(input_path)
+    solver_type == :Manopt && return read_log_manopt(input_path)
+    solver_type == :COBYLA && return read_log_cobyla(input_path)
     return nothing
 end
 
