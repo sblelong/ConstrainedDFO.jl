@@ -6,8 +6,13 @@ function DFROSolver(BI::BlackboxInstance; kwargs...)
     return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
 end
 
+function DFROSolver(M::AbstractManifold, f, p0; kwargs...)
+    return DFROSolver(M, f, p -> Float64[], p0, 0; kwargs...)
+end
+
 """
     DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
+    DFROSolver(M::AbstractManifold, f, p0; kwargs...)
     DFROSolver(BI::BlackboxInstance; kwargs...)
 
 # Arguments
@@ -65,14 +70,16 @@ function DFROSolver(
     if is_point_dispatcher(M, p0; tol_eqs = tol_eqs)
         p = p0
     else
-        fp0 = get_cost(M, mco, p0)
-        hp0 = abs.(eval_defining_function(M, p0))
-        gp0 = g(p0)
-        extra_line = @sprintf(
-            "%-10s%-20.6f",
-            0, fp0
-        ) * join((@sprintf("%-20.6f", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", gp0[i]) for i in 1:m))
-        println(extra_line)
+        if display_first_infeasible
+            fp0 = get_cost(M, mco, p0)
+            hp0 = abs.(eval_defining_function(M, p0))
+            gp0 = g(p0)
+            extra_line = @sprintf(
+                "%-10s%-20.10g",
+                0, fp0
+            ) * join((@sprintf("%-20.10g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", gp0[i]) for i in 1:m))
+            println(extra_line)
+        end
 
         p = project(M, p0)
     end
@@ -118,9 +125,9 @@ function DFROSolver(
             first_eval = outer_counter == 1 ? 1 : 2 # Since x_{ℓ-1}^last and x_ℓ^1 are the same, we don't count the evaluation twice.
             for (number, eval) in enumerate(first_eval:last_eval)
                 line_log = @sprintf(
-                    "%-10s%-20.6f",
+                    "%-10s%-20.10g",
                     number, data_f[eval]
-                ) * join((@sprintf("%-20.6f", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-20.6f", data_g[eval][i]) for i in 1:m))
+                ) * join((@sprintf("%-20.10g", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", data_g[eval][i]) for i in 1:m))
                 println(line_log)
             end
         end

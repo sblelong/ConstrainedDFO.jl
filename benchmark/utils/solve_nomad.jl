@@ -2,13 +2,13 @@ using ConstrainedDFO
 using NOMAD
 
 """
-Solve a problem with the NOMAD solver by considering equality constraints as double inequalities.
+Solve a problem with the NOMAD solver by handling equality constraints with a progressive or extreme barrier as |h(x)|<=0.
 """
 function solve_nomad(BI::BlackboxInstance; barrier::Symbol = :PB, max_evals::Int = 1000 * (get_dimension(BI) + 1), tol_eqs::Float64 = 1.0e-8)
     dimension = get_dimension(BI)
     n_eqs = get_n_eqs(BI)
     n_ineqs = get_n_ineqs(BI)
-    n_constraints = n_eqs + n_ineqs # Equalities = double inequalities + inequalities
+    n_constraints = n_eqs + n_ineqs
     output_types = [["OBJ"] ; [String(barrier) for _ in 1:n_constraints]]
     x0 = ConstrainedDFO.get_x0(BI)
 
