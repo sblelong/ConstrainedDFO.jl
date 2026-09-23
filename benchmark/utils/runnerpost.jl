@@ -21,10 +21,10 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
         for problem_name in problems_names
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
-            P = length(nlp.meta.jfix)
-            M = 1 + nlp.meta.ncon
+            P = 1
+            M = 2
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             println(io, line)
         end
     end
@@ -53,7 +53,7 @@ function read_log(input_path::String, solver_type::Symbol)
     solver_type == :dfro && return read_log_dfro(input_path)
     solver_type == :mads && return read_log_mads(input_path)
     solver_type == :RDS && return read_log_rds(input_path)
-    solver_type == :Manopt && return read_log_manopt(input_path)
+    solver_type == :manopt && return read_log_manopt(input_path)
     solver_type == :COBYLA && return read_log_cobyla(input_path)
     return nothing
 end
@@ -99,6 +99,23 @@ function read_log_mads(input_path::String)
                 cons = parse.(Float64, parts[3:last_float_part])
                 push!(cons_values, cons)
             end
+        end
+    end
+
+    return obj_values, cons_values
+end
+
+function read_log_manopt(input_path::String)
+    obj_values = Float64[]
+    cons_values = Vector{Float64}[]
+
+    open(input_path, "r") do logf
+        for line in eachline(logf)
+            parts = split(line)
+            f = parse(Float64, parts[1])
+            h = [parse(Float64, parts[2])]
+            push!(obj_values, f)
+            push!(cons_values, h)
         end
     end
 
