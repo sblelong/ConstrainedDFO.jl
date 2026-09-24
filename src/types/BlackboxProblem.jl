@@ -18,14 +18,14 @@ mutable struct BlackboxProblem
     end
 end
 
-BlackboxProblem(n::Int, p::Int, m::Int, f, h, g; lb::Vector{Float64} = fill(typemin(Float64), n), ub::Vector{Float64} = fill(typemax(Float64, n))) = BlackboxProblem(n, p, m, f, h, g, lb, ub)
-BlackboxProblem(n::Int, p::Int, f, h) = BlackboxProblem(n, p, 0, f, h, x -> Float64[])
+BlackboxProblem(n::Int, p::Int, m::Int, f, h, g; lb::Vector{Float64} = fill(typemin(Float64), n), ub::Vector{Float64} = fill(typemax(Float64), n)) = BlackboxProblem(n, p, m, f, h, g, lb, ub)
+BlackboxProblem(n::Int, p::Int, f, h; kwargs...) = BlackboxProblem(n, p, 0, f, h, x -> Float64[]; kwargs...)
 
 get_dimension(BP::BlackboxProblem) = BP.n
 get_n_ineqs(BP::BlackboxProblem) = BP.m
 get_n_eqs(BP::BlackboxProblem) = BP.p
 get_lbounds(BP::BlackboxProblem) = BP.lb
-get_ubounds(BP::BlacboxProblem) = BP.ub
+get_ubounds(BP::BlackboxProblem) = BP.ub
 
 eval_objective(BP::BlackboxProblem, x) = BP.f(x)
 eval_ineqs(BP::BlackboxProblem, x) = BP.g(x)
