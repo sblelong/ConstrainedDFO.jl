@@ -1,7 +1,14 @@
 function DFROSolver(BI::BlackboxInstance; kwargs...)
     M = EqualityManifold(BI.problem)
     f(p) = eval_objective(BI, p)
-    g(p) = eval_ineqs(BI, p)
+    function g(p)
+        ineqs = eval_ineqs(BI, p)
+        lbounds = get_lbounds(BI)
+        idcs_finite_lbounds = lbounds .> typemin(Float64)
+        ubounds = get_ubounds(BI)
+        idcs_finite_ubounds = ubounds .< typemax(Float64)
+        return [ineqs ; lbounds[idcs_finite_lbounds] .- p[idcs_finite_lbounds] ; p[idcs_finite_ubounds] .- ubounds[idcs_finite_ubounds]]
+    end
 
     return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
 end
