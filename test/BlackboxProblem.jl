@@ -1,8 +1,10 @@
 @testset "BlackboxProblem" begin
-    BP = BlackboxProblem(2, 1, x -> x[1] + x[2], x -> [x[1] - 1])
+    BP = BlackboxProblem(2, 1, x -> x[1] + x[2], x -> [x[1] - 1]; ub = [20.0, 20.0])
     @test get_dimension(BP) == 2
     @test get_n_ineqs(BP) == 0
     @test get_n_eqs(BP) == 1
+    @test get_lbounds(BP) == fill(typemin(Float64), 2)
+    @test get_ubounds(BP) == [20.0, 20.0]
 
     x = [1.0, -1.0]
     @test eval_objective(BP, x) == 0.0
