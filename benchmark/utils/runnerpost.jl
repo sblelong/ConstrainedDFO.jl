@@ -52,8 +52,7 @@ end
 function read_log(input_path::String, solver_type::Symbol)
     solver_type == :dfro && return read_log_dfro(input_path)
     solver_type == :mads && return read_log_mads(input_path)
-    solver_type == :RDS && return read_log_rds(input_path)
-    solver_type == :manopt && return read_log_manopt(input_path)
+    solver_type ∈ [:manopt, :RDS] && return read_log_two_columns(input_path)
     solver_type == :COBYLA && return read_log_cobyla(input_path)
     return nothing
 end
@@ -105,7 +104,7 @@ function read_log_mads(input_path::String)
     return obj_values, cons_values
 end
 
-function read_log_manopt(input_path::String)
+function read_log_two_columns(input_path::String)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
 
