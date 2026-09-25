@@ -10,7 +10,7 @@ function DFROSolver(BI::BlackboxInstance; kwargs...)
         return [ineqs ; lbounds[idcs_finite_lbounds] .- p[idcs_finite_lbounds] ; p[idcs_finite_ubounds] .- ubounds[idcs_finite_ubounds]]
     end
 
-    return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
+    return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI) + get_n_bounds(BI); kwargs...)
 end
 
 function DFROSolver(M::AbstractManifold, f, p0; kwargs...)
