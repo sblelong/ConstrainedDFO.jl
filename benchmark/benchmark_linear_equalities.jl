@@ -55,7 +55,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1))
+            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), display_first_infeasible = false)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
