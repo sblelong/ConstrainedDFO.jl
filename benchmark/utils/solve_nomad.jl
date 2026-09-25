@@ -1,6 +1,8 @@
 using ConstrainedDFO
 using NOMAD
 
+include(joinpath(@__DIR__, "project.jl"))
+
 """
 Solve a problem with the NOMAD solver by handling equality constraints with a progressive or extreme barrier as |h(x)|<=0.
 """
@@ -30,14 +32,19 @@ function solve_nomad_converter(BI::BlackboxInstance, A::Matrix{Float64}, b::Vect
     dimension = get_dimension(BI)
     n_ineqs = get_n_ineqs(BI)
     output_types = [["OBJ"] ; [String(barrier) for _ in 1:n_ineqs]]
-    x0 = ConstrainedDFO.get_x0(BI)
-    lb = get_lower_bounds(BI)
-    ub = get_upper_bounds(BI)
+    x0 = project_on_solution_space(ConstrainedDFO.get_x0(BI), A, b)
+    lb = get_lbounds(BI)
+    ub = get_ubounds(BI)
 
     function blackbox(x)
         h = eval_eqs(BI, x)
-        f = isapprox(h, 0.0; atol = tol_eqs) ? eval_objective(BI, x) : ConstrainedDFO.FAILURE_MAX
-        g = eval_ineqs(BI, x)
+        if all(isapprox.(h, 0.0; atol = tol_eqs))
+            f = eval_objective(BI, x)
+            g = eval_ineqs(BI, x)
+        else
+            f = FAILURE_MAX
+            g = fill(FAILURE_MAX, n_ineqs)
+        end
         return (true, true, [[f] ; g])
     end
 
