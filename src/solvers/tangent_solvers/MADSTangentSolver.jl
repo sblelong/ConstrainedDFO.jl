@@ -58,7 +58,10 @@ function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData
 end
 
 """
+    solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int; g, max_evals, εeqs, εineqs)
 
+# Note
+A core rule of DFRO is that when improvement is found outside the invertibility radius of ``\\mathcal{M}`` around the current iterate, the tangent solver stops. It is not the case in this implementation: the MADS solver will keep solving until one of its stopping criteria is met. However, the data obtained from the solver is handled as if it had stopped when improvement is found outside the radius. The reason for this is that the implementation in NOMAD does not allow for an external callback that would stop the solver based on the radius criterion.
 """
 function solve!(
         MTS::MADSTangentSolver,
