@@ -39,6 +39,8 @@ Keyword arguments can include:
 - `invertibility_bound::AbstractInvertibilityBound` is the formula used to compute a lower bound on the invertibility radius of ``\\mathcal{M}``. Defaults to `default_invertibility_bound(M)` (see [`invertibility_radius`](@ref) and [`default_invertibility_bound`](@ref)).
 - `tol_eqs::Float64` is the numerical tolerance below which a point is considered feasible for equality constraints. Defaults to ``1.0\\times 10^{-8}``.
 - `tol_ineqs::Float64` is the numerical tolerance below which a point is considered feasible for inequality constraints. Defaults to ``1.0\\times 10^{-8}``.
+- `print_level::Int` chooses how verbose the algorithm is. Only `0` (no outputs) and `1` (full output) are implemented so far. Defaults to `1`.
+- `display_first_infeasible::Bool` in the case where ``p_0\\notin\\mathcal{M}``, displays a first line with the values of (`f`,`g`,`h`) at the true first guess before projecting it onto ``\\mathcal{M}``. Defaults to `true`.
 """
 function DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
     cost(M, p) = f(p)
