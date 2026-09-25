@@ -115,7 +115,7 @@ function DFROSolver(
         end
 
         # Solve the subproblem in the current tangent space
-        solve!(tangent_solver, mco, M, p, retraction_method, radius, m; max_evals = remaining_eval_budget, εeqs = tol_eqs)
+        solve!(tangent_solver, mco, M, p, retraction_method, radius, m; max_evals = remaining_eval_budget, εeqs = tol_eqs, εineqs = tol_ineqs)
 
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)

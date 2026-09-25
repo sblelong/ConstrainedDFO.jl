@@ -57,6 +57,9 @@ function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData
     return (true, true, [eval_data.f ; eval_data.g])
 end
 
+"""
+
+"""
 function solve!(
         MTS::MADSTangentSolver,
         mco::AbstractManifoldCostObjective,
@@ -65,7 +68,7 @@ function solve!(
         R::AbstractRetractionMethod,
         invertibility_radius::Float64,
         n_ineqs::Int;
-        g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8
+        g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
 
@@ -75,11 +78,7 @@ function solve!(
         clear_tangent_solver!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
 
         # Set display format in the NOMAD history file
-        if n_ineqs > 0
-            nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:nb_inequalities]], display_all_eval = true)
-        else
-            nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = ["BBE", "SOL", "OBJ"], display_all_eval = true)
-        end
+        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:nb_inequalities]], display_all_eval = true)
 
         # Build the blackbox
         bb(v) = blackbox_wrapper_store!(MTS, M, p, R, mco, n_ineqs, g, v; εeqs)
@@ -95,7 +94,7 @@ function solve!(
         best_feasible_f = MTS.data_f[1]
         if n_ineqs > 0
             for id_eval in eachindex(MTS.data_d)
-                if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ 0.0)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
+                if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ εineqs)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
                     best_feasible_f = MTS.data_f[id_eval]
                     if norm(MTS.data_d[id_eval]) ≥ invertibility_radius
                         set_radius_evaluation!(MTS, id_eval)
