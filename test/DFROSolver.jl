@@ -36,4 +36,12 @@
 
     @test is_point(M1, res5)
     @test f3(res5) < 2.45e-1
+
+    # Sphere with an inequality constraint
+    g2(p) = [-p[1]] # p[1] has to be positive, so the solution set is the ball within the x=0 plane.
+    res6 = DFROSolver(M1, f1, g2, p1, 1; print_level = 0)
+
+    @test is_point(M1, res6)
+    @test all(g2(res6) .≤ 1.0e-8)
+    @test isapprox(f1(res6), 0.0; atol = 1.0e-8)
 end

@@ -53,16 +53,18 @@ function retract_eval_store!(
         n_ineqs::Int,
         g,
         v;
-        εeqs::Float64 = 1.0e-8
+        εeqs::Float64 = 1.0e-8,
     )
     d = get_vector(M, p, v, DefaultOrthonormalBasis())
     try
         Rpv = retract(M, p, d, R)
-        fRpv = is_point_dispatcher(M, Rpv; tol_eqs = εeqs) ? get_cost(M, mco, Rpv) : FAILURE_MAX
-        if n_ineqs > 0
-            gRpv = g(Rpv)
+
+        if is_point_dispatcher(M, Rpv; tol_eqs = εeqs)
+            fRpv = get_cost(M, mco, Rpv)
+            gRpv = g(Rpv) # In the implementation, no inequalities <=> g(p) = Float64[], so it will be empty in case n_ineqs=0.
         else
-            gRpv = Float64[]
+            fRpv = FAILURE_MAX
+            gRpv = fill(FAILURE_MAX, n_ineqs)
         end
         hRpv = eval_defining_function(M, Rpv)
         eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
@@ -73,11 +75,7 @@ function retract_eval_store!(
     catch e
         Rpv = p
         fRpv = FAILURE_MAX
-        if n_ineqs > 0
-            gRpv = fill(FAILURE_MAX, n_ineqs)
-        else
-            gRpv = Float64[]
-        end
+        gRpv = fill(FAILURE_MAX, n_ineqs)
         hRpv = eval_defining_function(M, Rpv)
         eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
 
@@ -116,7 +114,7 @@ function blackbox_wrapper_store!(
 end
 
 """
-    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, ρ::AbstractInvertibilityBound; g)
+    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs)
 
 Solve the subproblem
 
@@ -138,8 +136,9 @@ function solve!(
         p,
         R::AbstractRetractionMethod,
         invertibility_radius::Float64,
-        n_ineqs::Int;
-        g, max_evals::Int, εeqs::Float64 = 1.0e-8
+        n_ineqs::Int,
+        g;
+        max_evals::Int, εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
     )
 end
 

@@ -39,6 +39,8 @@ Keyword arguments can include:
 - `invertibility_bound::AbstractInvertibilityBound` is the formula used to compute a lower bound on the invertibility radius of ``\\mathcal{M}``. Defaults to `default_invertibility_bound(M)` (see [`invertibility_radius`](@ref) and [`default_invertibility_bound`](@ref)).
 - `tol_eqs::Float64` is the numerical tolerance below which a point is considered feasible for equality constraints. Defaults to ``1.0\\times 10^{-8}``.
 - `tol_ineqs::Float64` is the numerical tolerance below which a point is considered feasible for inequality constraints. Defaults to ``1.0\\times 10^{-8}``.
+- `print_level::Int` chooses how verbose the algorithm is. Only `0` (no outputs) and `1` (full output) are implemented so far. Defaults to `1`.
+- `display_first_infeasible::Bool` in the case where ``p_0\\notin\\mathcal{M}``, displays a first line with the values of (`f`,`g`,`h`) at the true first guess before projecting it onto ``\\mathcal{M}``. Defaults to `true`.
 """
 function DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
     cost(M, p) = f(p)
@@ -87,12 +89,10 @@ function DFROSolver(
             ) * join((@sprintf("%-20.10g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", gp0[i]) for i in 1:m))
             println(extra_line)
         end
-
         p = project(M, p0)
     end
 
     outer_counter = 0
-    p = is_point_dispatcher(M, p0; tol_eqs = tol_eqs) ? p0 : project(M, p0)
     remaining_eval_budget = max_evals
     termination::Bool = false
     while !termination
@@ -115,7 +115,7 @@ function DFROSolver(
         end
 
         # Solve the subproblem in the current tangent space
-        solve!(tangent_solver, mco, M, p, retraction_method, radius, m; max_evals = remaining_eval_budget, εeqs = tol_eqs)
+        solve!(tangent_solver, mco, M, p, retraction_method, radius, m, g; max_evals = remaining_eval_budget, εeqs = tol_eqs, εineqs = tol_ineqs)
 
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)
@@ -139,10 +139,20 @@ function DFROSolver(
             end
         end
 
-        # Find the solution of the subproblem in the logs and make it the new iterate
-        # Be careful: do not look for the best value of f amongst the points that were only virtually evaluated.
-        best_evaluation = argmin(data_f[1:last_eval])
-        p = data_Rpv[best_evaluation]
+        # Among the points that were evaluated before the tangent solver stopped, find the best feasible point.
+        if m > 0
+            data_f_evaluated = data_f[1:last_eval]
+            data_g_evaluated = data_g[1:last_eval]
+            data_Rpv_evaluated = data_Rpv[1:last_eval]
+            feasible_mask = map(gi -> all(gi .≤ tol_ineqs), data_g_evaluated)
+            data_f_feasible = data_f_evaluated[feasible_mask]
+            data_Rpv_feasible = data_Rpv_evaluated[feasible_mask]
+            best_evaluation = argmin(data_f_feasible)
+            p = data_Rpv_feasible[best_evaluation]
+        else
+            best_evaluation = argmin(data_f[1:last_eval])
+            p = data_Rpv[best_evaluation]
+        end
 
         # Update remaining evaluations
         remaining_eval_budget -= last_eval
