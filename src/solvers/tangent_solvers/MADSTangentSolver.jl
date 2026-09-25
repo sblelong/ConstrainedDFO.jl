@@ -58,7 +58,7 @@ function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData
 end
 
 """
-    solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int; g, max_evals, εeqs, εineqs)
+    solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs)
 
 # Note
 A core rule of DFRO is that when improvement is found outside the invertibility radius of ``\\mathcal{M}`` around the current iterate, the tangent solver stops. It is not the case in this implementation: the MADS solver will keep solving until one of its stopping criteria is met. However, the data obtained from the solver is handled as if it had stopped when improvement is found outside the radius. The reason for this is that the implementation in NOMAD does not allow for an external callback that would stop the solver based on the radius criterion.
@@ -70,8 +70,9 @@ function solve!(
         p,
         R::AbstractRetractionMethod,
         invertibility_radius::Float64,
-        n_ineqs::Int;
-        g = nothing, max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
+        n_ineqs::Int,
+        g;
+        max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
     )
     q = manifold_dimension(M)
 
@@ -81,7 +82,7 @@ function solve!(
         clear_tangent_solver!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
 
         # Set display format in the NOMAD history file
-        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:nb_inequalities]], display_all_eval = true)
+        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true)
 
         # Build the blackbox
         bb(v) = blackbox_wrapper_store!(MTS, M, p, R, mco, n_ineqs, g, v; εeqs)
