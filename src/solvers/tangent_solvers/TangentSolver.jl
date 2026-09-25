@@ -114,7 +114,7 @@ function blackbox_wrapper_store!(
 end
 
 """
-    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, ρ::AbstractInvertibilityBound; g)
+    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int; g, max_evals, εeqs, εineqs)
 
 Solve the subproblem
 
@@ -137,7 +137,7 @@ function solve!(
         R::AbstractRetractionMethod,
         invertibility_radius::Float64,
         n_ineqs::Int;
-        g, max_evals::Int, εeqs::Float64 = 1.0e-8
+        g, max_evals::Int, εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
     )
 end
 
