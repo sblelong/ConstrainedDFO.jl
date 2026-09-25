@@ -2,6 +2,7 @@
     M = Sphere(2)
     p1 = [1.0, 0.0, 0.0]
     cost(M, p) = sum(p)
+    g(p) = Float64[]
     mco = ManifoldCostObjective(cost)
     MTS = MADSTangentSolver()
     radius1 = invertibility_radius(M, p1)
@@ -12,7 +13,8 @@
         p1,
         StabilizedRetraction(),
         radius1,
-        0
+        0,
+        g
     )
     @test get_radius_evaluation(MTS) > 0
     @test length(get_data_d(MTS)) == 10
@@ -28,7 +30,8 @@
         p2,
         StabilizedRetraction(),
         radius2,
-        0
+        0,
+        g
     )
     @test length(get_data_f(MTS)) == 221
     @test isapprox(get_data_f(MTS)[end], -sqrt(3); atol = 1.0e-8)
