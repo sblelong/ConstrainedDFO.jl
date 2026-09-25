@@ -56,10 +56,12 @@ end
 function ConstrainedDFO.eval_defining_hessian(M::ConstrainedDFO.EqualityManifold, p, i::Int)
     h = getfield(M, :defining_function)
     if h isa NLPModelEqualityFunction
-        n_eqs = representation_size(M)[1] - manifold_dimension(M)
-        idcs_eqs = zeros(n_eqs)
-        idcs_eqs[i] = 1.0
-        return Matrix(hess(h.nlp, p, idcs_eqs; obj_weight = 0.0))
+        nlp = h.nlp
+        n_cons = nlp.meta.ncon
+        weights_cons = zeros(n_cons)
+        idcs_eqs = nlp.meta.jfix
+        weights_cons[idcs_eqs[i]] = 1.0
+        return Matrix(hess(nlp, p, weights_cons; obj_weight = 0.0))
     end
     hi(x) = h(x)[i]
     return ForwardDiff.hessian(hi, p)
