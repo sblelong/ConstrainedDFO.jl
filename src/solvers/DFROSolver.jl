@@ -87,12 +87,10 @@ function DFROSolver(
             ) * join((@sprintf("%-20.10g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", gp0[i]) for i in 1:m))
             println(extra_line)
         end
-
         p = project(M, p0)
     end
 
     outer_counter = 0
-    p = is_point_dispatcher(M, p0; tol_eqs = tol_eqs) ? p0 : project(M, p0)
     remaining_eval_budget = max_evals
     termination::Bool = false
     while !termination
