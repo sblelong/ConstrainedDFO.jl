@@ -22,9 +22,9 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
             P = 1
-            M = 2
+            M = nlp.meta.ncon - length(nlp.meta.jfix) + 2 # We artifically add a column of constraint that is always satisfied so the RunnerPost will work.
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
             println(io, line)
         end
     end
@@ -96,7 +96,7 @@ function read_log_mads(input_path::String)
                 f = parse(Float64, parts[2])
                 push!(obj_values, f)
                 cons = parse.(Float64, parts[3:last_float_part])
-                push!(cons_values, cons)
+                push!(cons_values, [cons ; [0.0]])
             end
         end
     end
@@ -176,19 +176,28 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
     n_eqs = length(nlp.meta.jfix)
 
     open(input_file, "r") do logf
+        eval_counter::Int = 0
         for line in eachline(logf)
             if occursin(r"^\d+", line)
                 parts = split(line)
-                bounds_cons = parse.(Float64, parts[(end - n_bounds):end])
+                eval_counter += 1
+                if eval_counter == 1
+                    f = parse(Float64, parts[2])
+                    ineq_cons = parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)])
+                    push!(bbe_values, eval_counter)
+                    push!(obj_values, f)
+                    push!(cons_values, [ineq_cons ; [0.0]])
+                    continue
+                end
+                bounds_cons = parse.(Float64, parts[(end - n_bounds + 1):end])
                 eq_cons = parse.(Float64, parts[3:(3 + n_eqs - 1)])
                 # Are we inside bounds and at equality?
-                if all(bounds_cons .≤ 0.0) && all(isapprox.(eq_cons, 0; atol = 1.0e-8))
-                    bbe = parse(Int, parts[1])
+                if all(bounds_cons .≤ 0.0) && all(isapprox.(eq_cons, 0.0; atol = 1.0e-8))
                     f = parse(Float64, parts[2])
-                    cons = parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)])
-                    push!(bbe_values, bbe)
+                    ineq_cons = parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)])
+                    push!(bbe_values, eval_counter)
                     push!(obj_values, f)
-                    push!(cons_values, cons)
+                    push!(cons_values, [ineq_cons ; [0.0]])
                 end
             end
         end
