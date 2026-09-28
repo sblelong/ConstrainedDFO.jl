@@ -3,7 +3,7 @@ using ConstrainedDFO
 using ForwardDiff
 using JuMP
 using ManifoldsBase
-using HiGHS, SparseArrays
+using Ipopt, SparseArrays
 
 """Defining function carrying the NLPModel needed to differentiate it."""
 struct NLPModelEqualityFunction{N, I}
@@ -113,21 +113,22 @@ function make_x0_feasible(nlp::AbstractNLPModel)
     c_eval = cons(nlp, x0)               # coefficient matrix (linear, constant)
     b = -c_eval[eq] + A * x0                # RHS (see previous discussion)
 
-    model = Model(HiGHS.Optimizer)
+    model = Model(Ipopt.Optimizer)
     set_silent(model)
 
-    @variable(model, lb[i] <= x[i = 1:n] <= ub[i])
+    @variable(model, x[i = 1:n])
     for i in 1:n
-        isfinite(lb[i]) && set_lower_bound(x[i], lb[i])
-        isfinite(ub[i]) && set_upper_bound(x[i], ub[i])
+        isfinite(lb[i]) && set_lower_bound(x[i], lb[i] + 1.0e-8) # Adding a numerical tolerance because NOMAD is picky.
+        isfinite(ub[i]) && set_upper_bound(x[i], ub[i] - 1.0e-8)
     end
     @constraint(model, A * x .== b)
     @objective(model, Min, sum((x[i] - x0[i])^2 for i in 1:n))
 
     optimize!(model)
 
-    if termination_status(model) == MOI.OPTIMAL
-        return value.(x)
+    if termination_status(model) == LOCALLY_SOLVED
+        x_sol = clamp.(value.(x), lb, ub)
+        return x_sol
     else
         error("No feasible point exists for this problem.")
     end
