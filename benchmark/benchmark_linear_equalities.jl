@@ -29,12 +29,12 @@ end
 filter!(only_linear_equalities, problems_names)
 
 # The following problems lead to bugs with either of the two solvers that are hard to solve.
-exclude_from_dfro = [
+to_exclude = [
     "LSNNODOC", # the first guess has a Jacobian with wrong rank (doesn't mean the dim(M)=n-p requirement)
     "DEGENLPA", # NOMAD fails on this problem.
     "DEGENLPB", # NOMAD tweaks the bounds and ends up having lb[2] ≥ ub[2]
 ]
-filter!(e -> e ∉ exclude_from_dfro, problems_names)
+filter!(e -> e ∉ to_exclude, problems_names)
 
 println("Solving with DFRO...")
 for problem_name in problems_names
