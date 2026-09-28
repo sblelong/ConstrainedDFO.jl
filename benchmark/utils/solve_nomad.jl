@@ -32,7 +32,8 @@ function solve_nomad_converter(BI::BlackboxInstance, A::Matrix{Float64}, b::Vect
     dimension = get_dimension(BI)
     n_ineqs = get_n_ineqs(BI)
     output_types = [["OBJ"] ; [String(barrier) for _ in 1:n_ineqs]]
-    x0 = project_on_solution_space(ConstrainedDFO.get_x0(BI), A, b)
+
+    x0 = ConstrainedDFO.get_x0(BI)
     lb = get_lbounds(BI)
     ub = get_ubounds(BI)
 

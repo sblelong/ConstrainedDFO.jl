@@ -17,7 +17,7 @@ CUTEst.set_mastsif()
 filter(meta) = meta["constraints"]["equality"] > 0 && meta["variables"]["number"] > meta["constraints"]["number"]
 # Small problems with linear equality constraints. Inequality constraints and bounds are allowed.
 problems_names = CUTEst.select_sif_problems(
-    max_var = 10,
+    max_var = 20,
     custom_filter = filter
 )
 
@@ -28,6 +28,7 @@ function has_linear_equalities(name::String)
     finalize(nlp)
     return result
 end
+
 filter!(has_linear_equalities, problems_names)
 
 # The following problems won't work with DFRO:
@@ -55,6 +56,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
+            BI.x0 = make_x0_feasible(nlp)
             res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), display_first_infeasible = false)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
@@ -82,8 +84,14 @@ for problem_name in problems_names
 
     logs_path = joinpath(log_path_base, "mads_converter")
     mkpath(logs_path)
-    redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
-        res_nomad_converter = solve_nomad_converter(BI, A, b; converter = :SVD, barrier = :PB, max_evals = 1000 * (dimension + 1))
+    try
+        # Make the first guess feasible for equalities and bounds
+        redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
+            BI.x0 = make_x0_feasible(nlp)
+            res_nomad_converter = solve_nomad_converter(BI, A, b; converter = :SVD, barrier = :PB, max_evals = 1000 * (dimension + 1))
+        end
+    catch e
+        println("MADS solver was unable to solve this problem. See the exception: $(e)")
     end
     finalize(nlp)
     println("✓")

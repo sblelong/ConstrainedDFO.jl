@@ -3,6 +3,7 @@ using ConstrainedDFO
 using ForwardDiff
 using JuMP
 using ManifoldsBase
+using HiGHS, SparseArrays
 
 """Defining function carrying the NLPModel needed to differentiate it."""
 struct NLPModelEqualityFunction{N, I}
@@ -99,4 +100,35 @@ function nlp_to_bb(nlp::AbstractNLPModel)
     x0 = nlp.meta.x0
 
     return BlackboxInstance(problem, x0)
+end
+
+function make_x0_feasible(nlp::AbstractNLPModel)
+    n = nlp.meta.nvar
+    eq = nlp.meta.jfix                        # equality constraint indices
+    lb = nlp.meta.lvar
+    ub = nlp.meta.uvar
+    x0 = nlp.meta.x0
+
+    A = jac(nlp, x0)[eq, :]
+    c_eval = cons(nlp, x0)               # coefficient matrix (linear, constant)
+    b = -c_eval[eq] + A * x0                # RHS (see previous discussion)
+
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+
+    @variable(model, lb[i] <= x[i = 1:n] <= ub[i])
+    for i in 1:n
+        isfinite(lb[i]) && set_lower_bound(x[i], lb[i])
+        isfinite(ub[i]) && set_upper_bound(x[i], ub[i])
+    end
+    @constraint(model, A * x .== b)
+    @objective(model, Min, sum((x[i] - x0[i])^2 for i in 1:n))
+
+    optimize!(model)
+
+    if termination_status(model) == MOI.OPTIMAL
+        return value.(x)
+    else
+        error("No feasible point exists for this problem.")
+    end
 end
