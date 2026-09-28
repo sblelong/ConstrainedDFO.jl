@@ -15,34 +15,26 @@ CUTEst.set_mastsif()
 # Small problems with linear equality constraints. Inequality constraints and bounds are allowed.
 # Select SIF problems: has at least one equality constraint
 filter(meta) = meta["constraints"]["equality"] > 0 && meta["variables"]["number"] > meta["constraints"]["number"]
-# Small problems with linear equality constraints. Inequality constraints and bounds are allowed.
 problems_names = CUTEst.select_sif_problems(
     max_var = 20,
     custom_filter = filter
 )
-
 # NLP filter: the equality constraints have to all be linear (nlp.meta.lin == nlp.meta.jfix).
-function has_linear_equalities(name::String)
+function only_linear_equalities(name::String)
     nlp = CUTEstModel(name)
     result = nlp.meta.lin == nlp.meta.jfix
     finalize(nlp)
     return result
 end
+filter!(only_linear_equalities, problems_names)
 
-filter!(has_linear_equalities, problems_names)
-
-# The following problems won't work with DFRO:
+# The following problems lead to bugs with either of the two solvers that are hard to solve.
 exclude_from_dfro = [
-    "ALLINITC", # can't project the first guess correctly
     "LSNNODOC", # the first guess has a Jacobian with wrong rank (doesn't mean the dim(M)=n-p requirement)
-    "S316-322", # also a Jacobian rank problem
-    "HS61", # Jacobian rank problem
-    "BT13", # TODO put this one back, it's just too long to solve but it works
-    "HS107", # TODO put it back, it's too long.
+    "DEGENLPA", # NOMAD fails on this problem.
+    "DEGENLPB", # NOMAD tweaks the bounds and ends up having lb[2] ≥ ub[2]
 ]
 filter!(e -> e ∉ exclude_from_dfro, problems_names)
-
-problems_names = problems_names[1:20]
 
 println("Solving with DFRO...")
 for problem_name in problems_names
