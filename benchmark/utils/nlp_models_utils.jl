@@ -3,6 +3,7 @@ using ConstrainedDFO
 using ForwardDiff
 using JuMP
 using ManifoldsBase
+using Ipopt, SparseArrays
 
 """Defining function carrying the NLPModel needed to differentiate it."""
 struct NLPModelEqualityFunction{N, I}
@@ -56,10 +57,12 @@ end
 function ConstrainedDFO.eval_defining_hessian(M::ConstrainedDFO.EqualityManifold, p, i::Int)
     h = getfield(M, :defining_function)
     if h isa NLPModelEqualityFunction
-        n_eqs = representation_size(M)[1] - manifold_dimension(M)
-        idcs_eqs = zeros(n_eqs)
-        idcs_eqs[i] = 1.0
-        return Matrix(hess(h.nlp, p, idcs_eqs; obj_weight = 0.0))
+        nlp = h.nlp
+        n_cons = nlp.meta.ncon
+        weights_cons = zeros(n_cons)
+        idcs_eqs = nlp.meta.jfix
+        weights_cons[idcs_eqs[i]] = 1.0
+        return Matrix(hess(nlp, p, weights_cons; obj_weight = 0.0))
     end
     hi(x) = h(x)[i]
     return ForwardDiff.hessian(hi, p)
@@ -97,4 +100,36 @@ function nlp_to_bb(nlp::AbstractNLPModel)
     x0 = nlp.meta.x0
 
     return BlackboxInstance(problem, x0)
+end
+
+function make_x0_feasible(nlp::AbstractNLPModel)
+    n = nlp.meta.nvar
+    eq = nlp.meta.jfix                        # equality constraint indices
+    lb = nlp.meta.lvar
+    ub = nlp.meta.uvar
+    x0 = nlp.meta.x0
+
+    A = jac(nlp, x0)[eq, :]
+    c_eval = cons(nlp, x0)               # coefficient matrix (linear, constant)
+    b = -c_eval[eq] + A * x0                # RHS (see previous discussion)
+
+    model = Model(Ipopt.Optimizer)
+    set_silent(model)
+
+    @variable(model, x[i = 1:n])
+    for i in 1:n
+        isfinite(lb[i]) && set_lower_bound(x[i], lb[i] + 1.0e-8) # Adding a numerical tolerance because NOMAD is picky.
+        isfinite(ub[i]) && set_upper_bound(x[i], ub[i] - 1.0e-8)
+    end
+    @constraint(model, A * x .== b)
+    @objective(model, Min, sum((x[i] - x0[i])^2 for i in 1:n))
+
+    optimize!(model)
+
+    if termination_status(model) == LOCALLY_SOLVED
+        x_sol = clamp.(value.(x), lb, ub)
+        return x_sol
+    else
+        error("No feasible point exists for this problem.")
+    end
 end

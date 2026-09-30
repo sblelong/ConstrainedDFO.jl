@@ -7,7 +7,8 @@
 """
 module ConstrainedDFO
 
-FAILURE_MAX = 1.0e20
+FAILURE_MAX::Float64 = 1.0e20
+export FAILURE_MAX
 
 import Base:
     showerror
@@ -75,6 +76,7 @@ export eval_eqs,
     get_n_ineqs,
     get_lbounds,
     get_ubounds,
+    get_n_bounds,
     get_x0
 # Riemannian submanifolds of ℝ^n defined as feasible sets for equality constraints
 include("types/EqualityManifold.jl")

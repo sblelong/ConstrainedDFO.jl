@@ -10,7 +10,7 @@ function DFROSolver(BI::BlackboxInstance; kwargs...)
         return [ineqs ; lbounds[idcs_finite_lbounds] .- p[idcs_finite_lbounds] ; p[idcs_finite_ubounds] .- ubounds[idcs_finite_ubounds]]
     end
 
-    return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI); kwargs...)
+    return DFROSolver(M, f, g, get_x0(BI), get_n_ineqs(BI) + get_n_bounds(BI); kwargs...)
 end
 
 function DFROSolver(M::AbstractManifold, f, p0; kwargs...)
@@ -84,9 +84,9 @@ function DFROSolver(
             hp0 = abs.(eval_defining_function(M, p0))
             gp0 = g(p0)
             extra_line = @sprintf(
-                "%-10s%-20.10g",
+                "%-10s%-30.15g",
                 0, fp0
-            ) * join((@sprintf("%-20.10g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", gp0[i]) for i in 1:m))
+            ) * join((@sprintf("%-30.15g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-30.15g", gp0[i]) for i in 1:m))
             println(extra_line)
         end
         p = project(M, p0)
@@ -108,9 +108,9 @@ function DFROSolver(
             )
             println(first_line_log)
             header_log = @sprintf(
-                "%-10s%-20s",
+                "%-10s%-30s",
                 "eval", "objective"
-            ) * join((@sprintf("%-20s", "h") for _ in 1:n_eqs)) * join((@sprintf("%-20s", "g") for _ in 1:m))
+            ) * join((@sprintf("%-30s", "h") for _ in 1:n_eqs)) * join((@sprintf("%-30s", "g") for _ in 1:m))
             println(header_log)
         end
 
@@ -132,9 +132,9 @@ function DFROSolver(
             first_eval = outer_counter == 1 ? 1 : 2 # Since x_{ℓ-1}^last and x_ℓ^1 are the same, we don't count the evaluation twice.
             for (number, eval) in enumerate(first_eval:last_eval)
                 line_log = @sprintf(
-                    "%-10s%-20.10g",
+                    "%-10s%-30.15g",
                     number, data_f[eval]
-                ) * join((@sprintf("%-20.10g", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-20.10g", data_g[eval][i]) for i in 1:m))
+                ) * join((@sprintf("%-30.15g", data_h[eval][i]) for i in 1:n_eqs)) * join((@sprintf("%-30.15g", data_g[eval][i]) for i in 1:m))
                 println(line_log)
             end
         end

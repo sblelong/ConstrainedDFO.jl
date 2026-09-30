@@ -26,6 +26,7 @@ get_n_ineqs(BP::BlackboxProblem) = BP.m
 get_n_eqs(BP::BlackboxProblem) = BP.p
 get_lbounds(BP::BlackboxProblem) = BP.lb
 get_ubounds(BP::BlackboxProblem) = BP.ub
+get_n_bounds(BP::BlackboxProblem) = sum(get_lbounds(BP) .≠ typemin(Float64)) + sum(get_ubounds(BP) .≠ typemax(Float64))
 
 eval_objective(BP::BlackboxProblem, x) = BP.f(x)
 eval_ineqs(BP::BlackboxProblem, x) = BP.g(x)
@@ -44,6 +45,7 @@ get_n_ineqs(BI::BlackboxInstance) = get_n_ineqs(BI.problem)
 get_n_eqs(BI::BlackboxInstance) = get_n_eqs(BI.problem)
 get_lbounds(BI::BlackboxInstance) = get_lbounds(BI.problem)
 get_ubounds(BI::BlackboxInstance) = get_ubounds(BI.problem)
+get_n_bounds(BI::BlackboxInstance) = get_n_bounds(BI.problem)
 
 eval_objective(BI::BlackboxInstance, x) = eval_objective(BI.problem, x)
 eval_ineqs(BI::BlackboxInstance, x) = eval_ineqs(BI.problem, x)

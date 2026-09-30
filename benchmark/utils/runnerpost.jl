@@ -1,4 +1,4 @@
-using CUTEst
+using CUTEst, NLPModels
 using Printf
 
 """
@@ -22,9 +22,9 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
             P = 1
-            M = 2
+            M = nlp.meta.ncon - length(nlp.meta.jfix) + 2 # We artifically add a column of constraint that is always satisfied so the RunnerPost will work.
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
             println(io, line)
         end
     end
@@ -52,8 +52,7 @@ end
 function read_log(input_path::String, solver_type::Symbol)
     solver_type == :dfro && return read_log_dfro(input_path)
     solver_type == :mads && return read_log_mads(input_path)
-    solver_type == :RDS && return read_log_rds(input_path)
-    solver_type == :manopt && return read_log_manopt(input_path)
+    solver_type ∈ [:manopt, :RDS] && return read_log_two_columns(input_path)
     solver_type == :COBYLA && return read_log_cobyla(input_path)
     return nothing
 end
@@ -94,10 +93,10 @@ function read_log_mads(input_path::String)
             if occursin(r"^\d+", line)
                 parts = split(line)
                 last_float_part = contains(line, "(Phase One)") ? findfirst(s -> s == "(Phase", parts) - 1 : length(parts)
-                f = parse(Float64, parts[2])
+                f = round(parse(Float64, parts[2]), digits = 6)
                 push!(obj_values, f)
                 cons = parse.(Float64, parts[3:last_float_part])
-                push!(cons_values, cons)
+                push!(cons_values, [cons ; [0.0]])
             end
         end
     end
@@ -105,7 +104,7 @@ function read_log_mads(input_path::String)
     return obj_values, cons_values
 end
 
-function read_log_manopt(input_path::String)
+function read_log_two_columns(input_path::String)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
 
@@ -131,6 +130,85 @@ function write_runnerpost!(obj_values::Vector{Float64}, cons_values::Vector{Vect
     open(output_file, "w") do io
         for eval in eachindex(obj_values)
             line = @sprintf("%.6f", obj_values[eval]) * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
+            println(io, line)
+        end
+    end
+
+    return output_file
+end
+
+# Special processing for DFRO where bounds have to be excluded from the export.
+# Only evaluations that satisfy bounds constraints will be exported to the log for runnerpost. Thus: DISPLAY_ALL_EVAL no
+function logs_to_runnerpost_no_bounds!(benchmark_name::String, solver_name::String)
+    logs_directory = joinpath(@__DIR__, "..", "logs", benchmark_name, solver_name)
+    outputs_directory = joinpath(@__DIR__, "..", "runnerpost", benchmark_name)
+    return logs_to_runnerpost_no_bounds!(logs_directory, solver_name, outputs_directory)
+end
+
+function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::String, outputs_directory::String)
+    for filename in readdir(logs_directory)
+        input_file = joinpath(logs_directory, filename)
+        problem_name = split(filename, ".")[1]
+        println(problem_name)
+        nlp = CUTEstModel(problem_name)
+        obj_values, cons_values, bbe_values = read_log_no_bounds(input_file, nlp)
+        output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
+        write_runnerpost_bbe!(obj_values, cons_values, bbe_values, output_path)
+        finalize(nlp)
+    end
+    return outputs_directory
+end
+
+"""
+Assuming DFRO prints as:
+inner_iteration  objective  [h]  [g]  [bounds (as ineqs)]
+Retrieve all iterations within bounds, with associated BBE (don't forget to always retrieve the first eval, even outside bounds).
+Always retrieve the first evaluation and add a virtual [0.0] inequality constraint, so the RunnerPost can work.
+"""
+function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
+    obj_values = Float64[]
+    cons_values = Vector{Float64}[]
+    bbe_values = Int[]
+
+    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng)
+    n_eqs = length(nlp.meta.jfix)
+
+    open(input_file, "r") do logf
+        eval_counter::Int = 0
+        for line in eachline(logf)
+            if occursin(r"^\d+", line)
+                parts = split(line)
+                eval_counter += 1
+                if eval_counter == 1 # First eval is always within bounds, and might violate g(x)≤0 but so does it with MADS converters, so no inconsistencies here.
+                    f = round(parse(Float64, parts[2]), digits = 6)
+                    ineq_cons = round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    push!(bbe_values, eval_counter)
+                    push!(obj_values, f)
+                    push!(cons_values, [ineq_cons ; [0.0]])
+                    continue
+                end
+                bounds_cons = parse.(Float64, parts[(end - n_bounds + 1):end])
+                eq_cons = parse.(Float64, parts[3:(3 + n_eqs - 1)])
+                # Are we inside bounds and at equality?
+                if all(bounds_cons .≤ 0.0) && all(isapprox.(eq_cons, 0.0; atol = 1.0e-8))
+                    f = round(parse(Float64, parts[2]), digits = 6)
+                    ineq_cons = round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    push!(bbe_values, eval_counter)
+                    push!(obj_values, f)
+                    push!(cons_values, [ineq_cons ; [0.0]])
+                end
+            end
+        end
+    end
+
+    return obj_values, cons_values, bbe_values
+end
+
+function write_runnerpost_bbe!(obj_values::Vector{Float64}, cons_values::Vector{Vector{Float64}}, bbe_values::Vector{Int}, output_file::String)
+    mkpath(dirname(output_file))
+    open(output_file, "w") do io
+        for eval in eachindex(obj_values)
+            line = @sprintf("%i %.6f", bbe_values[eval], obj_values[eval]) * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
             println(io, line)
         end
     end
