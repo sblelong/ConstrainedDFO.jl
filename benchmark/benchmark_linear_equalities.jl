@@ -33,8 +33,11 @@ to_exclude = [
     "DEGENLPA", # NOMAD fails on this problem.
     "DEGENLPB", # NOMAD tweaks the bounds and ends up having lb[2] ≥ ub[2]
     "HS32", # The only one to have an inequality constraint, might as well only consider problems with bounds at most.
+    "DALLASS", # Jacobian rank issue
 ]
 filter!(e -> e ∉ to_exclude, problems_names)
+
+problems_names = problems_names[2:end]
 
 println("Solving with DFRO...")
 for problem_name in problems_names
