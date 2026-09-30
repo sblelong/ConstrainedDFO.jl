@@ -7,7 +7,8 @@
 """
 module ConstrainedDFO
 
-FAILURE_MAX = 1.0e20
+FAILURE_MAX::Float64 = 1.0e20
+export FAILURE_MAX
 
 import Base:
     showerror

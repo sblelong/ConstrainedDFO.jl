@@ -163,16 +163,14 @@ end
 Assuming DFRO prints as:
 inner_iteration  objective  [h]  [g]  [bounds (as ineqs)]
 Retrieve all iterations within bounds, with associated BBE (don't forget to always retrieve the first eval, even outside bounds).
-
-TODO. Always retrieve the first evaluation, even if outside the bounds or if the equality is not satisfied (use extra line 0 in DFRO).
-Also, retrieve the correct bbe value by detecting a new subproblem (linear equalities are easy but this script can be used for nonlinear too).
+Always retrieve the first evaluation and add a virtual [0.0] inequality constraint, so the RunnerPost can work.
 """
 function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
     bbe_values = Int[]
 
-    n_bounds = sum(nlp.meta.lvar .≠ typemin(Float64)) + sum(nlp.meta.uvar .≠ typemax(Float64))
+    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng)
     n_eqs = length(nlp.meta.jfix)
 
     open(input_file, "r") do logf
@@ -181,7 +179,7 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
             if occursin(r"^\d+", line)
                 parts = split(line)
                 eval_counter += 1
-                if eval_counter == 1
+                if eval_counter == 1 # First eval is always within bounds, and might violate g(x)≤0 but so does it with MADS converters, so no inconsistencies here.
                     f = round(parse(Float64, parts[2]), digits = 6)
                     ineq_cons = round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
                     push!(bbe_values, eval_counter)

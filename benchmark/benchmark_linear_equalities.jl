@@ -12,11 +12,10 @@ println()
 
 CUTEst.set_mastsif()
 
-# Small problems with linear equality constraints. Inequality constraints and bounds are allowed.
 # Select SIF problems: has at least one equality constraint
 filter(meta) = meta["constraints"]["equality"] > 0 && meta["variables"]["number"] > meta["constraints"]["number"]
 problems_names = CUTEst.select_sif_problems(
-    max_var = 20,
+    max_var = 100,
     custom_filter = filter
 )
 # NLP filter: the equality constraints have to all be linear (nlp.meta.lin == nlp.meta.jfix).
@@ -33,6 +32,7 @@ to_exclude = [
     "LSNNODOC", # the first guess has a Jacobian with wrong rank (doesn't mean the dim(M)=n-p requirement)
     "DEGENLPA", # NOMAD fails on this problem.
     "DEGENLPB", # NOMAD tweaks the bounds and ends up having lb[2] ≥ ub[2]
+    "HS32", # The only one to have an inequality constraint, might as well only consider problems with bounds at most.
 ]
 filter!(e -> e ∉ to_exclude, problems_names)
 
