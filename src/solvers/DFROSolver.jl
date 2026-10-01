@@ -61,7 +61,7 @@ function DFROSolver(
         tol_eqs::Float64 = 1.0e-8,
         tol_ineqs::Float64 = 1.0e-8,
         print_level::Int = 1,
-        display_first_infeasible::Bool = true
+        display_p0_if_feasible::Bool = false
     )
 
     manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
@@ -78,8 +78,18 @@ function DFROSolver(
 
     if is_point_dispatcher(M, p0; tol_eqs = tol_eqs)
         p = p0
+        if display_p0_if_feasible && print_level > 0
+            fp0 = get_cost(M, mco, p0)
+            hp0 = abs.(eval_defining_function(M, p0))
+            gp0 = g(p0)
+            extra_line = @sprintf(
+                "%-10s%-30.15g",
+                0, fp0
+            ) * join((@sprintf("%-30.15g", hp0[i]) for i in 1:n_eqs)) * join((@sprintf("%-30.15g", gp0[i]) for i in 1:m))
+            println(extra_line)
+        end
     else
-        if display_first_infeasible
+        if print_level > 0
             fp0 = get_cost(M, mco, p0)
             hp0 = abs.(eval_defining_function(M, p0))
             gp0 = g(p0)
