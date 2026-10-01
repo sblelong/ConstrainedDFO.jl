@@ -55,9 +55,10 @@ end
 """
 function eval_defining_hessians(M::EqualityManifold, p)
     nb_defining_functions = length(eval_defining_function(M, p))
-    Hhis = Matrix[]
+    Hhis = Matrix{Float64}[]
     for i in 1:nb_defining_functions
-        push!(Hhis, eval_defining_hessian(M, p, i))
+        Hhi = eval_defining_hessian(M, p, i)
+        any(isnan, Hhi) || push!(Hhis, Hhi)
     end
     return Hhis
 end

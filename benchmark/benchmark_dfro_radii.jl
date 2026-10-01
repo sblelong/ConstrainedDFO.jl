@@ -7,19 +7,25 @@ log_path_base = joinpath(@__DIR__, "logs", "dfro_radii")
 
 println("Running DFRO invertibility radii benchmark.")
 
-# Only nonlinear equality constraints and no bounds
+CUTEst.set_mastsif()
+
+# Only nonlinear equality constraints, inequality and bounds possible.
+filter(meta) = (meta["variables"]["number"] > meta["constraints"]["number"]) && (meta["constraints"]["equality"] > 0)
 problems_names = CUTEst.select_sif_problems(
     max_var = 100,
     min_con = 1,
-    only_equ_con = true,
     contype = [6, 7],
-    custom_filter = meta -> meta["variables"]["number"] > meta["constraints"]["number"]
+    custom_filter = filter
 )
 # The following problems won't work with DFRO:
 exclude_from_dfro = [
     "ALLINITC", # can't project the first guess correctly
     "S316-322", # also a Jacobian rank problem
     "HS61", # Jacobian rank problem
+    "BA-L1", # Hessian contains NaNs at initial point
+    "CSFI1", # Same
+    "CSFI2",
+    "CORE1", # Jacobian rank problem
 ]
 filter!(e -> e ∉ exclude_from_dfro, problems_names)
 
