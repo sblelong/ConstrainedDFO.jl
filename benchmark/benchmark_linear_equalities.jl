@@ -34,10 +34,13 @@ to_exclude = [
     "DEGENLPB", # NOMAD tweaks the bounds and ends up having lb[2] ≥ ub[2]
     "HS32", # The only one to have an inequality constraint, might as well only consider problems with bounds at most.
     "DALLASS", # Jacobian rank issue
+    "HIMMELBJ", # Cannot compute feasible first guess.
+    "LINSPANH",
+    "NASH",
+    "SPANHYD",
+    "WATER",
 ]
 filter!(e -> e ∉ to_exclude, problems_names)
-
-problems_names = problems_names[2:end]
 
 println("Solving with DFRO...")
 for problem_name in problems_names
@@ -52,7 +55,7 @@ for problem_name in problems_names
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
             BI.x0 = make_x0_feasible(nlp)
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), display_first_infeasible = false)
+            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), display_p0_if_feasible = true)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
