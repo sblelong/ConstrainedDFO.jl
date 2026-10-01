@@ -64,8 +64,6 @@ for problem_name in problems_names
     println("✓")
 end
 
-println()
-
 println("Solving with MADS and converters...")
 for problem_name in problems_names
     print("$(problem_name)... ")
