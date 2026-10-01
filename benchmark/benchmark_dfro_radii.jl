@@ -6,30 +6,22 @@ include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
 log_path_base = joinpath(@__DIR__, "logs", "dfro_radii")
 
 println("Running DFRO invertibility radii benchmark.")
-println()
 
-# Small problems, only nonlinear equality constraints and no bounds
+# Only nonlinear equality constraints and no bounds
 problems_names = CUTEst.select_sif_problems(
-    max_var = 10,
+    max_var = 100,
     min_con = 1,
     only_equ_con = true,
     contype = [6, 7],
     custom_filter = meta -> meta["variables"]["number"] > meta["constraints"]["number"]
 )
-
-
 # The following problems won't work with DFRO:
 exclude_from_dfro = [
     "ALLINITC", # can't project the first guess correctly
-    "LSNNODOC", # the first guess has a Jacobian with wrong rank (doesn't mean the dim(M)=n-p requirement)
     "S316-322", # also a Jacobian rank problem
     "HS61", # Jacobian rank problem
-    "BT13", # TODO put this one back, it's just too long to solve but it works
-    "HS107", # TODO put it back, it's too long.
 ]
 filter!(e -> e ∉ exclude_from_dfro, problems_names)
-
-problems_names = problems_names[1:20]
 
 println("Solving with OneOverSpectral...")
 for problem_name in problems_names
@@ -52,8 +44,6 @@ for problem_name in problems_names
     println("✓")
 end
 
-println()
-
 println("Solving with OneOverSqrtSpectral...")
 for problem_name in problems_names
     print("$(problem_name)... ")
@@ -75,8 +65,6 @@ for problem_name in problems_names
     println("✓")
 end
 
-println()
-
 println("Solving with NOverSpectral...")
 for problem_name in problems_names
     print("$(problem_name)... ")
@@ -97,8 +85,6 @@ for problem_name in problems_names
     finalize(nlp)
     println("✓")
 end
-
-println()
 
 println("Solving with NOverSqrtSpectral...")
 for problem_name in problems_names
