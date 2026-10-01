@@ -115,6 +115,9 @@ function make_x0_feasible(nlp::AbstractNLPModel)
 
     model = Model(Ipopt.Optimizer)
     set_silent(model)
+    set_attribute(model, "tol", 1.0e-12)
+    set_attribute(model, "constr_viol_tol", 1.0e-10)
+    set_attribute(model, "acceptable_constr_viol_tol", 1.0e-10)
 
     @variable(model, x[i = 1:n])
     for i in 1:n
