@@ -20,12 +20,28 @@ problems_names = CUTEst.select_sif_problems(
 # The following problems won't work with DFRO:
 exclude_from_dfro = [
     "ALLINITC", # can't project the first guess correctly
-    "S316-322", # also a Jacobian rank problem
-    "HS61", # Jacobian rank problem
+    "AIRCRFTA", # same
+    # "S316-322", # also a Jacobian rank problem
+    # "HS61", # Jacobian rank problem
+    # "ERRINBAR",
     "BA-L1", # Hessian contains NaNs at initial point
-    "CSFI1", # Same
-    "CSFI2",
+    #"CSFI1", # Same
+    # "CSFI2",
+    "CONCON",
+    # "MCONCON",
+    # "DECONVBNE",
+    # "DISC2",
     "CORE1", # Jacobian rank problem
+    # "ROBOT",
+    # "DNIEPER",
+    # "PRODPL0",
+    # "PRODPL1",
+    # "TENBARS1",
+    # "LAKES",
+    # "HIMMELBK",
+    # "HS99EXP",
+    # "STRTCHDVNE",
+    # "OPTCNTRL",
 ]
 filter!(e -> e ∉ exclude_from_dfro, problems_names)
 
@@ -41,7 +57,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), invertibility_bound = OneOverSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = OneOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -62,7 +78,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -83,7 +99,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), invertibility_bound = NOverSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = NOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -104,7 +120,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 1000 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
