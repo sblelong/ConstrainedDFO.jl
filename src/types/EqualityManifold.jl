@@ -137,8 +137,10 @@ Projects a point `p` from the ambient space to the manifold ``\\mahtcal{M}`` by 
 ```math
     \\min\\limits_{q\\in\\mathcal{M}}~\\lVert p-q\\rVert
 ```
+
+Projection may fail because of ill-conditioning of the problem close to `p`. Several attempts to perturbate the initial guess are implemented, their maximum amount is given by the `perturbation_attemps` argument, which defaults to ``10``.
 """
-function project(M::EqualityManifold, p)
+function project(M::EqualityManifold, p; perturbation_attemps::Int = 10)
     n = representation_size(M)[1]
     h(y) = eval_defining_function(M, y)
     m = length(h(p))
@@ -150,6 +152,15 @@ function project(M::EqualityManifold, p)
     @NLconstraint(model, [j = 1:m], h(y)[j] == 0)
 
     optimize!(model)
+
+    if termination_status(model) ∉ (MOI.OPTIMAL, MOI.LOCALLY_SOLVED)
+        for _ in 1:perturbation_attemps
+            set_start_value.(y, p .+ 0.1 * randn(n))
+            optimize!(model)
+            termination_status(model) ∈ (MOI.OPTIMAL, MOI.LOCALLY_SOLVED) && break
+        end
+    end
+
     q = value.(y)
     return q
 end
