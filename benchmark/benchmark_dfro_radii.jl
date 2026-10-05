@@ -18,32 +18,33 @@ problems_names = CUTEst.select_sif_problems(
     custom_filter = filter
 )
 # The following problems won't work with DFRO:
-exclude_from_dfro = [
-    "ALLINITC", # can't project the first guess correctly
-    "AIRCRFTA", # same
-    # "S316-322", # also a Jacobian rank problem
-    # "HS61", # Jacobian rank problem
-    # "ERRINBAR",
-    "BA-L1", # Hessian contains NaNs at initial point
-    #"CSFI1", # Same
-    # "CSFI2",
-    "CONCON",
-    # "MCONCON",
-    # "DECONVBNE",
-    # "DISC2",
-    "CORE1", # Jacobian rank problem
-    # "ROBOT",
-    # "DNIEPER",
-    # "PRODPL0",
-    # "PRODPL1",
+to_exclude = [
+    # Can't find a feasible solution in the first subproblem
+    # "AIRCRFTA",
+    # "CONCON",
+    # "CORE1",
+    # "DECONVBE",
+
+    # Can't project the first guess correctly
+    # "ALLINITC",
+    # "S316-322",
+    # "SSINE",
     # "TENBARS1",
-    # "LAKES",
-    # "HIMMELBK",
-    # "HS99EXP",
-    # "STRTCHDVNE",
-    # "OPTCNTRL",
+    # "TENBARS2",
+    # "TENBARS3",
+    # "TENBARS4",
+    # "TRIGGER",
+    # "TRUSPYR1",
+    # "VANDANIUMS"
+
+    # Can't compute invertibility radius: Hessian contains Inf or NaN
+    "BA-L1",
+    "CSFI1",
+    "CSFI2",
+    "LAKES",
+    "STRTCHDVNE",
 ]
-filter!(e -> e ∉ exclude_from_dfro, problems_names)
+filter!(e -> e ∉ to_exclude, problems_names)
 
 println("Solving with OneOverSpectral...")
 for problem_name in problems_names
