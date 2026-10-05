@@ -58,7 +58,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = OneOverSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -79,7 +79,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -100,7 +100,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = NOverSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -121,7 +121,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 10 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
