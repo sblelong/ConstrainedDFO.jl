@@ -2,6 +2,7 @@ using ConstrainedDFO
 using NLPModels, CUTEst
 
 include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
+include(joinpath(@__DIR__, "utils", "project.jl"))
 
 log_path_base = joinpath(@__DIR__, "logs", "dfro_radii")
 
@@ -19,23 +20,19 @@ problems_names = CUTEst.select_sif_problems(
 )
 # The following problems won't work with DFRO:
 to_exclude = [
+    # Can't find a feasible first guess
+    "SSINE",
+    "VANDANIUMS",
+
     # Can't find a feasible solution in the first subproblem
     # "AIRCRFTA",
+    # "ALLINITC",
     # "CONCON",
     # "CORE1",
     # "DECONVBE",
-
-    # Can't project the first guess correctly
-    # "ALLINITC",
-    # "S316-322",
-    # "SSINE",
-    # "TENBARS1",
-    # "TENBARS2",
-    # "TENBARS3",
-    # "TENBARS4",
-    # "TRIGGER",
-    # "TRUSPYR1",
-    # "VANDANIUMS"
+    # "DISC2",
+    # "DNIEPER",
+    # "ERRINBAR",
 
     # Can't compute invertibility radius: Hessian contains Inf or NaN
     "BA-L1",
@@ -46,86 +43,63 @@ to_exclude = [
 ]
 filter!(e -> e ∉ to_exclude, problems_names)
 
-println("Solving with OneOverSpectral...")
 for problem_name in problems_names
     print("$(problem_name)... ")
     nlp = CUTEstModel(problem_name)
     BI = nlp_to_bb(nlp)
 
     dimension = get_dimension(BI)
+    try
+        x0f = make_x0_feasible(BI)
+        BI.x0 = x0f
+    catch e
+        println("Couldn't find a feasible first point. Skipping.")
+        continue
+    end
 
+    print("OneOverSpectral ")
     logs_path = joinpath(log_path_base, "OneOverSpectral")
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSpectral())
+            solution = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
-    finalize(nlp)
-    println("✓")
-end
 
-println("Solving with OneOverSqrtSpectral...")
-for problem_name in problems_names
-    print("$(problem_name)... ")
-    nlp = CUTEstModel(problem_name)
-    BI = nlp_to_bb(nlp)
-
-    dimension = get_dimension(BI)
-
+    print("OneOverSqrtSpectral ")
     logs_path = joinpath(log_path_base, "OneOverSqrtSpectral")
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
+            solution = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = OneOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
-    finalize(nlp)
-    println("✓")
-end
 
-println("Solving with NOverSpectral...")
-for problem_name in problems_names
-    print("$(problem_name)... ")
-    nlp = CUTEstModel(problem_name)
-    BI = nlp_to_bb(nlp)
-
-    dimension = get_dimension(BI)
-
+    print("NOverSpectral ")
     logs_path = joinpath(log_path_base, "NOverSpectral")
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSpectral())
+            solution = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
-    finalize(nlp)
-    println("✓")
-end
-
-println("Solving with NOverSqrtSpectral...")
-for problem_name in problems_names
-    print("$(problem_name)... ")
-    nlp = CUTEstModel(problem_name)
-    BI = nlp_to_bb(nlp)
-
-    dimension = get_dimension(BI)
-
+    print("NOverSqrtSpectral ")
     logs_path = joinpath(log_path_base, "NOverSqrtSpectral")
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            res_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+            solution = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
+
     finalize(nlp)
     println("✓")
 end
