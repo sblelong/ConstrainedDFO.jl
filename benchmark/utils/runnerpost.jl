@@ -1,5 +1,6 @@
 using CUTEst, NLPModels
 using Printf
+using ConstrainedDFO
 
 """
 Note to myself: do we actually need to split equality and inequality constraints when reading logs from MADS or DFRO?
@@ -21,10 +22,10 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
         for problem_name in problems_names
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
-            P = 1
-            M = nlp.meta.ncon - length(nlp.meta.jfix) + 2 # We artifically add a column of constraint that is always satisfied so the RunnerPost will work.
+            P = length(nlp.meta.jfix)
+            M = 2 + nlp.meta.ncon # CNT_EVAL + OBJ + one additional artificial constraint
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             println(io, line)
         end
     end
@@ -84,7 +85,7 @@ end
 Each line inside the log file should be formatted as
 BBE OBJ CONS
 """
-function read_log_mads(input_path::String)
+function read_log_mads(input_path::String; add_artificial_constraint::Bool = false)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
 
@@ -96,7 +97,7 @@ function read_log_mads(input_path::String)
                 f = round(parse(Float64, parts[2]), digits = 6)
                 push!(obj_values, f)
                 cons = parse.(Float64, parts[3:last_float_part])
-                push!(cons_values, [cons ; [0.0]])
+                push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
             end
         end
     end
@@ -139,19 +140,20 @@ end
 
 # Special processing for DFRO where bounds have to be excluded from the export.
 # Only evaluations that satisfy bounds constraints will be exported to the log for runnerpost. Thus: DISPLAY_ALL_EVAL no
-function logs_to_runnerpost_no_bounds!(benchmark_name::String, solver_name::String)
+function logs_to_runnerpost_no_bounds!(benchmark_name::String, solver_name::String; kwargs...)
     logs_directory = joinpath(@__DIR__, "..", "logs", benchmark_name, solver_name)
     outputs_directory = joinpath(@__DIR__, "..", "runnerpost", benchmark_name)
-    return logs_to_runnerpost_no_bounds!(logs_directory, solver_name, outputs_directory)
+    return logs_to_runnerpost_no_bounds!(logs_directory, solver_name, outputs_directory; kwargs...)
 end
 
-function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::String, outputs_directory::String)
+function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::String, outputs_directory::String; kwargs...)
     for filename in readdir(logs_directory)
+        occursin(".log", filename) || continue
         input_file = joinpath(logs_directory, filename)
         problem_name = split(filename, ".")[1]
         println(problem_name)
         nlp = CUTEstModel(problem_name)
-        obj_values, cons_values, bbe_values = read_log_no_bounds(input_file, nlp)
+        obj_values, cons_values, bbe_values = read_log_no_bounds(input_file, nlp; kwargs...)
         output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
         write_runnerpost_bbe!(obj_values, cons_values, bbe_values, output_path)
         finalize(nlp)
@@ -165,12 +167,12 @@ inner_iteration  objective  [h]  [g]  [bounds (as ineqs)]
 Retrieve all iterations within bounds, with associated BBE (don't forget to always retrieve the first eval, even outside bounds).
 Always retrieve the first evaluation and add a virtual [0.0] inequality constraint, so the RunnerPost can work.
 """
-function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
+function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equalities::Bool = true, add_artificial_constraint::Bool = false)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
     bbe_values = Int[]
 
-    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng)
+    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng) + 2 * length(nlp.meta.ifix)
     n_eqs = length(nlp.meta.jfix)
 
     open(input_file, "r") do logf
@@ -179,12 +181,13 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
             if occursin(r"^\d+", line)
                 parts = split(line)
                 eval_counter += 1
-                if eval_counter == 1 # First eval is always within bounds, and might violate g(x)≤0 but so does it with MADS converters, so no inconsistencies here.
+                if eval_counter == 1 # Always parse the first evaluation for consistency between solvers.
                     f = round(parse(Float64, parts[2]), digits = 6)
-                    ineq_cons = round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    cons = with_equalities ? round.(parse.(Float64, parts[3:(end - n_bounds)]), digits = 6) : round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    cons[cons .== Inf] .= FAILURE_MAX
                     push!(bbe_values, eval_counter)
                     push!(obj_values, f)
-                    push!(cons_values, [ineq_cons ; [0.0]])
+                    push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
                     continue
                 end
                 bounds_cons = parse.(Float64, parts[(end - n_bounds + 1):end])
@@ -192,10 +195,11 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel)
                 # Are we inside bounds and at equality?
                 if all(bounds_cons .≤ 0.0) && all(isapprox.(eq_cons, 0.0; atol = 1.0e-8))
                     f = round(parse(Float64, parts[2]), digits = 6)
-                    ineq_cons = round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    cons = with_equalities ? round.(parse.(Float64, parts[3:(end - n_bounds)]), digits = 6) : round.(parse.(Float64, parts[(3 + n_eqs):(end - n_bounds)]), digits = 6)
+                    cons[cons .== Inf] .= FAILURE_MAX
                     push!(bbe_values, eval_counter)
                     push!(obj_values, f)
-                    push!(cons_values, [ineq_cons ; [0.0]])
+                    push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
                 end
             end
         end
