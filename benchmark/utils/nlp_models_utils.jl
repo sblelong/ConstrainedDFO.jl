@@ -101,38 +101,3 @@ function nlp_to_bb(nlp::AbstractNLPModel)
 
     return BlackboxInstance(problem, x0)
 end
-
-function make_x0_feasible(nlp::AbstractNLPModel)
-    n = nlp.meta.nvar
-    eq = nlp.meta.jfix                        # equality constraint indices
-    lb = nlp.meta.lvar
-    ub = nlp.meta.uvar
-    x0 = nlp.meta.x0
-
-    A = jac(nlp, x0)[eq, :]
-    c_eval = cons(nlp, x0)               # coefficient matrix (linear, constant)
-    b = -c_eval[eq] + A * x0                # RHS (see previous discussion)
-
-    model = Model(Ipopt.Optimizer)
-    set_silent(model)
-    set_attribute(model, "tol", 1.0e-12)
-    set_attribute(model, "constr_viol_tol", 1.0e-10)
-    set_attribute(model, "acceptable_constr_viol_tol", 1.0e-10)
-
-    @variable(model, x[i = 1:n])
-    for i in 1:n
-        isfinite(lb[i]) && set_lower_bound(x[i], lb[i] + 1.0e-8) # Adding a numerical tolerance because NOMAD is picky.
-        isfinite(ub[i]) && set_upper_bound(x[i], ub[i] - 1.0e-8)
-    end
-    @constraint(model, A * x .== b)
-    @objective(model, Min, sum((x[i] - x0[i])^2 for i in 1:n))
-
-    optimize!(model)
-
-    if termination_status(model) == LOCALLY_SOLVED
-        x_sol = clamp.(value.(x), lb, ub)
-        return x_sol
-    else
-        error("No feasible point exists for this problem.")
-    end
-end
