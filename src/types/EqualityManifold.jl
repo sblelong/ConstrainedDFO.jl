@@ -147,6 +147,7 @@ function project(M::EqualityManifold, p; perturbation_attemps::Int = 10)
 
     model = Model(Ipopt.Optimizer)
     set_silent(model)
+    set_attribute(model, "constr_viol_tol", 1.0e-8)
     @variable(model, y[1:n])
     @NLobjective(model, Min, 0.5 * sum((y[i] - p[i])^2 for i in 1:n))
     @NLconstraint(model, [j = 1:m], h(y)[j] == 0)
