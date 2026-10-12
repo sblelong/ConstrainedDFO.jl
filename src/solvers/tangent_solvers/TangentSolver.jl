@@ -55,8 +55,9 @@ function retract_eval_store!(
         v;
         εeqs::Float64 = 1.0e-8,
     )
-    d = get_vector(M, p, v, DefaultOrthonormalBasis())
     try
+        d = get_vector(M, p, v, DefaultOrthonormalBasis())
+
         Rpv = retract(M, p, d, R)
 
         if is_point_dispatcher(M, Rpv; tol_eqs = εeqs)
@@ -73,6 +74,7 @@ function retract_eval_store!(
 
         return eval_data
     catch e
+        d = fill(FAILURE_MAX, manifold_dimension(M))
         Rpv = p
         fRpv = FAILURE_MAX
         gRpv = fill(FAILURE_MAX, n_ineqs)

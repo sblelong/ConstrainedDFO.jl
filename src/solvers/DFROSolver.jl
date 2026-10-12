@@ -104,6 +104,7 @@ function DFROSolver(
 
     outer_counter = 0
     remaining_eval_budget = max_evals
+    feasible_solution_found::Bool = true
     termination::Bool = false
     while !termination
         outer_counter += 1
@@ -150,15 +151,18 @@ function DFROSolver(
         end
 
         # Among the points that were evaluated before the tangent solver stopped, find the best feasible point.
-        if m > 0
+        if m > 0 # TODO. What if no feasible points are found? Then just end the solver.
             data_f_evaluated = data_f[1:last_eval]
             data_g_evaluated = data_g[1:last_eval]
             data_Rpv_evaluated = data_Rpv[1:last_eval]
             feasible_mask = map(gi -> all(gi .≤ tol_ineqs), data_g_evaluated)
-            data_f_feasible = data_f_evaluated[feasible_mask]
-            data_Rpv_feasible = data_Rpv_evaluated[feasible_mask]
-            best_evaluation = argmin(data_f_feasible)
-            p = data_Rpv_feasible[best_evaluation]
+            feasible_solution_found = any(feasible_mask)
+            if feasible_solution_found
+                data_f_feasible = data_f_evaluated[feasible_mask]
+                data_Rpv_feasible = data_Rpv_evaluated[feasible_mask]
+                best_evaluation = argmin(data_f_feasible)
+                p = data_Rpv_feasible[best_evaluation]
+            end
         else
             best_evaluation = argmin(data_f[1:last_eval])
             p = data_Rpv[best_evaluation]
@@ -167,12 +171,17 @@ function DFROSolver(
         # Update remaining evaluations
         remaining_eval_budget -= last_eval
 
-        termination = get_radius_evaluation(tangent_solver) == 0 || remaining_eval_budget == 0
+        termination = get_radius_evaluation(tangent_solver) == 0 || remaining_eval_budget == 0 || !feasible_solution_found
 
         (print_level == 1 && get_radius_evaluation(tangent_solver) > 0) && println("Improvement was found outside the invertibility region. Switching to a new subproblem.\n")
     end
 
-    end_message = remaining_eval_budget == 0 ? "EXIT: Maximum amount of blackbox evaluations used." : "EXIT: Subproblem solved within invertibility region."
+    if get_radius_evaluation(tangent_solver) == 0
+        end_message = feasible_solution_found ? "EXIT: Subproblem solved within invertibility region." : "EXIT: No feasible solution found in the last subproblem."
+    else
+        end_message = "EXIT: Maximum amount of blackbox evaluations used."
+    end
+
     print_level == 1 && println(end_message)
 
     return p
