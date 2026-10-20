@@ -6,7 +6,7 @@ using Printf
 """
 Add a unit sphere constraint to an instance and solve it with the MADS solver implemented in Manopt.
 """
-function solve_sphere_manopt(BI::BlackboxInstance; max_evals::Int = 1000 * (get_dimension(BI) + 1), tol_eqs::Float64 = 1.0e-8)
+function solve_sphere_manopt(BI::BlackboxInstance; max_evals::Int = 200 * (get_dimension(BI) + 1), tol_eqs::Float64 = 1.0e-8)
     dimension = get_dimension(BI)
     M = Manifolds.Sphere(dimension - 1)
 
@@ -16,7 +16,7 @@ function solve_sphere_manopt(BI::BlackboxInstance; max_evals::Int = 1000 * (get_
     function f(M::Manifolds.Sphere, p)
         hval = norm(p)^2 - 1.0
         fval = hval ≤ tol_eqs ? eval_objective(BI, p) : ConstrainedDFO.FAILURE_MAX
-        line = @sprintf("%-20.10g%-20.10g", fval, hval)
+        line = @sprintf("%-30.15g%-30.15g", fval, hval)
         println(line)
         return fval
     end
