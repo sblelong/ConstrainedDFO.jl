@@ -23,9 +23,9 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
             P = length(nlp.meta.jfix)
-            M = 2 + nlp.meta.ncon # CNT_EVAL + OBJ + one additional artificial constraint
+            M = 1
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
             println(io, line)
         end
     end
@@ -53,8 +53,8 @@ end
 function read_log(input_path::String, solver_type::Symbol)
     solver_type == :dfro && return read_log_dfro(input_path)
     solver_type == :mads && return read_log_mads(input_path)
-    solver_type ∈ [:manopt, :RDS] && return read_log_two_columns(input_path)
-    solver_type == :COBYLA && return read_log_cobyla(input_path)
+    solver_type ∈ [:manopt, :rds] && return read_log_two_columns(input_path)
+    solver_type == :cobyla && return read_log_cobyla(input_path)
     return nothing
 end
 
@@ -70,7 +70,7 @@ function read_log_dfro(input_path::String)
         for line in eachline(logf)
             if occursin(r"^\d+", line)
                 parts = split(line)
-                f = parse(Float64, parts[2])
+                f = round.(parse(Float64, parts[2]), digits = 6)
                 push!(obj_values, f)
                 cons = parse.(Float64, parts[3:end])
                 push!(cons_values, cons)
@@ -112,7 +112,7 @@ function read_log_two_columns(input_path::String)
     open(input_path, "r") do logf
         for line in eachline(logf)
             parts = split(line)
-            f = parse(Float64, parts[1])
+            f = round.(parse(Float64, parts[1]), digits = 6)
             h = [parse(Float64, parts[2])]
             push!(obj_values, f)
             push!(cons_values, h)
@@ -130,7 +130,7 @@ function write_runnerpost!(obj_values::Vector{Float64}, cons_values::Vector{Vect
     mkpath(dirname(output_file))
     open(output_file, "w") do io
         for eval in eachindex(obj_values)
-            line = @sprintf("%.6f", obj_values[eval]) * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
+            line = @sprintf("%.6f", obj_values[eval]) #  * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
             println(io, line)
         end
     end
