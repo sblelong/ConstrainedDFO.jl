@@ -19,6 +19,7 @@ problems_names = CUTEst.select_sif_problems(
 
 to_exclude = [
     "MUONSINELS", # Dimension 1, trivial.
+    "LUKSAN22LC", # Not included in the MATLAB version of CUTEst - RDSE-DD cannot solve it.
 ]
 filter!(e -> e ∉ to_exclude, problems_names)
 
@@ -40,7 +41,7 @@ for problem_name in problems_names
     M = EqualityManifold(h, dimension - 1, dimension)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+            solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral(), display_p0_if_feasible = true)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
@@ -52,7 +53,7 @@ for problem_name in problems_names
     M = Manifolds.Sphere(dimension - 1)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), retraction_method = ExponentialRetraction(), invertibility_bound = ExactInvertibility())
+            solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), retraction_method = ExponentialRetraction(), invertibility_bound = ExactInvertibility(), display_p0_if_feasible = true)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
