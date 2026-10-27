@@ -7,7 +7,7 @@ include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
 include(joinpath(@__DIR__, "utils", "solve_nomad.jl"))
 include(joinpath(@__DIR__, "utils", "solve_cobyla.jl"))
 
-log_path_base = joinpath(@__DIR__, "logs", "general")
+log_path_base = joinpath(@__DIR__, "logs", "general_relaxable")
 
 println("Running general benchmark in the relaxable setting.")
 
@@ -44,9 +44,21 @@ for problem_name in problems_names
     x0f::Vector{Float64} = zeros(dimension)
     try
         x0f = make_x0_feasible(BI)
+        BI.x0 = x0f
     catch e
         println("Couldn't find a feasible first point. Skipping.")
         continue
+    end
+
+    print("DFRO | ")
+    logs_path = joinpath(log_path_base, "dfro")
+    mkpath(logs_path)
+    redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
+        try
+            result_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+        catch e
+            println("DFRO was unable to solve this problem. See the exception: $(e)")
+        end
     end
 
     print("COBYLA | ")
