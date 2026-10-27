@@ -123,6 +123,49 @@ function read_log_two_columns(input_path::String)
 end
 
 """
+Each evaluation inside the log file is formatted as
+Function number BBE   F = OBJ   Constraint violation = CSTRV
+The corresponding X is:
+X (possibly over several lines)
+The constraint value is: CONS (possibly continued over several lines)
+The "Number of function values = ..." blocks only recall the best point so far and are skipped.
+"""
+function read_log_cobyla(input_path::String)
+    obj_values = Float64[]
+    cons_values = Vector{Float64}[]
+
+    open(input_path, "r") do logf
+        in_evaluation = false # Inside a "Function number" block
+        reading_cons = false # Constraint values may continue over several lines
+        for line in eachline(logf)
+            if startswith(line, "Function number")
+                parts = split(line)
+                # The log may start with the tail of the previous problem's run (unflushed Fortran output): restart at the first evaluation.
+                if parse(Int, parts[3]) == 1
+                    empty!(obj_values)
+                    empty!(cons_values)
+                end
+                f = round(parse(Float64, parts[findfirst(==("F"), parts) + 2]), digits = 6)
+                push!(obj_values, f)
+                push!(cons_values, Float64[])
+                in_evaluation, reading_cons = true, false
+            elseif startswith(line, "Number of function values")
+                in_evaluation, reading_cons = false, false
+            elseif in_evaluation && startswith(line, "The constraint value is:")
+                append!(cons_values[end], parse.(Float64, split(line[(findfirst(':', line) + 1):end])))
+                reading_cons = true
+            elseif reading_cons && occursin(r"^\s*-?\d", line)
+                append!(cons_values[end], parse.(Float64, split(line)))
+            else
+                reading_cons = false
+            end
+        end
+    end
+
+    return obj_values, cons_values
+end
+
+"""
 Returns a file readable by the RunnerPost, formatted as
 OBJ CONS
 """
