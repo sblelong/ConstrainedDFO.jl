@@ -24,7 +24,7 @@ function solve_nomad(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedDFO.
     end
 
     options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_stats = ["BBE", "BBO"], display_all_eval = true)
-    pb = NomadProblem(dimension, 1 + n_constraints, output_types, blackbox; lower_bound = lbounds, upper_bounds = ubounds, options = options)
+    pb = NomadProblem(dimension, 1 + n_constraints, output_types, blackbox; lower_bound = lbounds, upper_bound = ubounds, options = options)
     return result = solve(pb, x0)
 end
 
@@ -52,7 +52,7 @@ function solve_nomad_converter(BI::BlackboxInstance, A::Matrix{Float64}, b::Vect
     return solve(pb, x0)
 end
 
-function solve_mads_pip(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedDFO.get_x0(BI), max_evals = 200 * (nlp.meta.nvar + 1), tol_eqs::Float64 = 1.0e-8)
+function solve_mads_pip(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedDFO.get_x0(BI), max_evals = 200 * (get_dimension(BI) + 1), tol_eqs::Float64 = 1.0e-8)
     dimension = get_dimension(BI)
     lbounds, ubounds = get_lbounds(BI), get_ubounds(BI)
     n_eqs = get_n_eqs(BI)
@@ -66,6 +66,6 @@ function solve_mads_pip(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedD
     end
 
     options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_stats = ["BBE", "BBO"], display_all_eval = true, madspip_optimization = true)
-    p = NomadProblem(dimension, 1 + nlp.meta.ncon, [["OBJ"] ; ["EQPB" for _ in 1:n_eqs] ; ["PB" for _ in 1:n_ineqs]], blackbox, lower_bound = lbounds, upper_bound = ubounds; options = options)
+    p = NomadProblem(dimension, 1 + n_eqs + n_ineqs, [["OBJ"] ; ["EQPB" for _ in 1:n_eqs] ; ["PB" for _ in 1:n_ineqs]], blackbox, lower_bound = lbounds, upper_bound = ubounds; options = options)
     return solve(p, x0)
 end
