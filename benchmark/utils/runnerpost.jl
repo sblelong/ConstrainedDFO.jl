@@ -23,9 +23,9 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar
             P = length(nlp.meta.jfix)
-            M = 1
+            M = nlp.meta.ncon + 2
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)]"
+            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             println(io, line)
         end
     end
@@ -214,11 +214,10 @@ function write_runnerpost!(obj_values::Vector{Float64}, cons_values::Vector{Vect
     open(output_file, "w") do io
         for eval in eachindex(obj_values)
             cons = add_artificial_constraint ? [cons_values[eval] ; 0.0] : cons_values[eval]
-            line = @sprintf("%.6f", obj_values[eval]) #  * " " * join((@sprintf("%.6f", c) for c in cons), " ")
+            line = @sprintf("%.6f", obj_values[eval]) * " " * join((@sprintf("%.6f", c) for c in cons), " ")
             println(io, line)
         end
     end
-
     return output_file
 end
 
