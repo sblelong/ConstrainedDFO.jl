@@ -140,11 +140,6 @@ function read_log_cobyla(input_path::String)
         for line in eachline(logf)
             if startswith(line, "Function number")
                 parts = split(line)
-                # The log may start with the tail of the previous problem's run (unflushed Fortran output): restart at the first evaluation.
-                if parse(Int, parts[3]) == 1
-                    empty!(obj_values)
-                    empty!(cons_values)
-                end
                 f = round(parse(Float64, parts[findfirst(==("F"), parts) + 2]), digits = 6)
                 push!(obj_values, f)
                 push!(cons_values, Float64[])
