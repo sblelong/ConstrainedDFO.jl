@@ -43,18 +43,21 @@ function logs_to_runnerpost!(logs_directory::String, solver_type::Symbol, solver
         input_file = joinpath(logs_directory, filename)
         problem_name = split(filename, ".")[1]
         println(problem_name)
-        obj_values, cons_values = read_log(input_file, solver_type)
+        # COBYLA logs can only be split into constraints with the problem's structure at hand.
+        nlp = solver_type == :cobyla ? CUTEstModel(problem_name) : nothing
+        obj_values, cons_values = read_log(input_file, solver_type; nlp = nlp)
+        isnothing(nlp) || finalize(nlp)
         output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
         write_runnerpost!(obj_values, cons_values, output_path)
     end
     return outputs_directory
 end
 
-function read_log(input_path::String, solver_type::Symbol)
+function read_log(input_path::String, solver_type::Symbol; nlp::Union{AbstractNLPModel, Nothing} = nothing)
     solver_type == :dfro && return read_log_dfro(input_path)
     solver_type == :mads && return read_log_mads(input_path)
     solver_type ∈ [:manopt, :rds] && return read_log_two_columns(input_path)
-    solver_type == :cobyla && return read_log_cobyla(input_path)
+    solver_type == :cobyla && return read_log_cobyla(input_path, nlp)
     return nothing
 end
 
@@ -129,8 +132,9 @@ The corresponding X is:
 X (possibly over several lines)
 The constraint value is: CONS (possibly continued over several lines)
 The "Number of function values = ..." blocks only recall the best point so far and are skipped.
+Equality constraints are logged twice by COBYLA, see `remove_duplicate_equalities`: only one copy is kept.
 """
-function read_log_cobyla(input_path::String)
+function read_log_cobyla(input_path::String, nlp::AbstractNLPModel)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
 
@@ -157,7 +161,46 @@ function read_log_cobyla(input_path::String)
         end
     end
 
+    counts = cobyla_constraint_counts(nlp)
+    cons_values = [remove_duplicate_equalities(cons, counts) for cons in cons_values]
+
     return obj_values, cons_values
+end
+
+"""Number of linear and nonlinear equality and inequality constraints passed to COBYLA by `solve_cobyla`."""
+function cobyla_constraint_counts(nlp::AbstractNLPModel)
+    idcs_l = [nlp.meta.jlow ; nlp.meta.jrng]
+    idcs_u = [nlp.meta.jupp ; nlp.meta.jrng]
+    return (
+        lin_eq = length(nlp.meta.lin ∩ nlp.meta.jfix),
+        lin_ineq = length(nlp.meta.lin ∩ idcs_l) + length(nlp.meta.lin ∩ idcs_u),
+        nl_eq = length(nlp.meta.nln ∩ nlp.meta.jfix),
+        nl_ineq = length(nlp.meta.nln ∩ idcs_l) + length(nlp.meta.nln ∩ idcs_u),
+    )
+end
+
+"""
+PRIMA's COBYLA logs the constraint values as
+[bounds ; beq - Aeq x ; Aeq x - beq ; Aineq x - bineq ; h₁(x) ; -h₁(x) ; ... ; hₚ(x) ; -hₚ(x) ; g(x)]
+where the number of bounds is deduced from the length of cons.
+Returns [bounds ; Aeq x - beq ; Aineq x - bineq ; h(x) ; g(x)].
+"""
+function remove_duplicate_equalities(cons::Vector{Float64}, counts)
+    n_bounds = length(cons) - 2 * counts.lin_eq - counts.lin_ineq - 2 * counts.nl_eq - counts.nl_ineq
+    n_bounds ≥ 0 || error("COBYLA logged $(length(cons)) constraint values, fewer than expected from the problem.")
+
+    lin_eq_start = n_bounds + 1
+    lin_eq_neg = cons[lin_eq_start:(lin_eq_start + counts.lin_eq - 1)]
+    lin_eq = cons[(lin_eq_start + counts.lin_eq):(lin_eq_start + 2 * counts.lin_eq - 1)]
+    lin_ineq_start = lin_eq_start + 2 * counts.lin_eq
+    nl_eq_start = lin_ineq_start + counts.lin_ineq
+    nl_eq = cons[nl_eq_start:2:(nl_eq_start + 2 * counts.nl_eq - 1)]
+    nl_eq_neg = cons[(nl_eq_start + 1):2:(nl_eq_start + 2 * counts.nl_eq - 1)]
+
+    # Guard against a layout mismatch, which would silently shift the columns.
+    (lin_eq_neg ≈ -lin_eq && nl_eq_neg ≈ -nl_eq) || error("COBYLA constraint values do not follow the expected layout.")
+
+    return [cons[1:n_bounds] ; lin_eq ; cons[lin_ineq_start:(nl_eq_start - 1)] ; nl_eq ; cons[(nl_eq_start + 2 * counts.nl_eq):end]]
 end
 
 """
