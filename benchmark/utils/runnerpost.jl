@@ -255,7 +255,7 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equa
     cons_values = Vector{Float64}[]
     bbe_values = Int[]
 
-    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng) + 2 * length(nlp.meta.ifix)
+    n_bounds = length(nlp.meta.ilow) + length(nlp.meta.iupp) + 2 * length(nlp.meta.irng)
     n_eqs = length(nlp.meta.jfix)
 
     open(input_file, "r") do logf
