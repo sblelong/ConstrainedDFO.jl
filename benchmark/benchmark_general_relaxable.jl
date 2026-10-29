@@ -22,6 +22,10 @@ problems_names = CUTEst.select_sif_problems(
 )
 # The following problems won't work with DFRO:
 to_exclude = [
+    # Manifold dimension is 0 after handling fixed variables
+    "AIRCRFTA",
+    "TRIGGER",
+
     # Can't find a feasible first guess
     "SSINE",
     "VANDANIUMS",
@@ -55,7 +59,7 @@ for problem_name in problems_names
     mkpath(logs_path)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
-            result_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral())
+            result_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral(), display_p0_if_feasible = true)
         catch e
             println("DFRO was unable to solve this problem. See the exception: $(e)")
         end
@@ -94,4 +98,5 @@ for problem_name in problems_names
         end
     end
     println("✓")
+    finalize(nlp)
 end
