@@ -119,7 +119,12 @@ function ConstrainedDFO.eval_defining_hessian(M::ConstrainedDFO.EqualityManifold
     return ForwardDiff.hessian(hi, p)
 end
 
-function nlp_to_bb(nlp::AbstractNLPModel)
+"""
+Blackbox built from an NLPModel, as a function of the free variables.
+If `tol_eqs` is given, the equality constraints are unrelaxable: when any of them is violated by more than `tol_eqs`,
+the objective and inequality constraints return FAILURE_MAX. The equality constraints and bounds are unaffected.
+"""
+function nlp_to_bb(nlp::AbstractNLPModel; tol_eqs::Union{Float64, Nothing} = nothing)
     lbounds_raw, ubounds_raw = nlp.meta.lvar, nlp.meta.uvar
 
     # Objective function
@@ -147,8 +152,9 @@ function nlp_to_bb(nlp::AbstractNLPModel)
 
     dimension = reduced_dimension(R)
 
-    f(x) = f_raw(expand_point(R, x))
-    g(x) = g_raw(expand_point(R, x))
+    eqs_satisfied(x) = isnothing(tol_eqs) || all(abs.(h(x)) .≤ tol_eqs)
+    f(x) = eqs_satisfied(x) ? f_raw(expand_point(R, x)) : FAILURE_MAX
+    g(x) = eqs_satisfied(x) ? g_raw(expand_point(R, x)) : fill(FAILURE_MAX, n_ineqs)
 
     lbounds = reduce_point(R, lbounds_raw)
     ubounds = reduce_point(R, ubounds_raw)
