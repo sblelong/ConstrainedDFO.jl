@@ -32,13 +32,13 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
     return output_file
 end
 
-function logs_to_runnerpost!(benchmark_name::String, solver_type::Symbol; solver_name::String = String(solver_type))
+function logs_to_runnerpost!(benchmark_name::String, solver_type::Symbol; solver_name::String = String(solver_type), add_artificial_constraint::Bool = false)
     logs_directory = joinpath(@__DIR__, "..", "logs", benchmark_name, solver_name)
     outputs_directory = joinpath(@__DIR__, "..", "runnerpost", benchmark_name)
-    return logs_to_runnerpost!(logs_directory, solver_type, solver_name, outputs_directory)
+    return logs_to_runnerpost!(logs_directory, solver_type, solver_name, outputs_directory; add_artificial_constraint = add_artificial_constraint)
 end
 
-function logs_to_runnerpost!(logs_directory::String, solver_type::Symbol, solver_name::String, outputs_directory::String)
+function logs_to_runnerpost!(logs_directory::String, solver_type::Symbol, solver_name::String, outputs_directory::String; add_artificial_constraint::Bool = false)
     for filename in readdir(logs_directory)
         input_file = joinpath(logs_directory, filename)
         problem_name = split(filename, ".")[1]
@@ -48,7 +48,7 @@ function logs_to_runnerpost!(logs_directory::String, solver_type::Symbol, solver
         obj_values, cons_values = read_log(input_file, solver_type; nlp = nlp)
         isnothing(nlp) || finalize(nlp)
         output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
-        write_runnerpost!(obj_values, cons_values, output_path)
+        write_runnerpost!(obj_values, cons_values, output_path; add_artificial_constraint = add_artificial_constraint)
     end
     return outputs_directory
 end
@@ -88,7 +88,7 @@ end
 Each line inside the log file should be formatted as
 BBE OBJ CONS
 """
-function read_log_mads(input_path::String; add_artificial_constraint::Bool = false)
+function read_log_mads(input_path::String)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
 
@@ -100,7 +100,7 @@ function read_log_mads(input_path::String; add_artificial_constraint::Bool = fal
                 f = round(parse(Float64, parts[2]), digits = 6)
                 push!(obj_values, f)
                 cons = parse.(Float64, parts[3:last_float_part])
-                push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
+                push!(cons_values, cons)
             end
         end
     end
@@ -206,12 +206,15 @@ end
 """
 Returns a file readable by the RunnerPost, formatted as
 OBJ CONS
+If `add_artificial_constraint`, a column of 0.0 is appended to CONS: RunnerPost expects at least one inequality
+constraint when the solver's output is declared with CST, which fails on problems that only have equality constraints.
 """
-function write_runnerpost!(obj_values::Vector{Float64}, cons_values::Vector{Vector{Float64}}, output_file::String)
+function write_runnerpost!(obj_values::Vector{Float64}, cons_values::Vector{Vector{Float64}}, output_file::String; add_artificial_constraint::Bool = false)
     mkpath(dirname(output_file))
     open(output_file, "w") do io
         for eval in eachindex(obj_values)
-            line = @sprintf("%.6f", obj_values[eval]) #  * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
+            cons = add_artificial_constraint ? [cons_values[eval] ; 0.0] : cons_values[eval]
+            line = @sprintf("%.6f", obj_values[eval]) #  * " " * join((@sprintf("%.6f", c) for c in cons), " ")
             println(io, line)
         end
     end
@@ -227,7 +230,7 @@ function logs_to_runnerpost_no_bounds!(benchmark_name::String, solver_name::Stri
     return logs_to_runnerpost_no_bounds!(logs_directory, solver_name, outputs_directory; kwargs...)
 end
 
-function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::String, outputs_directory::String; kwargs...)
+function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::String, outputs_directory::String; add_artificial_constraint::Bool = false, kwargs...)
     for filename in readdir(logs_directory)
         occursin(".log", filename) || continue
         input_file = joinpath(logs_directory, filename)
@@ -236,7 +239,7 @@ function logs_to_runnerpost_no_bounds!(logs_directory::String, solver_name::Stri
         nlp = CUTEstModel(problem_name)
         obj_values, cons_values, bbe_values = read_log_no_bounds(input_file, nlp; kwargs...)
         output_path = joinpath(outputs_directory, solver_name, "$(problem_name)", "stats.txt")
-        write_runnerpost_bbe!(obj_values, cons_values, bbe_values, output_path)
+        write_runnerpost_bbe!(obj_values, cons_values, bbe_values, output_path; add_artificial_constraint = add_artificial_constraint)
         finalize(nlp)
     end
     return outputs_directory
@@ -246,9 +249,8 @@ end
 Assuming DFRO prints as:
 inner_iteration  objective  [h]  [g]  [bounds (as ineqs)]
 Retrieve all iterations within bounds, with associated BBE (don't forget to always retrieve the first eval, even outside bounds).
-Always retrieve the first evaluation and add a virtual [0.0] inequality constraint, so the RunnerPost can work.
 """
-function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equalities::Bool = true, add_artificial_constraint::Bool = false)
+function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equalities::Bool = true)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
     bbe_values = Int[]
@@ -268,7 +270,7 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equa
                     cons[cons .== Inf] .= FAILURE_MAX
                     push!(bbe_values, eval_counter)
                     push!(obj_values, f)
-                    push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
+                    push!(cons_values, cons)
                     continue
                 end
                 bounds_cons = parse.(Float64, parts[(end - n_bounds + 1):end])
@@ -280,7 +282,7 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equa
                     cons[cons .== Inf] .= FAILURE_MAX
                     push!(bbe_values, eval_counter)
                     push!(obj_values, f)
-                    push!(cons_values, add_artificial_constraint ? [cons ; [0.0]] : cons)
+                    push!(cons_values, cons)
                 end
             end
         end
@@ -289,11 +291,15 @@ function read_log_no_bounds(input_file::String, nlp::AbstractNLPModel; with_equa
     return obj_values, cons_values, bbe_values
 end
 
-function write_runnerpost_bbe!(obj_values::Vector{Float64}, cons_values::Vector{Vector{Float64}}, bbe_values::Vector{Int}, output_file::String)
+"""
+Same as `write_runnerpost!`, with the BBE as first column.
+"""
+function write_runnerpost_bbe!(obj_values::Vector{Float64}, cons_values::Vector{Vector{Float64}}, bbe_values::Vector{Int}, output_file::String; add_artificial_constraint::Bool = false)
     mkpath(dirname(output_file))
     open(output_file, "w") do io
         for eval in eachindex(obj_values)
-            line = @sprintf("%i %.6f", bbe_values[eval], obj_values[eval]) * " " * join((@sprintf("%.6f", cons) for cons in cons_values[eval]), " ")
+            cons = add_artificial_constraint ? [cons_values[eval] ; 0.0] : cons_values[eval]
+            line = @sprintf("%i %.6f", bbe_values[eval], obj_values[eval]) * " " * join((@sprintf("%.6f", c) for c in cons), " ")
             println(io, line)
         end
     end
