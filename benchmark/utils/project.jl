@@ -13,6 +13,7 @@ function make_x0_feasible(BI::BlackboxInstance; perturbation_attemps::Int = 10)
     model = Model(Ipopt.Optimizer)
     set_silent(model)
     set_attribute(model, "constr_viol_tol", 1.0e-8)
+    set_attribute(model, "bound_relax_factor", 0.0)
     @variable(model, x[1:n])
     for i in 1:n
         isfinite(lb[i]) && set_lower_bound(x[i], lb[i])

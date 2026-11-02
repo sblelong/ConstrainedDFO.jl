@@ -11,12 +11,12 @@ println("Running DFRO invertibility radii benchmark.")
 CUTEst.set_mastsif()
 
 # Only nonlinear equality constraints, inequality and bounds possible.
-filter(meta) = (meta["variables"]["number"] > meta["constraints"]["number"]) && (meta["constraints"]["equality"] > 0)
+problem_filter(meta) = (meta["variables"]["number"] > meta["constraints"]["number"]) && (meta["constraints"]["equality"] > 0)
 problems_names = CUTEst.select_sif_problems(
     max_var = 100,
     min_con = 1,
     contype = [6, 7],
-    custom_filter = filter
+    custom_filter = problem_filter
 )
 # The following problems won't work with DFRO:
 to_exclude = [
