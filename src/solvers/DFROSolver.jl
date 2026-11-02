@@ -80,7 +80,7 @@ function DFROSolver(
         p = p0
         if display_p0_if_feasible && print_level > 0
             fp0 = get_cost(M, mco, p0)
-            hp0 = abs.(eval_defining_function(M, p0))
+            hp0 = eval_defining_function(M, p0)
             gp0 = g(p0)
             extra_line = @sprintf(
                 "%-10s%-30.15g",
