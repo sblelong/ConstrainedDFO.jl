@@ -132,7 +132,7 @@ end
 Each line inside the log file should be formatted as
 BBE OBJ CONS
 """
-function read_log_mads(input_path::String)
+function read_log_mads(input_path::String; add_artificial_constraint::Bool = false)
     obj_values = Float64[]
     cons_values = Vector{Float64}[]
     bbe_values = Int[]
