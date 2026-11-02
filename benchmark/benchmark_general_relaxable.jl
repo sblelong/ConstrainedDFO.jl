@@ -12,20 +12,30 @@ log_path_base = joinpath(@__DIR__, "logs", "general_relaxable")
 println("Running general benchmark in the relaxable setting.")
 
 CUTEst.set_mastsif()
-# Only nonlinear equality constraints, inequality and bounds possible.
-filter(meta) = (meta["variables"]["number"] > meta["constraints"]["number"]) && (meta["constraints"]["equality"] > 0)
+# At least one nonlinear equality constraint, inequalities and bounds possible.
+# Pre-selection from the metadata: at least one equality and one nonlinear constraint, more free variables than equalities.
+metadata_filter(meta) = meta["constraints"]["equality"] > 0 && meta["constraints"]["nonlinear"] > 0 &&
+    meta["variables"]["number"] - meta["variables"]["fixed"] > meta["constraints"]["equality"]
 problems_names = CUTEst.select_sif_problems(
-    max_var = 40,
+    max_var = 100,
     min_con = 1,
     contype = [6, 7],
-    custom_filter = filter
+    custom_filter = metadata_filter
 )
+
+# The metadata does not tell which constraints are linear: at least one equality constraint must be nonlinear.
+function model_filter(problem_name)
+    nlp = CUTEstModel(problem_name)
+    try
+        return !isempty(setdiff(nlp.meta.jfix, nlp.meta.lin))
+    finally
+        finalize(nlp)
+    end
+end
+filter!(model_filter, problems_names)
+
 # The following problems won't work with DFRO:
 to_exclude = [
-    # Manifold dimension is 0 after handling fixed variables
-    "AIRCRFTA",
-    "TRIGGER",
-
     # Can't find a feasible first guess
     "SSINE",
     "VANDANIUMS",

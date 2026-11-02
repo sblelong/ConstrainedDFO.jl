@@ -249,7 +249,7 @@ function split_cobyla_constraints(cons::Vector{Float64}, counts)
     nl_eq_neg = cons[(nl_eq_start + 1):2:(nl_eq_start + 2 * counts.nl_eq - 1)]
 
     # Guard against a layout mismatch, which would silently shift the columns.
-    (lin_eq_neg ≈ -lin_eq && nl_eq_neg ≈ -nl_eq) || error("COBYLA constraint values do not follow the expected layout.")
+    (lin_eq_neg ≈ -lin_eq && nl_eq_neg ≈ -nl_eq) || error("COBYLA constraint values do not follow the expected layout (check the `unrelaxable` setting).")
 
     return cons[1:n_bounds], [lin_eq ; nl_eq ; cons[lin_ineq_start:(nl_eq_start - 1)] ; cons[(nl_eq_start + 2 * counts.nl_eq):end]]
 end
