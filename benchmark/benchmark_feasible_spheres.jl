@@ -4,66 +4,57 @@ using ManifoldsBase, Manifolds, Manopt
 
 include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
 include(joinpath(@__DIR__, "utils", "solve_manopt.jl"))
+include(joinpath(@__DIR__, "utils", "problem_selection.jl"))
 
 log_path_base = joinpath(@__DIR__, "logs", "feasible_spheres")
 
 println("Running benchmark to compare feasible solvers on sphere-constrained problems.")
 
-CUTEst.set_mastsif()
-
-# Unconstrained problems, no bounds.
-problems_names = CUTEst.select_sif_problems(
-    max_var = 200,
-    contype = :unc
-)
-
-to_exclude = [
-    "MUONSINELS", # Dimension 1, trivial.
-    "LUKSAN22LC", # Not included in the MATLAB version of CUTEst - RDSE-DD cannot solve it.
-]
-filter!(e -> e ∉ to_exclude, problems_names)
+problems_names = unconstrained_problems()
 
 for problem_name in problems_names
     print("$(problem_name)... ")
-
     nlp = CUTEstModel(problem_name)
     BI = nlp_to_bb(nlp)
+
     dimension = get_dimension(BI)
 
     f(x) = eval_objective(BI, x)
     x0 = ConstrainedDFO.get_x0(BI)
     p0 = norm(x0) == 0 ? [[1.0] ; [0.0 for _ in 1:(dimension - 1)]] : x0 ./ norm(x0)
 
-    print("DFRO with projection ")
+    print("DFRO-proj | ")
     logs_path = joinpath(log_path_base, "dfro-projection")
     mkpath(logs_path)
     h(x) = [sum(x .^ 2) - 1]
     M = EqualityManifold(h, dimension - 1, dimension)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
+            Random.seed!(SEED)
             solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), invertibility_bound = NOverSqrtSpectral(), display_p0_if_feasible = true)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
 
-    print("DFRO with Exp ")
+    print("DFRO-Exp | ")
     logs_path = joinpath(log_path_base, "dfro-exp")
     mkpath(logs_path)
     M = Manifolds.Sphere(dimension - 1)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
         try
+            Random.seed!(SEED)
             solution = DFROSolver(M, f, p0; max_evals = 200 * (dimension + 1), retraction_method = ExponentialRetraction(), invertibility_bound = ExactInvertibility(), display_p0_if_feasible = true)
         catch e
             println("DFROSolver was unable to solve this problem. See the exception: $(e)")
         end
     end
 
-    print("MADS in Manopt.jl")
+    print("Manopt | ")
     logs_path = joinpath(log_path_base, "manopt")
     mkpath(logs_path)
-    M = Manifolds.Sphere(dimension - 1)
     redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
+        Random.seed!(SEED)
         res_manopt = solve_sphere_manopt(BI; max_evals = 200 * (dimension + 1))
     end
 

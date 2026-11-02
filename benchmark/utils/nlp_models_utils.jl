@@ -49,6 +49,15 @@ function reduce_linear(R::FixedVarsReduction, A::AbstractMatrix, b::AbstractVect
     return (A_free, b_free)
 end
 
+"""Matrix A and constant term c0 such that the linear constraints of indices idcs read c(x)[idcs] = A x + c0."""
+function get_linear_part(nlp::AbstractNLPModel, idcs::Vector{Int})
+    # jac_lin and cons_lin have one row per linear constraint, in the order of nlp.meta.lin
+    rows = Int.(indexin(idcs, nlp.meta.lin))
+    A = Matrix{Float64}(jac_lin(nlp, nlp.meta.x0))[rows, :]
+    c0 = cons_lin(nlp, zeros(nlp.meta.nvar))[rows]
+    return (A, c0)
+end
+
 """Defining function carrying the NLPModel needed to differentiate it."""
 struct NLPModelEqualityFunction{N, I}
     nlp::N

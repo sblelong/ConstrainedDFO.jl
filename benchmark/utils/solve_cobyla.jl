@@ -1,15 +1,6 @@
 using NLPModels
 using PRIMA
 
-"""Matrix A and constant term c0 such that the linear constraints of indices idcs read c(x)[idcs] = A x + c0."""
-function get_linear_part(nlp::AbstractNLPModel, idcs::Vector{Int})
-    # jac_lin and cons_lin have one row per linear constraint, in the order of nlp.meta.lin
-    rows = Int.(indexin(idcs, nlp.meta.lin))
-    A = Matrix{Float64}(jac_lin(nlp, nlp.meta.x0))[rows, :]
-    c0 = cons_lin(nlp, zeros(nlp.meta.nvar))[rows]
-    return (A, c0)
-end
-
 """
 Solve an NLPModel with PRIMA's COBYLA.
 If `tol_eqs` is given, the equality constraints are unrelaxable: when any of them is violated by more than `tol_eqs`,

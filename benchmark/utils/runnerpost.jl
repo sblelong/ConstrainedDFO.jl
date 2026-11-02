@@ -131,6 +131,7 @@ end
 """"
 Each line inside the log file should be formatted as
 BBE OBJ CONS
+as printed by `print_nomad_evaluation`.
 """
 function read_log_mads(input_path::String; add_artificial_constraint::Bool = false)
     obj_values = Float64[]
@@ -141,10 +142,9 @@ function read_log_mads(input_path::String; add_artificial_constraint::Bool = fal
         for line in eachline(logf)
             if occursin(r"^\d+", line)
                 parts = split(line)
-                last_float_part = contains(line, "(Phase One)") ? findfirst(s -> s == "(Phase", parts) - 1 : length(parts)
                 push!(bbe_values, parse(Int, parts[1]))
                 push!(obj_values, parse(Float64, parts[2]))
-                push!(cons_values, parse.(Float64, parts[3:last_float_part]))
+                push!(cons_values, parse.(Float64, parts[3:end]))
             end
         end
     end
@@ -255,31 +255,20 @@ function split_cobyla_constraints(cons::Vector{Float64}, counts)
 end
 
 
-# Coarsest precision among the solvers' logs: MADS logs 6 decimals, DFRO logs 15 significant digits (COBYLA logs 16).
-const LOG_DECIMALS = 6
+# Coarsest precision among the solvers' logs: DFRO and MADS log 15 significant digits (COBYLA logs 16).
 const LOG_SIGDIGITS = 15
 # Rounding a logged value to a precision only slightly coarser than the log's flips its last digit whenever the log rounded it
-# close to a half unit. The printed precision is thus kept LOG_MARGIN digits coarser than every log it does not match exactly.
+# close to a half unit. The printed precision is thus kept LOG_MARGIN digits coarser than every log.
 const LOG_MARGIN = 3
-
-"""Number of decimals printed for `x`, negative if digits before the decimal point have to be rounded."""
-function printed_decimals(x::Float64)
-    (iszero(x) || !isfinite(x)) && return LOG_DECIMALS
-    log_decimals = LOG_SIGDIGITS - 1 - floor(Int, log10(abs(x)))
-    # MADS logs are printed as is, as long as the other logs are LOG_MARGIN digits finer.
-    log_decimals ≥ LOG_DECIMALS + LOG_MARGIN && return LOG_DECIMALS
-    return min(LOG_DECIMALS, log_decimals) - LOG_MARGIN
-end
 
 """
 Prints `x` with a precision coarser than all the solvers' logs, so that the same value logged by two solvers is printed identically
 (up to values logged within 1e-3 units of the last printed digit from a rounding boundary).
+Significant digits are used rather than decimals, so that small constraint violations (e.g. 1e-8) are not rounded to 0.
 """
 function format_log_value(x::Float64)
-    decimals = printed_decimals(x)
-    # Rounding is left to printf when possible, to avoid double rounding.
-    s = decimals < 0 ? @sprintf("%.0f", round(x, digits = decimals)) : Printf.format(Printf.Format("%.$(decimals)f"), x)
-    return occursin(r"^-[0.]+$", s) ? s[2:end] : s # No negative zeros
+    s = Printf.format(Printf.Format("%.$(LOG_SIGDIGITS - LOG_MARGIN)g"), x)
+    return occursin(r"^-0(\.0*)?$", s) ? s[2:end] : s # No negative zeros
 end
 
 """
