@@ -40,6 +40,7 @@ Keyword arguments can include:
 - `tol_eqs::Float64` is the numerical tolerance below which a point is considered feasible for equality constraints. Defaults to ``1.0\\times 10^{-8}``.
 - `tol_ineqs::Float64` is the numerical tolerance below which a point is considered feasible for inequality constraints. Defaults to ``1.0\\times 10^{-8}``.
 - `print_level::Int` chooses how verbose the algorithm is. Only `0` (no outputs) and `1` (full output) are implemented so far. Defaults to `1`.
+- `max_time::Float64` is the wall-clock time in seconds after which the solver stops, as if its budget of evaluations was used: the evaluation running at that time is completed, and the best point found so far is returned. Defaults to `Inf`.
 - `display_first_infeasible::Bool` in the case where ``p_0\\notin\\mathcal{M}``, displays a first line with the values of (`f`,`g`,`h`) at the true first guess before projecting it onto ``\\mathcal{M}``. Defaults to `true`.
 """
 function DFROSolver(M::AbstractManifold, f, g, p0, n_ineqs::Int; kwargs...)
@@ -61,8 +62,10 @@ function DFROSolver(
         tol_eqs::Float64 = 1.0e-8,
         tol_ineqs::Float64 = 1.0e-8,
         print_level::Int = 1,
-        display_p0_if_feasible::Bool = false
+        display_p0_if_feasible::Bool = false,
+        max_time::Float64 = Inf
     )
+    deadline = time() + max_time
 
     manifold_dimension(M) ≤ 0 && throw(NumericalError("ConstrainedDFO.jl error: calling DFROSolver with a manifold with dimension < 1."))
 
@@ -106,6 +109,7 @@ function DFROSolver(
     remaining_eval_budget = max_evals
     feasible_solution_found::Bool = true
     termination::Bool = false
+    time_exhausted::Bool = false
     while !termination
         outer_counter += 1
 
@@ -126,7 +130,7 @@ function DFROSolver(
         end
 
         # Solve the subproblem in the current tangent space
-        solve!(tangent_solver, mco, M, p, retraction_method, radius, m, g; max_evals = remaining_eval_budget, εeqs = tol_eqs, εineqs = tol_ineqs)
+        solve!(tangent_solver, mco, M, p, retraction_method, radius, m, g; max_evals = remaining_eval_budget, εeqs = tol_eqs, εineqs = tol_ineqs, deadline = deadline)
 
         # Retrieve data from the tangent solver
         data_f = get_data_f(tangent_solver)
@@ -171,12 +175,15 @@ function DFROSolver(
         # Update remaining evaluations
         remaining_eval_budget -= last_eval
 
-        termination = get_radius_evaluation(tangent_solver) == 0 || remaining_eval_budget == 0 || !feasible_solution_found
+        time_exhausted = time() ≥ deadline
+        termination = get_radius_evaluation(tangent_solver) == 0 || remaining_eval_budget == 0 || !feasible_solution_found || time_exhausted
 
         (print_level == 1 && get_radius_evaluation(tangent_solver) > 0) && println("Improvement was found outside the invertibility region. Switching to a new subproblem.\n")
     end
 
-    if get_radius_evaluation(tangent_solver) == 0
+    if time_exhausted
+        end_message = "EXIT: Maximum time reached."
+    elseif get_radius_evaluation(tangent_solver) == 0
         end_message = feasible_solution_found ? "EXIT: Subproblem solved within invertibility region." : "EXIT: No feasible solution found in the last subproblem."
     else
         end_message = "EXIT: Maximum amount of blackbox evaluations used."

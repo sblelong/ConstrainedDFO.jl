@@ -116,7 +116,7 @@ function blackbox_wrapper_store!(
 end
 
 """
-    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs)
+    solve!(TS::AbstractTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs, deadline)
 
 Solve the subproblem
 
@@ -128,6 +128,7 @@ Solve the subproblem
 ```
 
 with the tangent solver `TS`. Stops whenever an iterate (i.e., a feasible improving point) is found outside of the [`invertibility_radius`](@ref), with bound given by `ρ` (see [`AbstractInvertibilityBound`](@ref)).
+Also stops once the time given by `time()` reaches `deadline`, the first evaluation (at `p`) being always performed.
 
 A history of all tangent iterates, associated retractions and (`f`,`g`) values is stored within the `AbstractTangentSolver` object.
 """
@@ -140,7 +141,7 @@ function solve!(
         invertibility_radius::Float64,
         n_ineqs::Int,
         g;
-        max_evals::Int, εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
+        max_evals::Int, εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8, deadline::Float64 = Inf
     )
 end
 

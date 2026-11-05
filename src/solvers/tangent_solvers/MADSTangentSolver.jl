@@ -58,10 +58,11 @@ function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData
 end
 
 """
-    solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs)
+    solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs, deadline)
 
 # Note
 A core rule of DFRO is that when improvement is found outside the invertibility radius of ``\\mathcal{M}`` around the current iterate, the tangent solver stops. The implementation in NOMAD does not allow for an external callback that would stop the solver based on the radius criterion, so the MADS solver keeps running until one of its stopping criteria is met. However, every evaluation it requests after improvement is found outside the radius is answered with a failure, without retracting nor storing it: these evaluations cost nothing and do not exist for DFRO.
+The same holds once the time given by `time()` reaches `deadline`, after the first evaluation (at `p`), which is always performed so that the subproblem has a result. The MADS solver is also given the remaining time as its own time limit, and is not restarted for a second pass.
 """
 function solve!(
         MTS::MADSTangentSolver,
@@ -72,24 +73,30 @@ function solve!(
         invertibility_radius::Float64,
         n_ineqs::Int,
         g;
-        max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8
+        max_evals::Int = 1000 * manifold_dimension(M), εeqs::Float64 = 1.0e-8, εineqs::Float64 = 1.0e-8, deadline::Float64 = Inf
     )
     q = manifold_dimension(M)
 
+    solved = false # Whether a pass of the MADS solver has already been performed on this subproblem
     for budget in (10, max_evals)
         budget > max_evals && continue
+        # Once the time is up, the evaluations of the previous pass are kept rather than restarting from scratch.
+        solved && time() ≥ deadline && break
 
         clear_tangent_solver!(MTS) # Very important! The storage should be cleared before solving, to prevent duplicates.
 
         # Set display format in the NOMAD history file
-        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true)
+        max_time = isfinite(deadline) ? max(1, ceil(Int, deadline - time())) : nothing # In seconds, at least 1 so that p is evaluated
+        eval_sort_type = manifold_dimension(M) ≥ 50 ? "DIR_LAST_SUCCESS" : "QUADRATIC_MODEL" # When the subproblem has dimension over 50, ordering points according to a quadratic model is too computationally demanding
+        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, max_time = max_time, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true, eval_queue_sort = eval_sort_type)
 
         # Build the blackbox, which checks after each evaluation if an improving solution was found outside of the invertibility radius.
         # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving on the first evaluation (the current iterate).
-        # Once it is, the subproblem is over: the evaluations NOMAD still requests are answered with failures, without being retracted nor stored.
+        # Once it is, or once the time is up, the subproblem is over: the evaluations NOMAD still requests are answered with failures, without being retracted nor stored.
         best_feasible_f = Inf
         function bb(v)
             MTS.radius_evaluation > 0 && return (true, true, fill(FAILURE_MAX, 1 + n_ineqs))
+            !isempty(MTS.data_f) && time() ≥ deadline && return (true, true, fill(FAILURE_MAX, 1 + n_ineqs))
             formatted_data = blackbox_wrapper_store!(MTS, M, p, R, mco, n_ineqs, g, v; εeqs)
             id_eval = length(MTS.data_f)
             if id_eval == 1
@@ -106,6 +113,7 @@ function solve!(
         redirect_to_files(MTS.log_path) do # TODO. Is it even useful to redirect to external files if the tangent solver object stores everything?
             result = solve(problem, zeros(q))
         end
+        solved = true
 
         MTS.radius_evaluation > 0 && break
     end
