@@ -61,7 +61,7 @@ end
     solve!(MTS::MADSTangentSolver, mco::AbstractManifoldCostObjective, M::AbstractManifold, p, R::AbstractRetractionMethod, invertibility_radius::Float64, n_ineqs::Int, g; max_evals, εeqs, εineqs)
 
 # Note
-A core rule of DFRO is that when improvement is found outside the invertibility radius of ``\\mathcal{M}`` around the current iterate, the tangent solver stops. It is not the case in this implementation: the MADS solver will keep solving until one of its stopping criteria is met. However, the data obtained from the solver is handled as if it had stopped when improvement is found outside the radius. The reason for this is that the implementation in NOMAD does not allow for an external callback that would stop the solver based on the radius criterion.
+A core rule of DFRO is that when improvement is found outside the invertibility radius of ``\\mathcal{M}`` around the current iterate, the tangent solver stops. The implementation in NOMAD does not allow for an external callback that would stop the solver based on the radius criterion, so the MADS solver keeps running until one of its stopping criteria is met. However, every evaluation it requests after improvement is found outside the radius is answered with a failure, without retracting nor storing it: these evaluations cost nothing and do not exist for DFRO.
 """
 function solve!(
         MTS::MADSTangentSolver,
@@ -84,38 +84,27 @@ function solve!(
         # Set display format in the NOMAD history file
         nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true)
 
-        # Build the blackbox
-        bb(v) = blackbox_wrapper_store!(MTS, M, p, R, mco, n_ineqs, g, v; εeqs)
+        # Build the blackbox, which checks after each evaluation if an improving solution was found outside of the invertibility radius.
+        # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving on the first evaluation (the current iterate).
+        # Once it is, the subproblem is over: the evaluations NOMAD still requests are answered with failures, without being retracted nor stored.
+        best_feasible_f = Inf
+        function bb(v)
+            MTS.radius_evaluation > 0 && return (true, true, fill(FAILURE_MAX, 1 + n_ineqs))
+            formatted_data = blackbox_wrapper_store!(MTS, M, p, R, mco, n_ineqs, g, v; εeqs)
+            id_eval = length(MTS.data_f)
+            if id_eval == 1
+                best_feasible_f = MTS.data_f[1]
+            elseif (MTS.data_f[id_eval] < best_feasible_f) && (n_ineqs == 0 || all(MTS.data_g[id_eval] .≤ εineqs)) # data_g is empty without inequalities
+                best_feasible_f = MTS.data_f[id_eval]
+                norm(MTS.data_d[id_eval]) ≥ invertibility_radius && set_radius_evaluation!(MTS, id_eval)
+            end
+            return formatted_data
+        end
 
         problem = _build_nomad_problem(MTS.barrier, q, n_ineqs, bb, nomad_options)
 
         redirect_to_files(MTS.log_path) do # TODO. Is it even useful to redirect to external files if the tangent solver object stores everything?
             result = solve(problem, zeros(q))
-        end
-
-        # Check if an improving solution was found outside of the invertibility radius. If so, break and discard the remainder from the storage: these evaluations should not exist.
-
-        best_feasible_f = MTS.data_f[1]
-        if n_ineqs > 0
-            for id_eval in eachindex(MTS.data_d)
-                if (MTS.data_f[id_eval] < best_feasible_f) && (all(MTS.data_g[id_eval] .≤ εineqs)) # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving.
-                    best_feasible_f = MTS.data_f[id_eval]
-                    if norm(MTS.data_d[id_eval]) ≥ invertibility_radius
-                        set_radius_evaluation!(MTS, id_eval)
-                        break
-                    end
-                end
-            end
-        else
-            for id_eval in eachindex(MTS.data_d)
-                if MTS.data_f[id_eval] < best_feasible_f
-                    best_feasible_f = MTS.data_f[id_eval]
-                    if norm(MTS.data_d[id_eval]) ≥ invertibility_radius
-                        set_radius_evaluation!(MTS, id_eval)
-                        break
-                    end
-                end
-            end
         end
 
         MTS.radius_evaluation > 0 && break
