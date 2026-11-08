@@ -72,7 +72,7 @@ function solve_nomad_converter(BI::BlackboxInstance, A::Matrix{Float64}, b::Vect
     return solve(pb, x0)
 end
 
-function solve_mads_pip(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedDFO.get_x0(BI), max_evals = 200 * (get_dimension(BI) + 1), tol_eqs::Float64 = 1.0e-8)
+function solve_mads_pip(BI::BlackboxInstance; x0::Vector{Float64} = ConstrainedDFO.get_x0(BI), max_evals = 200 * (get_dimension(BI) + 1))
     dimension = get_dimension(BI)
     lbounds, ubounds = get_lbounds(BI), get_ubounds(BI)
     n_eqs = get_n_eqs(BI)
