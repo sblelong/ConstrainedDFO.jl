@@ -31,6 +31,7 @@ function general_problems()
     metadata_filter(meta) = has_free_dimensions(meta) && meta["constraints"]["nonlinear"] > 0
     problems_names = CUTEst.select_sif_problems(
         max_var = 100,
+        max_con = 100,
         min_con = 1,
         contype = [6, 7],
         custom_filter = metadata_filter
@@ -42,6 +43,7 @@ function general_problems()
         # Can't find a feasible first guess
         "SSINE",
         "VANDANIUMS",
+        "TRO6X2",
 
         # Can't compute invertibility radius: Hessian contains Inf or NaN
         "BA-L1",

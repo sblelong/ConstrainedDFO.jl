@@ -13,7 +13,6 @@ log_path_base = joinpath(@__DIR__, "logs", "linear_equalities")
 tol_eqs = 1.0e-8
 
 println("Running benchmark with linear equality constraints...")
-println()
 
 problems_names = linear_equality_problems()
 
