@@ -23,10 +23,8 @@ function problem_selection_from_nlp!(problems_names::Vector{String}; output_dire
             nlp = CUTEstModel(problem_name)
             N = nlp.meta.nvar - length(nlp.meta.ifix)
             P = length(nlp.meta.jfix)
-            M = nlp.meta.ncon + 2
-            M = nlp.meta.ncon + 2
+            M = nlp.meta.ncon + length(nlp.meta.jrng) + 2 # low/upp constraints count twice + objective + artificial constraint
             finalize(nlp)
-            line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             line = "$(problem_name) ($(problem_name)) [N $(N)] [M $(M)] [P $(P)]"
             println(io, line)
         end
