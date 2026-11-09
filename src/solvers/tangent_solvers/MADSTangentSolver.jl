@@ -87,8 +87,8 @@ function solve!(
 
         # Set display format in the NOMAD history file
         max_time = isfinite(deadline) ? max(1, ceil(Int, deadline - time())) : nothing # In seconds, at least 1 so that p is evaluated
-        eval_sort_type = manifold_dimension(M) ≥ 50 ? "DIR_LAST_SUCCESS" : "QUADRATIC_MODEL" # When the subproblem has dimension over 50, ordering points according to a quadratic model is too computationally demanding
-        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, max_time = max_time, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true, eval_queue_sort = eval_sort_type)
+        eval_queue_sort = manifold_dimension(M) ≥ 50 ? "DIR_LAST_SUCCESS" : "QUADRATIC_MODEL" # When the subproblem has dimension over 50, ordering points according to a quadratic model is too computationally demanding
+        nomad_options = NOMAD.NomadOptions(max_bb_eval = budget, max_time = max_time, display_stats = [["BBE", "SOL", "OBJ"] ; ["CONS_H" for _ in 1:n_ineqs]], display_all_eval = true, eval_queue_sort = eval_queue_sort)
 
         # Build the blackbox, which checks after each evaluation if an improving solution was found outside of the invertibility radius.
         # Basic strategy: a solution is considered good enough to interrupt if it is feasible and f is improving on the first evaluation (the current iterate).

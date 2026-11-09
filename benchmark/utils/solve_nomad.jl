@@ -67,7 +67,9 @@ function solve_nomad_converter(BI::BlackboxInstance, A::Matrix{Float64}, b::Vect
         return (true, true, [[f] ; g])
     end
 
-    options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_degree = 0, linear_converter = String(converter), linear_constraints_atol = tol_eqs)
+    reduced_dimension = dimension - size(A)[1]
+    eval_queue_sort = reduced_dimension ≥ 50 ? "DIR_LAST_SUCCESS" : "QUADRATIC_MODEL"
+    options = NOMAD.NomadOptions(max_bb_eval = max_evals, display_degree = 0, linear_converter = String(converter), linear_constraints_atol = tol_eqs, eval_queue_sort = eval_queue_sort)
     pb = NomadProblem(dimension, 1 + n_ineqs, output_types, blackbox; A = A, b = b, lower_bound = lb, upper_bound = ub, options = options)
     return solve(pb, x0)
 end
