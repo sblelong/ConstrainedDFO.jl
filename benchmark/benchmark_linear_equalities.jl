@@ -6,6 +6,7 @@ include(joinpath(@__DIR__, "utils", "nlp_models_utils.jl"))
 include(joinpath(@__DIR__, "utils", "solve_nomad.jl"))
 include(joinpath(@__DIR__, "utils", "project.jl"))
 include(joinpath(@__DIR__, "utils", "problem_selection.jl"))
+include(joinpath(@__DIR__, "utils", "progress_table.jl"))
 
 log_path_base = joinpath(@__DIR__, "logs", "linear_equalities")
 
@@ -16,8 +17,11 @@ println("Running benchmark with linear equality constraints...")
 
 problems_names = linear_equality_problems()
 
+table = ProgressTable(["DFRO", "NOMAD"], problems_names)
+print_header(table)
+
 for problem_name in problems_names
-    print("$(problem_name)... ")
+    start_row(table, problem_name)
     nlp = CUTEstModel(problem_name)
     BI = nlp_to_bb(nlp; tol_eqs = tol_eqs)
 
@@ -29,35 +33,41 @@ for problem_name in problems_names
     end
     BI.x0 = x0f
 
-    print("DFRO | ")
-    logs_path = logs_path = joinpath(log_path_base, "dfro")
+    logs_path = joinpath(log_path_base, "dfro")
     mkpath(logs_path)
-    redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
-        try
-            Random.seed!(SEED)
-            result_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), display_p0_if_feasible = true)
-        catch e
-            println("DFRO was unable to solve this problem. See the exception: $(e)")
+    timed_cell(table) do
+        redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
+            try
+                Random.seed!(SEED)
+                result_dfro = DFROSolver(BI; max_evals = 200 * (dimension + 1), display_p0_if_feasible = true)
+                true
+            catch e
+                println("DFRO was unable to solve this problem. See the exception: $(e)")
+                false
+            end
         end
     end
 
-    print("NOMAD | ")
     logs_path = joinpath(log_path_base, "mads_converter")
     mkpath(logs_path)
-    try
+    timed_cell(table) do
         redirect_to_files(joinpath(logs_path, "$(problem_name).log")) do
-            # Equality constraints as A x = b, in terms of the free variables like the blackbox
-            eq_idcs = nlp.meta.jfix
-            A_full, c0 = get_linear_part(nlp, eq_idcs)
-            A, b = reduce_linear(FixedVarsReduction(nlp), A_full, nlp.meta.ucon[eq_idcs] .- c0)
+            try
+                # Equality constraints as A x = b, in terms of the free variables like the blackbox
+                eq_idcs = nlp.meta.jfix
+                A_full, c0 = get_linear_part(nlp, eq_idcs)
+                A, b = reduce_linear(FixedVarsReduction(nlp), A_full, nlp.meta.ucon[eq_idcs] .- c0)
 
-            Random.seed!(SEED)
-            res_nomad_converter = solve_nomad_converter(BI, A, b; converter = :SVD, barrier = :PB, max_evals = 200 * (dimension + 1))
+                Random.seed!(SEED)
+                res_nomad_converter = solve_nomad_converter(BI, A, b; converter = :SVD, barrier = :PB, max_evals = 200 * (dimension + 1))
+                true
+            catch e
+                println("NOMAD was unable to solve this problem. See the exception: $(e)")
+                false
+            end
         end
-    catch e
-        println("NOMAD was unable to solve this problem. See the exception: $(e)")
     end
-    finalize(nlp)
-    println("✓")
 
+    finalize(nlp)
+    end_row(table)
 end
