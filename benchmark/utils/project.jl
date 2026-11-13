@@ -12,6 +12,7 @@ function make_x0_feasible(BI::BlackboxInstance; perturbation_attemps::Int = 10)
 
     model = Model(Ipopt.Optimizer)
     set_silent(model)
+    set_attribute(model, "sb", "yes") # Suppress the Ipopt banner, which set_silent does not
     set_attribute(model, "tol", 1.0e-12)
     set_attribute(model, "constr_viol_tol", 1.0e-12)
     set_attribute(model, "bound_relax_factor", 0.0)
