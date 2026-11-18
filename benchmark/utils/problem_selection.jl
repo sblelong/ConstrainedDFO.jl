@@ -67,7 +67,20 @@ function linear_equality_problems()
         custom_filter = has_free_dimensions
     )
     # The metadata does not tell which constraints are linear.
-    return filter!(name -> model_filter(nlp -> nlp.meta.jfix ⊆ nlp.meta.lin, name), problems_names)
+    filter!(name -> model_filter(nlp -> nlp.meta.jfix ⊆ nlp.meta.lin, name), problems_names)
+
+    to_exclude = [
+        # Projection does not yield a feasible first point.
+        "HIMMELBJ",
+        "LINSPANH",
+        "RES",
+        "SPANHYD",
+
+        # Both solvers can't improve the first guess.
+        "DALLASS",
+        "LSNNODOC",
+    ]
+    return filter!(name -> name ∉ to_exclude, problems_names)
 end
 
 function unconstrained_problems()
