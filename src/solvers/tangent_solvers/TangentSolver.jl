@@ -9,6 +9,8 @@ abstract type AbstractTangentSolver end
     BlackboxTangentData
 
 A structure representing all the data expected to be returned by an [`AbstractTangentSolver`](@ref) evaluating a blackbox.
+`success` is false when the evaluation failed: the retracted point is not on the manifold, the evaluation threw an error, or it
+returned a non-finite value. The values `f` and `g` are then `FAILURE_MAX`.
 """
 mutable struct BlackboxTangentData
     d::Vector{Float64}
@@ -16,6 +18,7 @@ mutable struct BlackboxTangentData
     f::Float64
     h::Vector{Float64}
     g::Vector{Float64}
+    success::Bool
 end
 
 get_data_d(TS::AbstractTangentSolver) = TS.data_d
@@ -63,12 +66,20 @@ function retract_eval_store!(
         if is_point_dispatcher(M, Rpv; tol_eqs = εeqs)
             fRpv = get_cost(M, mco, Rpv)
             gRpv = g(Rpv) # In the implementation, no inequalities <=> g(p) = Float64[], so it will be empty in case n_ineqs=0.
+            # Non-finite values (e.g. the objective evaluated outside its domain) make the evaluation a failure. They are stored
+            # as FAILURE_MAX so that the history never holds NaN: argmin would select it as the best point.
+            success = isfinite(fRpv) && all(isfinite, gRpv)
+            if !success
+                fRpv = FAILURE_MAX
+                gRpv = fill(FAILURE_MAX, n_ineqs)
+            end
         else
             fRpv = FAILURE_MAX
             gRpv = fill(FAILURE_MAX, n_ineqs)
+            success = false
         end
         hRpv = eval_defining_function(M, Rpv)
-        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv, success)
 
         _store_eval_data!(TS, eval_data)
 
@@ -79,7 +90,7 @@ function retract_eval_store!(
         fRpv = FAILURE_MAX
         gRpv = fill(FAILURE_MAX, n_ineqs)
         hRpv = eval_defining_function(M, Rpv)
-        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv)
+        eval_data = BlackboxTangentData(d, Rpv, fRpv, hRpv, gRpv, false)
 
         _store_eval_data!(TS, eval_data)
 

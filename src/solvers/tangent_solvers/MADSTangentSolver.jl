@@ -53,7 +53,12 @@ function _build_nomad_problem(B::ProgressiveBarrier, q::Int, n_ineqs::Int, bb, n
     return problem
 end
 
+"""
+A failed evaluation (see [`BlackboxTangentData`](@ref)) is reported to NOMAD as such, so that NOMAD discards it (passing NaN
+as a value would make NOMAD throw). It still counts towards the budget, as DFRO counts it as well.
+"""
 function format_eval_data(MTS::MADSTangentSolver, eval_data::BlackboxTangentData)
+    eval_data.success || return (false, true, fill(FAILURE_MAX, 1 + length(eval_data.g)))
     return (true, true, [eval_data.f ; eval_data.g])
 end
 
